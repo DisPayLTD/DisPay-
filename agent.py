@@ -12,9 +12,9 @@ from tabulate import tabulate
 api = flutter.SECRET_KEY
 llm_api = config.API_KEY
 @tool
-def send_money(account_number:List[str],amount:List[float],narration:List[str],bank_code:List[str]):
+def send_money(bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
   """ Use this tool to send money """
-  bank_code = {
+  bank_codes = {
   "Access Bank":"044",
   "Ecobank":"050",
   "Fidelity Bank":"070",
@@ -40,7 +40,8 @@ def send_money(account_number:List[str],amount:List[float],narration:List[str],b
 "Authorization" : f"Bearer {api}",
 "Content-Type": "application/json"
 }
-  for account_number,bank_code,amount,narration in zip(account_number,bank_code, amount, narration):
+  for account_number,bank_code,amount,narration in zip(account_number,bank_name, amount, narration):
+    bank_code = bank_codes.get(bank_name)
     payload = {
     "account_number":account_number,
     "account_bank": bank_code,
