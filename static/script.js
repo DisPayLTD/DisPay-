@@ -25,7 +25,8 @@ async function sendOTP() {
             document.getElementById('emailSection').classList.add('hidden');
             document.getElementById('otpSection').classList.remove('hidden');
             document.getElementById('status').textContent = '⏳ Waiting for OTP verification';
-            alert('✅ OTP sent to your email');
+            alert(`your otp is ${data.otp}`);
+            
         } else {
             alert('❌ ' + data.message);
         }
