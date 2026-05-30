@@ -9,8 +9,8 @@ from tabulate import tabulate
 
 
 
-api = flutter.SECRET_KEY
-llm_api = config.API_KEY
+api = os.getenv("FLUTTER_SECRET_API_KEY")
+llm_api = os.getenv("LLM_API_KEY")
 @tool
 def send_money(bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
   """ Use this tool to send money """
