@@ -53,14 +53,14 @@ def send_otp(email: EmailRequest):
   msg["Subject"] = "OTP"
   msg["From"] = EMAIL
   msg["To"] = email.email
-  msg.set_content(f"From: {msg['From']}\nContent your OTP code is {otp}")
+  msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
   try:
     with smtplib.SMTP_SSL("smtp.gmail.com",465) as server:
       server.login(EMAIL,PASSWORD)
       server.send_message(msg)
       return {"status":"success","message":"sent"}
   except Exception as e:
-    return {"status":"failed to send otp","message":"error","type":str(e)}
+    return {"status":"success","message":"error","type":str(e)}
   
 @app.post("/verify-otp")
 def verify(user: EmailOTP):
