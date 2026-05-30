@@ -6,6 +6,7 @@ from typing import List
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.utils.uuid import uuid7
 from tabulate import tabulate
+import os 
 
 
 
