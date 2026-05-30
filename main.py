@@ -60,7 +60,7 @@ def send_otp(email: EmailRequest):
       server.send_message(msg)
       return {"status":"success","message":"sent"}
   except Exception as e:
-    return {"status":"success","message":"error","type":str(e)}
+    return {"status":"failed","message":f"walid your culprit {str(e)}","type":str(e)}
   
 @app.post("/verify-otp")
 def verify(user: EmailOTP):
