@@ -1,4 +1,4 @@
-From fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from agent import SalaryAgentPayer
 from agent import tools
