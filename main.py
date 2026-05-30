@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from agent import SalaryAgentPayer
 from agent import tools
@@ -9,8 +10,10 @@ import smtplib
 import os
 
 
+
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
