@@ -31,7 +31,7 @@ class EmailOTP(BaseModel):
     email: str  
     otp: str
   
-@app.post("/send_money")
+@app.post("/send-money")
 def send_money(command:Command):
   comm = agent.command(command.command)
   return comm
@@ -39,7 +39,7 @@ def send_money(command:Command):
 
 user_code = {}
 
-@app.post("/send_otp")
+@app.post("/send-otp")
 def send_otp(email: EmailRequest):
   msg = EmailMessage()
   secret = pyotp.random_base32()
@@ -61,7 +61,7 @@ def send_otp(email: EmailRequest):
   
   return otp
   
-@app.post("/verify_otp")
+@app.post("/verify-otp")
 def verify(user: EmailOTP):
   if not user_code.get(user.email):
     return {"Mesage":"No Secret key" }
