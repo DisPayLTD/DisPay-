@@ -58,11 +58,9 @@ def send_otp(email: EmailRequest):
     with smtplib.SMTP_SSL("smtp.gmail.com",465) as server:
       server.login(EMAIL,PASSWORD)
       server.send_message(msg)
-      return {"status":"success","Message":"sent"}
+      return {"status":"success","message":"sent"}
   except Exception as e:
-    return {"Message":"error","type":str(e)}
-  
-  return otp
+    return {"status":"failed to send otp","message":"error","type":str(e)}
   
 @app.post("/verify-otp")
 def verify(user: EmailOTP):
