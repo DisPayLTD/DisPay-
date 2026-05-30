@@ -30,7 +30,7 @@ async function sendOTP() {
             alert('❌ ' + data.message);
         }
     } catch (error) {
-        alert('❌ Error: ' + error);
+        alert('❌ Error: ' + data.message);
     }
 }
 
