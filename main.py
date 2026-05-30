@@ -22,8 +22,14 @@ def home():
 agent = SalaryAgentPayer(tools)
 
 class Command(BaseModel):
-  command:str
-  otp:str
+    command: str 
+
+class EmailRequest(BaseModel):
+    email: str 
+
+class EmailOTP(BaseModel):
+    email: str  
+    otp: str
   
 @app.post("/send_money")
 def send_money(command:Command):
@@ -34,15 +40,16 @@ def send_money(command:Command):
 user_code = {}
 
 @app.post("/send_otp")
-def send_otp():
+def send_otp(email: EmailRequest):
   msg = EmailMessage()
   secret = pyotp.random_base32()
-  user_code["secret"] = secret
+  
   totp = pyotp.TOTP(secret,interval = 300)
   otp = totp.now()
+  user_code[email.email] = {"secret":secret,"otp":otp}
   msg["Subject"] = "OTP"
   msg["From"] = EMAIL
-  msg["To"] = "walidsagir27@gmail.com"
+  msg["To"] = email.email
   msg.set_content(f"From: {msg['From']}\nContent your OTP code is {otp}")
   try:
     with smtplib.SMTP_SSL("smtp.gmail.com",465) as server:
@@ -55,12 +62,12 @@ def send_otp():
   return otp
   
 @app.post("/verify_otp")
-def verify(comm:Command):
-  if not user_code.get("secret"):
+def verify(user: EmailOTP):
+  if not user_code.get(user.email):
     return {"Mesage":"No Secret key" }
-  otp = comm.otp
-  totp = pyotp.TOTP(user_code.get("secret"),interval = 300)
+  otp = user.otp
+  totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
   val = totp.verify(otp)
   if val:
-    del user_code["secret"]
+    del user_code[user.email]
   return val
