@@ -13,7 +13,7 @@ async function sendOTP() {
     }
     
     try {
-        const res = await fetch('/api/send-otp', {
+        const res = await fetch('/send-otp', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email: userEmail})
@@ -44,7 +44,7 @@ async function verifyOTP() {
     }
     
     try {
-        const res = await fetch('/api/verify-otp', {
+        const res = await fetch('/verify-otp', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email: userEmail, otp: otp})
@@ -85,7 +85,7 @@ async function executePayment() {
     btn.disabled = true;
     
     try {
-        const res = await fetch('/api/pay', {
+        const res = await fetch('/send-money', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({command: command})
