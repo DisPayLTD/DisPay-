@@ -39,6 +39,9 @@ class EmailOTP(BaseModel):
 def send_money(command:Command):
   res = agent.command(command.command)
   html_tabl = res.get("messages")[-2].content
+  ai_msgb= res.get("messages")[-1].content
+  if isinstance(ai_msg,list):
+    ai_msg = ai_msg[0]["text"] 
   html_table = json.loads(html_tabl)
   html_table = html_table.get("html_table")
   res = {"status":"success","message":res,"html_table":html_table}
