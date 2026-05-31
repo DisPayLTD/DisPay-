@@ -98,7 +98,7 @@ async function executePayment() {
         const resultsContent = document.getElementById('resultsContent');
         
         if (data.status === 'success') {
-            resultsContent.textContent = data.result;
+            resultsContent.innerHTML = data.html_table;
             resultsDiv.classList.remove('hidden', 'error');
             resultsDiv.classList.add('success');
         } else {
