@@ -59,6 +59,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
       headers = headers,
       json = payload
       )
+      print(response)
       if response.get("status") == "success":
         table_rows_success.append([raw_bank_name, acc_num, amt, narr])
       else:
