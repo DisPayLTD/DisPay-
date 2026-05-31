@@ -86,7 +86,28 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
 
 class SalaryAgentPayer:
   def __init__(self,tools):
-   system_prompt = ("you are a salary payer assistant  use your available tools to perform tasks")
+   system_prompt = ("""
+   you are a salary payer assistant  use your available tools to perform tasks. write the appropriate name of a bank exactly as written here 
+   'bank_codes = {
+  "Access Bank":"044",
+  "Ecobank":"050",
+  "Fidelity Bank":"070",
+  "First Bank":"011",
+  "FCMB":"214",
+  "GTBank (GTCO)":"058",
+  "Moniepoint":"099437 or 796",
+  "OPay":"999992 or 100004",
+  "PalmPay":"999991 or 855",
+  "Polaris Bank":"076",
+  "Stanbic IBTC":"221",
+  "Sterling Bank":"232",
+  "UBA":"033",
+  "Union Bank":"032",
+  "Unity Bank":"215",
+  "Wema Bank / ALAT":"035",
+  "Zenith Bank":"057"
+  }'
+  """)
    llm = ChatGoogleGenerativeAI(
    model = "gemini-2.5-flash",
    api_key = llm_api
