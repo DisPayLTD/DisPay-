@@ -55,7 +55,7 @@ def send_otp(email: EmailRequest):
   msg["To"] = email.email
   msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
   try:
-    with smtplib.SMTP_SSL("smtp.gmail.com",465) as server:
+    with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 15) as server:
       server.login(EMAIL,PASSWORD)
       server.send_message(msg)
       return {"status":"success","message":"sent"}
