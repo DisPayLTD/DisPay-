@@ -2,7 +2,7 @@ const API = '';
 
 let userEmail = '';
 let isAuthenticated = false;
-const sendOtpBtn = document.getElementByClassName("send-otp-btn")[0]
+const sendOtpBtn = document.getElementByClassName("send-otp-btn")
         
 // Step 1: Send OTP
 async function sendOTP() {
@@ -14,8 +14,8 @@ async function sendOTP() {
     }
     
     try {
-        sendOtpBtn.textContent = `processing...`
-        sendOtpBtn.disable = true
+        sendOtpBtn[0].textContent = `processing...`
+        sendOtpBtn[0].disable = true
         const res = await fetch('/send-otp', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -37,8 +37,8 @@ async function sendOTP() {
         alert('❌ Error: ' + data.message);
     }
     finally{
-        sendOtpBtn.disable = false
-        sednOtpBtn.textContent = `Send Otp`
+        sendOtpBtn[0].disable = false
+        sednOtpBtn[0].textContent = `Send OTP`
     }
 }
 
