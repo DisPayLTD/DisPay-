@@ -80,7 +80,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
   "Processed" : len(responses),
   "Success" :len(success),
   "Failed":len(failed),
-  "html_table":table_rows_failed, #for now
+  "html_table": obj_success, #for now
   "Details_success": {
   "Account_number": [detail.get("data").get("account_number") for detail in success],
   "Transaction_ID": [detail.get("data").get("id") for detail in success],
