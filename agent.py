@@ -135,12 +135,8 @@ class SalaryAgentPayer:
    },
    config = self.config
    )
-   result = output["messages"][-1].content
-   if type(result)== list:
-     result = result[0]["text"]
 
-
-   return result
+   return output 
 
 
 tools = [send_money]
