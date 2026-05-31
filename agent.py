@@ -71,7 +71,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
       errors.append(f"error {e} has occured")
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
-  headers = ["Name","Account Number","Account Name"]
+  headers = ["Bank Name","Account Number","Amount","Narration"]
   suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]]
   obj_success = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
 
