@@ -107,7 +107,7 @@ async function executePayment() {
             resultsDiv.classList.add('error');
         }
     } catch (error) {
-        alert('❌ Error: ' + error);
+        alert('❌ walid the Error: ' + error);
     } finally {
         btn.textContent = 'Execute Payment';
         btn.disabled = false;
