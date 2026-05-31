@@ -41,7 +41,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
 "Authorization" : f"Bearer {api}",
 "Content-Type": "application/json"
 }
-  for account_number,bank_code,amount,narration in zip(account_number,bank_name, amount, narration):
+  for account_number,bank_name,amount,narration in zip(account_number,bank_name, amount, narration):
     bank_code = bank_codes.get(bank_name)
     payload = {
     "account_number":account_number,
