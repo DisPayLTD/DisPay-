@@ -72,4 +72,4 @@ def verify(user: EmailOTP):
   val = totp.verify(otp)
   if val:
     del user_code[user.email]
-  return val
+  return {"authenticated":val}
