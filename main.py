@@ -37,7 +37,9 @@ class EmailOTP(BaseModel):
 @app.post("/send-money")
 def send_money(command:Command):
   comm = agent.command(command.command)
-  return {"status":"success","message":comm}
+  res = {"status":"success","message":comm}
+  print(comm)
+  return res
 
 
 user_code = {}
