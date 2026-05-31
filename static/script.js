@@ -14,14 +14,14 @@ async function sendOTP() {
     }
     
     try {
-        sendOtpBtn[0].textContent = `processing...`
-        sendOtpBtn[0].disable = true
+        
         const res = await fetch('/send-otp', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email: userEmail})
         });
-        
+        sendOtpBtn[0].textContent = `processing...`
+        sendOtpBtn[0].disable = true
         const data = await res.json();
         
         if (data.status === 'success') {
