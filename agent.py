@@ -36,6 +36,8 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
 }
   errors = []
   responses = []
+  table_rows_success = []
+  table_rows_failed = []
   url = "https://api.flutterwave.com/v3"
   headers = {
 "Authorization" : f"Bearer {api}",
@@ -43,6 +45,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
 }
   for account_number,bank_name,amount,narration in zip(account_number,bank_name, amount, narration):
     bank_code = bank_codes.get(bank_name)
+    
     payload = {
     "account_number":account_number,
     "account_bank": bank_code,
@@ -56,6 +59,10 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
       headers = headers,
       json = payload
       )
+      if response.get("status") == "success":
+        table_rows_success.append([raw_bank_name, acc_num, amt, narr])
+      else:
+        table_rows_failed.append([raw_bank_name, acc_num, amt, narr])
       responses.append(response.json())
     except requests.exception.RequestException as e:
       errors.append(f"error {e} has occured")
@@ -63,14 +70,14 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
   failed =  [response for response in responses if response["status"] == "error"]
   headers = ["Name","Account Number","Account Name"]
   suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]]
-  #obj_success = tabulate(success,headers = headers,tblfmt = "html")
+  obj_success = tabulate(table_rows_failed,headers = headers,tblfmt = "html")
 
   return {
   "Total_transactions": len(account_number),
   "Processed" : len(responses),
   "Success" :len(success),
   "Failed":len(failed),
-  "sucess_data":suc_data,
+  "html_table":table_rows_failed, #for now
   "Details_success": {
   "Account_number": [detail.get("data").get("account_number") for detail in success],
   "Transaction_ID": [detail.get("data").get("id") for detail in success],
