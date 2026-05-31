@@ -2,7 +2,8 @@ const API = '';
 
 let userEmail = '';
 let isAuthenticated = false;
-
+const sendOtpBtn = document.getElementByClassName("send-otp-btn")[0]
+        
 // Step 1: Send OTP
 async function sendOTP() {
     userEmail = document.getElementById('email').value;
@@ -13,6 +14,8 @@ async function sendOTP() {
     }
     
     try {
+        sendOtpBtn.textContent = `processing...`
+        sendOtpBtn.disable = true
         const res = await fetch('/send-otp', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -32,6 +35,10 @@ async function sendOTP() {
         }
     } catch (error) {
         alert('❌ Error: ' + data.message);
+    }
+    finally{
+        sendOtpBtn.disable = false
+        sednOtpBtn.textContent = `Send Otp`
     }
 }
 
@@ -107,7 +114,7 @@ async function executePayment() {
             resultsDiv.classList.add('error');
         }
     } catch (error) {
-        alert('❌ walid the Error: ' + error);
+        alert('❌ walid the Error: ' + error + `\nand the ai message is ${data.ai_msg}`);
     } finally {
         btn.textContent = 'Execute Payment';
         btn.disabled = false;
