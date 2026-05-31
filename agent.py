@@ -64,7 +64,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
       else:
         table_rows_failed.append([raw_bank_name, acc_num, amt, narr])
       responses.append(response.json())
-    except requests.exception.RequestException as e:
+    except requests.exceptions.RequestException as e:
       errors.append(f"error {e} has occured")
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
