@@ -62,8 +62,8 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
   headers = ["Name","Account Number","Account Name"]
-  suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in responses]]
-  obj_success = tabulate(success,headers = headers,tblfmt = "html")
+  suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]
+  #obj_success = tabulate(success,headers = headers,tblfmt = "html")
 
   return {
   "Total_transactions": len(account_number),
