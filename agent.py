@@ -63,7 +63,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
       res_json = response.json()
       
       if res_json.get("status") == "success":
-        table_rows_success.append([raw_bank_name, acc_num, amt, narr])
+        table_rows_success.append([bank_name, account_num, amount, narration])
       else:
         table_rows_failed.append([bank_name, account_number, amount, narration])
       responses.append(response.json())
@@ -73,14 +73,17 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
   failed =  [response for response in responses if response["status"] == "error"]
   headers = ["Bank Name","Account Number","Amount","Narration"]
   suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]]
-  obj_success = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
-
+  
+  obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
+  obj_success = tabulate(table_rows_success,headers = headers,tablefmt = "html")
+  
   return {
   "Total_transactions": len(account_number),
   "Processed" : len(responses),
   "Success" :len(success),
   "Failed":len(failed),
-  "html_table": obj_success, #for now
+  "failed_html_table": obj_failed,
+  "success_html_table": obj_success,
   "Details_success": {
   "Account_number": [detail.get("data").get("account_number") for detail in success],
   "Transaction_ID": [detail.get("data").get("id") for detail in success],
