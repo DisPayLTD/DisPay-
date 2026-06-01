@@ -102,9 +102,14 @@ async function executePayment() {
         
         const resultsDiv = document.getElementById('results');
         const resultsContent = document.getElementById('resultsContent');
+        const successTransfers = document.getElementById("successTransfers");
+        const failedTransfers = document.getElementById("failedTransfers");
         
         if (data.status === 'success') {
-            resultsContent.innerHTML = data.html_table;
+            successTransfers.innerHTML = data.success_html_table;
+            failedTransfers.innerHTML = data.failed_html_table;
+            resultContent.innerHTML = data.ai_msg
+                
             resultsDiv.classList.remove('hidden', 'error');
             resultsDiv.classList.add('success');
         } else {
@@ -113,7 +118,7 @@ async function executePayment() {
             resultsDiv.classList.add('error');
         }
     } catch (error) {
-        alert('❌ walid the Error: ' + error + `\nand the ai message is ${data.ai_msg}`);
+        alert('❌ walid the Error: ' + error);
     } finally {
         btn.textContent = 'Execute Payment';
         btn.disabled = false;
