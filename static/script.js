@@ -102,13 +102,13 @@ async function executePayment() {
         
         const resultsDiv = document.getElementById('results');
         const resultsContent = document.getElementById('resultsContent');
-        const successTransfers = document.getElementById("successTransfers");
+        const successTransfers = document.getElementById("successTransfer");
         const failedTransfers = document.getElementById("failedTransfers");
         
         if (data.status === 'success') {
             successTransfers.innerHTML = data.success_html_table;
             failedTransfers.innerHTML = data.failed_html_table;
-            resultContent.innerHTML = data.ai_msg
+            resultsContent.innerHTML = data.ai_msg
                 
             resultsDiv.classList.remove('hidden', 'error');
             resultsDiv.classList.add('success');
