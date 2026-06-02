@@ -46,7 +46,7 @@ def send_money(command:Command):
   success_html_table = tools_output.get("success_html_table")
   failed_html_table = tools_output.get("failed_html_table")
  
-  res = {"status":"success","message":res,"succes_html_table": success_html_table,"failed_html_table": failed_html_table}
+  res = {"status":"success","ai_msg":ai_msg,"succes_html_table": success_html_table,"failed_html_table": failed_html_table}
   
   print(res)
   return res
