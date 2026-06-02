@@ -124,3 +124,47 @@ async function executePayment() {
         btn.disabled = false;
     }
 }
+// File Upload Function - ADDED ONLY
+async function uploadFile() {
+    const fileInput = document.getElementById('paymentFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select a file');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const btn = event.target;
+    btn.textContent = 'Processing...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch('/upload-file', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await res.json();
+        
+        const resultsDiv = document.getElementById('results');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        if (data.status === 'success') {
+            resultsContent.textContent = data.result;
+            resultsDiv.classList.remove('hidden', 'error');
+            resultsDiv.classList.add('success');
+        } else {
+            resultsContent.textContent = data.message;
+            resultsDiv.classList.remove('hidden', 'success');
+            resultsDiv.classList.add('error');
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error);
+    } finally {
+        btn.textContent = 'Upload and Process File';
+        btn.disabled = false;
+    }
+}
