@@ -269,3 +269,78 @@ textarea {
 .upload-section button {
     width: 100%;
     }
+
+
+/* SUCCESS TRANSFERS TABLE */
+#successTransfer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#successTransfer table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+}
+
+#successTransfer th,
+#successTransfer td {
+    padding: 15px 20px;
+    text-align: left;
+    border: 1px solid #ddd;
+    white-space: nowrap;
+}
+
+#successTransfer th {
+    background: #4caf50;
+    color: white;
+    font-weight: bold;
+}
+
+#successTransfer tr:nth-child(even) {
+    background: #f0f8f0;
+}
+
+/* FAILED TRANSFERS TABLE */
+#failedTransfers {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#failedTransfers table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+}
+
+#failedTransfers th,
+#failedTransfers td {
+    padding: 15px 20px;
+    text-align: left;
+    border: 1px solid #ddd;
+    white-space: nowrap;
+}
+
+#failedTransfers th {
+    background: #f44336;
+    color: white;
+    font-weight: bold;
+}
+
+#failedTransfers tr:nth-child(even) {
+    background: #fff5f5;
+}
+
+/* RESULTS CONTENT */
+#resultsContent {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    }
