@@ -158,42 +158,29 @@ input:focus, textarea:focus {
         font-size: 24px;
     }
   }
-/* Container element targeting your table layout */
-#resultsContent table {
-    width: 100%;
-    border-collapse: collapse; /* Merges borders into clean single lines */
-    margin-top: 15px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-/* Header Cells styling rules */
-#resultsContent th {
-    background-color: #2e7d32; /* Rich dark banking green */
-    color: #ffffff;
-    padding: 12px 14px;
-    text-align: left;
-    font-weight: 600;
-    border: 1px solid #1b5e20; /* Darker green row borders */
-}
-
-/* Individual Row Item Cells styling rules */
-#resultsContent td {
-    padding: 10px 14px;
-    color: #333333;
-    text-align: left;
-    border: 1px solid #e0e0e0; /* Clean, subtle gray grid dividers */
-}
-
-/* Zebra striping structure to easily distinguish row levels */
-#resultsContent tr:nth-child(even) {
-    background-color: #f8f9fa;
-}
-
-/* Dynamic row highlight visual guide on mouse movement */
-#resultsContent tr:hover {
-    background-color: #f1f3f4;
-    }
     
+
+
+
+
+    /* FILE UPLOAD STYLING - ADDED ONLY */
+input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+input[type="file"]::file-selector-button {
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: #5568d3;
+    }
