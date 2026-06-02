@@ -271,15 +271,13 @@ textarea {
     }
 
 
-/* SUCCESS TRANSFERS TABLE */
+/* SUCCESS TRANSFERS TABLE - FULL WIDTH */
 #successTransfer {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    width: 100%;
 }
 
 #successTransfer table {
     width: 100%;
-    min-width: 600px;
     border-collapse: collapse;
 }
 
@@ -288,7 +286,6 @@ textarea {
     padding: 15px 20px;
     text-align: left;
     border: 1px solid #ddd;
-    white-space: nowrap;
 }
 
 #successTransfer th {
@@ -301,15 +298,13 @@ textarea {
     background: #f0f8f0;
 }
 
-/* FAILED TRANSFERS TABLE */
+/* FAILED TRANSFERS TABLE - FULL WIDTH */
 #failedTransfers {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    width: 100%;
 }
 
 #failedTransfers table {
     width: 100%;
-    min-width: 600px;
     border-collapse: collapse;
 }
 
@@ -318,7 +313,6 @@ textarea {
     padding: 15px 20px;
     text-align: left;
     border: 1px solid #ddd;
-    white-space: nowrap;
 }
 
 #failedTransfers th {
@@ -331,11 +325,9 @@ textarea {
     background: #fff5f5;
 }
 
-/* RESULTS CONTENT */
+/* RESULTS CONTENT - FULL WIDTH */
 #resultsContent {
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
     white-space: pre-wrap;
     word-wrap: break-word;
     padding: 20px;
