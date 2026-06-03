@@ -26,7 +26,8 @@ def home():
 agent = SalaryAgentPayer(tools)
 
 class Command(BaseModel):
-    command: str 
+    command: str
+    sessionUUID: str
 
 class EmailRequest(BaseModel):
     email: str 
@@ -37,7 +38,7 @@ class EmailOTP(BaseModel):
   
 @app.post("/send-money")
 def send_money(command:Command):
-  res = agent.command(command.command)
+  res = agent.command(command.command, sessionUUID = command.sessionUUID)
   output = res.get("messages",[])
   tools_output = "{}"
   for msg in reversed(output):
