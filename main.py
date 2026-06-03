@@ -38,7 +38,7 @@ class EmailOTP(BaseModel):
   
 @app.post("/send-money")
 def send_money(command:Command):
-  res = agent.command(command.command, sessionUUID = command.sessionUUID)
+  res = agent.command(command.command, uuid = command.sessionUUID)
   output = res.get("messages",[])
   tools_output = "{}"
   for msg in reversed(output):
