@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from email.message import EmailMessage
 import pyotp
 import smtplib
-from starlette.middleware.session import SessionMiddleware 
+from starlette.middleware.sessions import SessionMiddleware 
 import os
 import uuid 
 
