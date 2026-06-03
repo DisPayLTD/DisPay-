@@ -81,7 +81,7 @@ async function executePayment() {
     }
     
     const command = document.getElementById('command').value;
-    
+    const sessionUUID = crypto.randomUUID()
     if (!command) {
         alert('Please enter payment command');
         return;
@@ -95,7 +95,7 @@ async function executePayment() {
         const res = await fetch('/send-money', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({command: command})
+            body: JSON.stringify({command: command, sessionUUID:sessionUUID})
         });
         
         const data = await res.json();
