@@ -55,7 +55,8 @@ def send_money(command:Command,request: Request):
   
   ai_msg = res.get("messages")[-1].content
   if isinstance(ai_msg,list):
-    ai_msg = ai_msg[0]["text"] 
+    ai_msg = ai_msg[0]["text"]
+  ai_msg = re.sub(r"\*\*(.*?)\*\*",r"<b>\1</b>",str(ai_msg))
   tools_output = json.loads(tools_output)
   success_html_table = tools_output.get("success_html_table")
   failed_html_table = tools_output.get("failed_html_table")
