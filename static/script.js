@@ -3,7 +3,9 @@ const API = '';
 let userEmail = '';
 let isAuthenticated = false;
 const sendOtpBtn = document.getElementsByClassName("send-otp-btn")
-        
+const sessionUUID = crypto.randomUUID()
+
+
 // Step 1: Send OTP
 async function sendOTP() {
     userEmail = document.getElementById('email').value;
@@ -73,6 +75,8 @@ async function verifyOTP() {
     }
 }
 
+
+        
 // Step 3: Execute Payment
 async function executePayment() {
     if (!isAuthenticated) {
@@ -81,7 +85,7 @@ async function executePayment() {
     }
     
     const command = document.getElementById('command').value;
-    const sessionUUID = crypto.randomUUID()
+    
     if (!command) {
         alert('Please enter payment command');
         return;
