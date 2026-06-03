@@ -10,3 +10,4 @@ pydantic
 pyotp
 tabulate
 gunicorn
+itsdangerous
