@@ -98,7 +98,7 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
 
 
 class SalaryAgentPayer:
-  def __init__(self,tools):
+  def __init__(self,tools, sessionUUID):
    system_prompt = ("""
 Your name is Paytron, a high-precision, strict AI Salary Payment Agent. Your primary function is to process payroll transactions safely and accurately using your available tools.
 
@@ -135,6 +135,7 @@ CRITICAL OPERATIONAL RULES FOR PAYTRON:
    api_key = llm_api
    )
    self.checkpointer = InMemorySaver()
+   self.uuid = sessionUUID
 
    self.agent = create_agent(
    model = llm,
@@ -148,7 +149,7 @@ CRITICAL OPERATIONAL RULES FOR PAYTRON:
    {
    "messages":[{"role":"user","content":prompt}]
    },
-   config = {"configurable":{"thread_id":str(uuid7())}}
+   config = {"configurable":{"thread_id":self.uuid}}
    )
 
    return output 
