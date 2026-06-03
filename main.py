@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request 
 import json
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -8,14 +8,17 @@ from pydantic import BaseModel
 from email.message import EmailMessage
 import pyotp
 import smtplib
+from starlett.middleware.session import SessionMiddleware 
 import os
+import uuid 
 
 
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
+my_secret_key = os.getenv("MY_SECRET_KEY")
+app.add_middleware(SessionMiddleware, secret_key = my_secret_key)
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
 @app.get("/")
@@ -37,7 +40,11 @@ class EmailOTP(BaseModel):
     otp: str
   
 @app.post("/send-money")
-def send_money(command:Command):
+def send_money(command:Command,request: Request):
+  session_id = request.session.get("thread_id")
+  if not session_id:
+    session_id = str(uuid.uuid4())
+    request.session.get("thread_id") = session_id
   res = agent.command(command.command, uuid = command.sessionUUID)
   output = res.get("messages",[])
   tools_output = "{}"
