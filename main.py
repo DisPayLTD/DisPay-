@@ -38,7 +38,13 @@ class EmailOTP(BaseModel):
 @app.post("/send-money")
 def send_money(command:Command):
   res = agent.command(command.command)
-  tools_output = res.get("messages")[-2].content
+  output = res.get("messages",[])
+  tools_output = "{}"
+  for msg in reversed(output):
+    if "success_html_table" in msg.content:
+      tools_output = msg.content
+      break
+  
   ai_msg = res.get("messages")[-1].content
   if isinstance(ai_msg,list):
     ai_msg = ai_msg[0]["text"] 
@@ -46,7 +52,7 @@ def send_money(command:Command):
   success_html_table = tools_output.get("success_html_table")
   failed_html_table = tools_output.get("failed_html_table")
  
-  res = {"status":"success","ai_msg":ai_msg,"succes_html_table": success_html_table,"failed_html_table": failed_html_table}
+  res = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
   
   print(res)
   return res
