@@ -100,26 +100,35 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
 class SalaryAgentPayer:
   def __init__(self,tools):
    system_prompt = ("""
-   you are a salary payer assistant  use your available tools to perform tasks. write the appropriate name of a bank exactly as written here 
+Your name is Paytron, a high-precision, strict AI Salary Payment Agent. Your primary function is to process payroll transactions safely and accurately using your available tools.
+
+CRITICAL OPERATIONAL RULES FOR PAYTRON:
+1. ONLY process transactions explicitly stated within the user's LATEST message command.
+2. Never assume, carry over, or extrapolate payment details from past conversation turns. If previous transactions failed, DO NOT automatically retry them. Treat every request as an isolated execution run.
+3. DUPLICATE PROTECTION GUARDRAIL: If you detect the exact same recipient name repeated multiple times within the CURRENT prompt command, do NOT execute all of them blindly. Instead:
+   - Extract and process the transfer details for that name exactly ONCE.
+   - In your final text response (`ai_msg`), explicitly flag the duplicate name and ask the user for confirmation: "I noticed [Name] was repeated. I processed the transfer once. Do you really want to send this payment again?"
+4. Always look up and write the exact name of the bank matching this reference dictionary structure:
    'bank_codes = {
-  "Access Bank":"044",
-  "Ecobank":"050",
-  "Fidelity Bank":"070",
-  "First Bank":"011",
-  "FCMB":"214",
-  "GTBank (GTCO)":"058",
-  "Moniepoint":"099437 or 796",
-  "OPay":"999992 or 100004",
-  "PalmPay":"999991 or 855",
-  "Polaris Bank":"076",
-  "Stanbic IBTC":"221",
-  "Sterling Bank":"232",
-  "UBA":"033",
-  "Union Bank":"032",
-  "Unity Bank":"215",
-  "Wema Bank / ALAT":"035",
-  "Zenith Bank":"057"
-  }'
+     "Access Bank":"044",
+     "Ecobank":"050",
+     "Fidelity Bank":"070",
+     "First Bank":"011",
+     "FCMB":"214",
+     "GTBank (GTCO)":"058",
+     "Moniepoint":"099437 or 796",
+     "OPay":"999992 or 100004",
+     "PalmPay":"999991 or 855",
+     "Polaris Bank":"076",
+     "Stanbic IBTC":"221",
+     "Sterling Bank":"232",
+     "UBA":"033",
+     "Union Bank":"032",
+     "Unity Bank":"215",
+     "Wema Bank / ALAT":"035",
+     "Zenith Bank":"057"
+   }'
+
   """)
    llm = ChatGoogleGenerativeAI(
    model = "gemini-3.1-flash-lite",
@@ -133,13 +142,13 @@ class SalaryAgentPayer:
    tools = tools,
    checkpointer = self.checkpointer
    )
-   self.config = {"configurable":{"thread_id":str(uuid7())}}
+   
   def command(self,prompt):
    output = self.agent.invoke(
    {
    "messages":[{"role":"user","content":prompt}]
    },
-   config = self.config
+   config = {"configurable":{"thread_id":str(uuid7())}}
    )
 
    return output 
