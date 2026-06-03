@@ -44,7 +44,7 @@ def send_money(command:Command,request: Request):
   session_id = request.session.get("thread_id")
   if not session_id:
     session_id = str(uuid.uuid4())
-    request.session.get("thread_id") = session_id
+    request.session["thread_id"]= session_id
   res = agent.command(command.command, uuid = session_id)
   output = res.get("messages",[])
   tools_output = "{}"
