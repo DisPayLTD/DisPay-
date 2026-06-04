@@ -135,7 +135,7 @@ def login(details:Login,db: Session= Depends(get_db)):
   verified = False
   try:
     hash_password = hp.verify(saved_password, password)
-    return RedirectResponse("/agent")
+    return RedirectResponse("/agent",status_code=status.HTTP_303_SEE_OTHER)
   except Exception:
     verified = False
     raise HTTPException(
