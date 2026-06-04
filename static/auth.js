@@ -104,7 +104,7 @@ async function handleSignup() {
             })
         });
         
-        if (res.ok) {
+        if (res.status == 'success') {
             showSuccess('✅ Account created successfully! Switching to login...');
             setTimeout(() => {
                 toggleForm();
