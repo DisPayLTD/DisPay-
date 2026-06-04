@@ -14,3 +14,4 @@ itsdangerous
 starlette 
 sqlalchemy
 argon2-cffi 
+pydantic[email]
