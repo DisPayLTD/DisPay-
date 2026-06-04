@@ -43,14 +43,14 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
 "Authorization" : f"Bearer {api}",
 "Content-Type": "application/json"
 }
-  for account_number,bank_name,amount,narration in zip(account_number,bank_name, amount, narration):
-    bank_code = bank_codes.get(bank_name)
+  for acc,bank,amt,narr in zip(account_number,bank_name, amount, narration):
+    bank_code = bank_codes.get(bank)
     
     payload = {
-    "account_number":account_number,
+    "account_number":acc,
     "account_bank": bank_code,
-    "amount": amount,
-    "narration": narration,
+    "amount": amt,
+    "narration": narr,
     "currency": "NGN"
     }
     try:
@@ -63,9 +63,9 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
       res_json = response.json()
       
       if res_json.get("status") == "success":
-        table_rows_success.append([bank_name, account_num, amount, narration])
+        table_rows_success.append([bank, acc, amt, narr])
       else:
-        table_rows_failed.append([bank_name, account_number, amount, narration])
+        table_rows_failed.append([bank, acc, amt, narr])
       responses.append(response.json())
     except requests.exceptions.RequestException as e:
       errors.append(f"error {e} has occured")
