@@ -86,6 +86,12 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
   first_name = details.first_name
   last_name = details.last_name
   hash_password = ph.hash(password)
+  existing_user = db.query(Users).filter(Users.email == email).first()
+  if existing_user:
+      raise HTTPException(
+          status_code = status.HTTP_400_BAD_REQUEST,
+          detail = "User already exists"
+      )
   try:
       user = Users(
           email = email,
@@ -98,15 +104,18 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
       )
       db.add(user)
       db.commit()
+      db.refresh(user)
       return {
             "status": "success",
             "message": "Account created successfully"
       }
-  except Exception as e:
-      return {
-          "status":"failed" ,
-          "message": str(e)
-      }
+  except Exception:
+      db.rollback()
+      raise HTTPException(
+          status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+          detail = "failed to save data to database"
+      )
+      return {"status":"failed","message":"failed to save data to database"}
 
 @app.post("/login")
 def login(details:Login,db: Session= Depends(get_db)):
