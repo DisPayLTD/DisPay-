@@ -86,21 +86,27 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
   first_name = details.first_name
   last_name = details.last_name
   hash_password = ph.hash(password)
-  user = Users(
-   email = email,
-   password = hash_password,
-   phone_number = phone_number,
-   bvn = bvn,
-   nin = nin,
-   first_name = first_name,
-   last_name = last_name
-  )
-  db.add(user)
-  db.commit()
-  return {
+  try:
+      user = Users(
+          email = email,
+          password = hash_password,
+          phone_number = phone_number,
+          bvn = bvn,
+          nin = nin,
+          first_name = first_name,
+          last_name = last_name
+      )
+      db.add(user)
+      db.commit()
+      return {
             "status": "success",
             "message": "Account created successfully"
-    }
+      }
+  except Exception as e:
+      return {
+          "status":"failed" ,
+          "message": str(e)
+      }
 
 @app.post("/login")
 def login(details:Login,db: Session= Depends(get_db)):
