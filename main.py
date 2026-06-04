@@ -97,6 +97,10 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
   )
   db.add(user)
   db.commit()
+  return {
+            "status": "success",
+            "message": "Account created successfully"
+    }
 
 @app.post("/login")
 def login(details:Login,db: Session= Depends(get_db)):
