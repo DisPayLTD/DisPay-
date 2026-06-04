@@ -12,3 +12,4 @@ tabulate
 gunicorn
 itsdangerous
 starlette 
+sqlalchemy
