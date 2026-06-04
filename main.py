@@ -113,7 +113,7 @@ def login(details:Login,db: Session= Depends(get_db)):
   email = details.email
   password = details.password
   user = db.query(Users).filter(Users.email == email).first()
-    print("Walid: ",user)
+  print("Walid: ",user)
   if not user:
     raise HTTPException(
       status_code = status.HTTP_401_UNAUTHORIZED,
