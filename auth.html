@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remitron - Authentication</title>
+    <link rel="stylesheet" href="/static/auth.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-box">
+            <div class="logo">💳 Remitron</div>
+            
+            <!-- LOGIN FORM -->
+            <div id="loginForm" class="form-section">
+                <h2>Login</h2>
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button onclick="handleLogin()" class="btn btn-primary">Login</button>
+                <p class="toggle-text">Don't have an account? <a onclick="toggleForm()">Sign Up</a></p>
+            </div>
+
+            <!-- SIGNUP FORM -->
+            <div id="signupForm" class="form-section hidden">
+                <h2>Create Account</h2>
+                <input type="text" id="firstName" placeholder="First Name" required>
+                <input type="text" id="lastName" placeholder="Last Name" required>
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Password" required>
+                <input type="tel" id="phone" placeholder="Phone Number" required>
+                <input type="text" id="nin" placeholder="NIN (National ID)" required>
+                <input type="text" id="bvn" placeholder="BVN (Optional)">
+                <button onclick="handleSignup()" class="btn btn-success">Sign Up</button>
+                <p class="toggle-text">Already have an account? <a onclick="toggleForm()">Login</a></p>
+            </div>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+            <div id="successMessage" class="success-message hidden"></div>
+        </div>
+    </div>
+
+    <script src="/static/auth.js"></script>
+</body>
+</html>
