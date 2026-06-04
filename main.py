@@ -124,7 +124,7 @@ def login(details:Login,db: Session= Depends(get_db)):
   email = details.email
   password = details.password
   user = db.query(Users).filter(Users.email == email).first()
-  print("Walid: ",user)
+  
   if not user:
     raise HTTPException(
       status_code = status.HTTP_401_UNAUTHORIZED,
@@ -135,6 +135,7 @@ def login(details:Login,db: Session= Depends(get_db)):
   verified = False
   try:
     hash_password = hp.verify(saved_password, password)
+    print("Walid this user exists and he enters his password right ")
     return {"status":"success","message":"login successfully" ,"url":"/agent"}
   except Exception:
     verified = False
