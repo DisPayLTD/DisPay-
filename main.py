@@ -109,13 +109,13 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
             "status": "success",
             "message": "Account created successfully"
       }
-  except Exception:
+  except Exception as e:
       db.rollback()
       raise HTTPException(
           status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
           detail = "failed to save data to database"
       )
-      return {"status":"failed","message":"failed to save data to database"}
+      return {"status":"failed","message":str(e)}
 
 @app.post("/login")
 def login(details:Login,db: Session= Depends(get_db)):
