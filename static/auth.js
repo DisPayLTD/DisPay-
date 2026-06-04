@@ -123,6 +123,7 @@ async function handleSignup() {
         }
     } catch (error) {
         showError('❌ Error: ' + error.message);
+        alert(res.message);
     }
 }
 
