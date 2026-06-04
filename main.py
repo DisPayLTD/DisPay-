@@ -59,6 +59,21 @@ class SignupRequest(BaseModel):
 def startup():
   init_db()
 
+
+@app.get("/")
+def index(request: Request):
+    """Redirect to auth or agent based on session"""
+    session = request.session
+    if "user_id" in session:
+        return RedirectResponse(url="/agent", status_code=302)
+    return RedirectResponse(url="/auth", status_code=302)
+
+@app.get("/auth")
+def auth_page():
+    """Serve authentication page"""
+    with open("templates/auth.html") as f:
+        return HTMLResponse(content=f.read())
+        
 @app.post("/signup")
 def signup(details: SignupRequest,db:Session = Depends(get_db)):
   ph = PasswordHasher()
