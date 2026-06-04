@@ -16,7 +16,7 @@ class Users(Base):
 	last_name = Column(String,default = "Unknown")
 	email = Column(String)
 	nin = Column(String)
-	phone = Column(String)
+	phone_number = Column(String)
 	bvn = Column(String)
 	customer_id = Column(String)
 	account_number = Column(String)
