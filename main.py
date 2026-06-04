@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request 
+from fastapi import FastAPI, Request, Depends, HTTPException,status
 import json
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from agent import SalaryAgentPayer
 from agent import tools
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from email.message import EmailMessage
 import pyotp
 import smtplib
@@ -12,6 +12,9 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 import uuid
 import re
+from database import get_db, init_db,Users
+from sqlalchemy.orm import Session
+from argon2 import PasswordHasher 
 
 
 
@@ -20,12 +23,9 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 my_secret_key = os.getenv("MY_SECRET_KEY")
 app.add_middleware(SessionMiddleware, secret_key = my_secret_key)
+
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
-@app.get("/")
-def home():
-  with open("templates/index.html") as f:
-    return HTMLResponse(content = f.read())
 
 agent = SalaryAgentPayer(tools)
 
@@ -39,7 +39,78 @@ class EmailRequest(BaseModel):
 class EmailOTP(BaseModel):
     email: str  
     otp: str
+
+class Login(BaseModel):
+  email: EmailStr
+  password:str
+
+
+class SignupRequest(BaseModel):
+  first_name : str
+  last_name: str
+  email:EmailStr
+  password: str
+  nin: str
+  phone_number: str
+  bvn: str
+
+
+@app.on_event("startup")
+def startup():
+  init_db()
+
+@app.post("/signup")
+def signup(details: SignupRequest,db:Session = Depends(get_db)):
+  ph = PasswordHasher()
+  email = details.email
+  password = details.password
   
+  nin = details.nin
+  phone_number = details.phone_number
+  bvn = details.bvn
+  first_name = details.first_name
+  last_name = details.last_name
+  hash_password = ph.hash(password)
+  user = Users(
+   email = email,
+   password = hash_password,
+   phone_number = phone_number,
+   bvn = bvn,
+   nin = nin,
+   first_name = first_name,
+   last_name = last_name
+  )
+  db.add(user)
+  db.commit()
+
+@app.post("/login")
+def login(details:Login,db: Session= Depends(get_db)):
+  email = details.email
+  password = details.password
+  user = db.query(Users).filter(Users.email == email).first()
+  if not user:
+    raise HTTPException(
+      status_code = status.HTTP_401_UNAUTHORIZED,
+      detail = "Invalid password or email"
+     )
+  hp = PasswordHasher()
+  saved_password = user.password
+  verified = False
+  try:
+    hash_password = hp.verify(saved_password, password)
+    return RedirectResponse("/agent")
+  except Exception:
+    verified = False
+    raise HTTPException(
+      status_code = status.HTTP_401_UNAUTHORIZED,
+      detail = "Invalid Password or email"
+    )
+
+@app.get("/agent")
+def home():
+  with open("templates/index.html") as f:
+    return HTMLResponse(content = f.read())
+
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
   session_id = request.session.get("thread_id")
