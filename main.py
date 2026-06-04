@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException,status
+from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status
 import json
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -14,7 +14,9 @@ import uuid
 import re
 from database import get_db, init_db,Users
 from sqlalchemy.orm import Session
-from argon2 import PasswordHasher 
+from argon2 import PasswordHasher
+import pandas as pd
+
 
 
 
@@ -148,6 +150,29 @@ def login(details:Login,db: Session= Depends(get_db)):
 def home():
   with open("templates/index.html") as f:
     return HTMLResponse(content = f.read())
+
+@app.post("/upload-file")
+async def upload_file(file:UploadFile = File(...), request: Request):
+    content = await file.read()
+    file_type = None
+    filename = file.filename.lower()
+    if filename.endswith(".csv"):
+        content = pd.read_csv(io.BytesIO(content))
+        file_type = "csv"
+    elif filename.endswith(".xlsx") or filename.endswith(".xls"):
+        content = pd.read_excel(io.BytesIO(content))
+        file_type = "excel"
+    else:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = "document not supported only .csv and .xlsx are allowed"
+        )
+    df = content
+    data = [f"{idx + 1}. pay \"{row.name}\" \"{row.get('amount')} \" (NGN)  to  account number \"{row.get('account_number')}\"  \"{row.get('bank_name')}\" bank\n" for idx,row in df.iterrows()]
+    data = "".join(data)
+    return {"data": data}
+    
+    
 
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
