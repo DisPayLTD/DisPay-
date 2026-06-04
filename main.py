@@ -116,7 +116,7 @@ def login(details:Login,db: Session= Depends(get_db)):
   if not user:
     raise HTTPException(
       status_code = status.HTTP_401_UNAUTHORIZED,
-      detail = "Invalid password or email"
+      detail = "Invalid Email"
      )
   hp = PasswordHasher()
   saved_password = user.password
@@ -128,7 +128,7 @@ def login(details:Login,db: Session= Depends(get_db)):
     verified = False
     raise HTTPException(
       status_code = status.HTTP_401_UNAUTHORIZED,
-      detail = "Invalid Password or email"
+      detail = "Invalid Password "
     )
 
 @app.get("/agent")
