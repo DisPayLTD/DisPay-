@@ -154,7 +154,7 @@ async function uploadFile() {
         const data = await res.json();
         
         const resultsDiv = document.getElementById('results');
-        const resultsContent = document.getElementById('resultsContent');
+        const resultsContent = document.getElementById('command');
         
         if (data.status === 'success') {
             resultsContent.textContent = data.result;
