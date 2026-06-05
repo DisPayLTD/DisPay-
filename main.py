@@ -222,8 +222,10 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
 def send_money(command:Command,request: Request):
   session_id = request.session.get("thread_id")
   if not session_id:
-    session_id = str(uuid.uuid4())
-    request.session["thread_id"]= session_id
+    raise HTTPException(
+        status_code = status.HTTP_400_UNAUTHORIZED,
+        detail = "user is not logged in"
+    )
   res = agent.command(command.command, uuid = session_id)
   output = res.get("messages",[])
   tools_output = "{}"
