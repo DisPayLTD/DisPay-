@@ -220,7 +220,7 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
 
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
-  
+  session_id = request.session.get("thread_id")
   if not session_id:
     session_id = str(uuid.uuid4())
     request.session["thread_id"]= session_id
