@@ -1,7 +1,6 @@
 const API = '';
-alert("thankfully im alive ")
 let userEmail = '';
-//let isAuthenticated = false;
+let isAuthenticated = true;
 const sessionUUID = crypto.randomUUID()
 
 
