@@ -158,25 +158,48 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "Please login before attempting"
         )
-    content = await file.read()
-    file_type = None
-    filename = file.filename.lower()
-    if filename.endswith(".csv"):
-        content = pd.read_csv(io.BytesIO(content))
-        file_type = "csv"
-    elif filename.endswith(".xlsx") or filename.endswith(".xls"):
-        content = pd.read_excel(io.BytesIO(content))
-        file_type = "excel"
-    else:
-        raise HTTPException(
-            status_code = status.HTTP_400_BAD_REQUEST,
-            detail = "document not supported only .csv and .xlsx are allowed"
-        )
+    try:
+        content = await file.read()
+        file_type = None
+        filename = file.filename.lower()
+        if filename.endswith(".csv"):
+            content = pd.read_csv(io.BytesIO(content))
+            file_type = "csv"
+        elif filename.endswith(".xlsx") or filename.endswith(".xls"):
+            content = pd.read_excel(io.BytesIO(content))
+            file_type = "excel"
+        else:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = "document not supported only .csv and .xlsx are allowed"
+            )
+    except Exception as e:
+        return {"status":"failed","message": str(e)}
     df = content
     data = [f"{idx + 1}. pay \"{row.name}\" \"{row.get('amount')} \" (NGN)  to  account number \"{row.get('account_number')}\"  \"{row.get('bank_name')}\" bank\n" for idx,row in df.iterrows()]
     data = "".join(data)
-    print(data)
-    return {"status":"success","result": data,"message":"file processed successfully"}
+    session_id = request.session.get("thread_id")
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        request.session["thread_id"]= session_id
+        res = agent.command(data, uuid = session_id)
+        output = res.get("messages",[])
+        tools_output = "{}"
+    for msg in reversed(output):
+        if "success_html_table" in msg.content:
+            tools_output = msg.content
+            break
+    ai_msg = res.get("messages")[-1].content
+    if isinstance(ai_msg,list):
+        ai_msg = ai_msg[0]["text"]
+    ai_msg = re.sub(r"\*\*(.*?)\*\*",r"<b>\1</b>",str(ai_msg))
+    tools_output = json.loads(tools_output)
+    success_html_table = tools_output.get("success_html_table")
+    failed_html_table = tools_output.get("failed_html_table")
+    res = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
+    return res
+  
+  
     
     
 
