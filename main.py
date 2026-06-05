@@ -122,7 +122,7 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
       return {"status":"failed","message":str(e)}
 
 @app.post("/login")
-def login(details:Login,db: Session= Depends(get_db)):
+def login(details:Login, request: Request,db: Session= Depends(get_db)):
   email = details.email
   password = details.password
   user = db.query(Users).filter(Users.email == email).first()
@@ -138,6 +138,7 @@ def login(details:Login,db: Session= Depends(get_db)):
   try:
     hash_password = hp.verify(saved_password, password)
     print("Walid this user exists and he enters his password right ")
+    session_id = request.session.get("thread_id")
     return {"status":"success","message":"login successfully" ,"url":"/agent"}
   except Exception:
     verified = False
@@ -181,10 +182,10 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
     session_id = request.session.get("thread_id")
     if not session_id:
         session_id = str(uuid.uuid4())
-        request.session["thread_id"]= session_id
-        res = agent.command(data, uuid = session_id)
-        output = res.get("messages",[])
-        tools_output = "{}"
+    request.session["thread_id"]= session_id
+    res = agent.command(data, uuid = session_id)
+    output = res.get("messages",[])
+    tools_output = "{}"
     for msg in reversed(output):
         if "success_html_table" in msg.content:
             tools_output = msg.content
@@ -205,7 +206,7 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
 
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
-  session_id = request.session.get("thread_id")
+  
   if not session_id:
     session_id = str(uuid.uuid4())
     request.session["thread_id"]= session_id
