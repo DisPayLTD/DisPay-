@@ -162,8 +162,8 @@ async function uploadFile() {
             
             successTransfers.innerHTML = data.success_html_table;
             failedTransfers.innerHTML = data.failed_html_table;
-            resultsContent.innerHTML = data.ai_msg
-        
+            resultsContent.innerHTML = data.ai_msg;
+            alert("ai message"+ data.ai_msg);
             resultsDiv.classList.remove('hidden', 'error');
             resultsDiv.classList.add('success');
         } else {
