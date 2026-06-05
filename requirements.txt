@@ -1,4 +1,3 @@
-pip requirements
 langchain
 langchain-core
 langchain-google-genai
