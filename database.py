@@ -1,8 +1,9 @@
+import os
 from sqlalchemy import String,Float,create_engine,Column,Integer
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
-SQL_URL = "sqlite:///./remitron.db"
+SQL_URL = os.getenv("DATABASE_URL", "sqlite:///./remitron.db")
 
 
 
