@@ -1,5 +1,5 @@
 const API = '';
-
+alert("thankfully im alive ")
 let userEmail = '';
 //let isAuthenticated = false;
 const sessionUUID = crypto.randomUUID()
@@ -153,17 +153,13 @@ async function uploadFile() {
         });
         
         const data = await res.json();
-        const resultsContent = document.getElementById('resultsContent');
-        const successTransfers = document.getElementById("successTransfer");
-        const failedTransfers = document.getElementById("failedTransfers");
-        
+          
         const resultsDiv = document.getElementById('results');
         const resultsContent = document.getElementById('resultsContent');
         alert('walid your file is processed' + data.message);
         if (data.status === 'success') {
             //resultsContent.textContent = data.result;
-            successTransfers.innerHTML = data.success_html_table;
-            failedTransfers.innerHTML = data.failed_html_table;
+            
             resultsContent.innerHTML = data.ai_msg
             resultsDiv.classList.remove('hidden', 'error');
             resultsDiv.classList.add('success');
