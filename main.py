@@ -164,6 +164,11 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "Please login before attempting"
         )
+        return {
+            "status":"failed",
+            "message": "user not logged in",
+            "url": "/auth"
+               }
     try:
         content = await file.read()
         file_type = None
@@ -191,6 +196,12 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
             status_code = status.HTTP_401_UNAUTHORIZE,
             detail = "user is not logged"
         )
+        return {
+            "status":"failed",
+            "message": "user not logged in",
+            "url": "/auth"
+        }
+        
     res = agent.command(data, uuid = session_id)
     output = res.get("messages",[])
     tools_output = "{}"
