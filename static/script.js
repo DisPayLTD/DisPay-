@@ -157,7 +157,7 @@ async function uploadFile() {
         const successTransfers = document.getElementById("successTransfer");
         const failedTransfers = document.getElementById("failedTransfers");
         
-        alert('walid your file is processed' + data.message);
+        alert('walid your file is processed ' + data.message);
         if (data.status === 'success') {
             
             successTransfers.innerHTML = data.success_html_table;
