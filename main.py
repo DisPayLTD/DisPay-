@@ -182,6 +182,7 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
     df = content
     data = [f"{idx + 1}. pay \"{row.name}\" \"{row.get('amount')} \" (NGN)  to  account number \"{row.get('account_number')}\"  \"{row.get('bank_name')}\" bank\n" for idx,row in df.iterrows()]
     data = "".join(data)
+    print(data)
     session_id = request.session.get("thread_id")
     if not session_id:
         raise HTTPException(
