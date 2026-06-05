@@ -137,8 +137,9 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
   verified = False
   try:
     hash_password = hp.verify(saved_password, password)
-    print("Walid this user exists and he enters his password right ")
+    print("Walid this user exists and he enters his password is right ")
     session_id = request.session.get("thread_id")
+    request.session["user_id"] = user.id
     if not session_id:
         session_id = str(uuid.uuid4())
         request.session["thread_id"]= session_id
