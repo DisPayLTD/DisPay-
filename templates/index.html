@@ -10,31 +10,45 @@
     <div class="container">
         <header class="header">
             <h1>💰 AI Salary Payment Agent</h1>
-            <p id="status">Please authenticate</p>
+            <p id="status">✅ Authenticated - Ready to pay</p>
         </header>
 
         <main class="main">
-            <!-- Step 1: Enter Email -->
-            <section id="emailSection" class="section">
-                <h2>📧 Step 1: Enter Email</h2>
-                <input type="email" id="email" placeholder="Enter your email">
-                <button onclick="sendOTP()" class="btn btn-primary send-otp-btn">Send OTP</button>
-            </section>
-
-            <!-- Step 2: Verify OTP (Hidden initially) -->
-            <section id="otpSection" class="section hidden">
-                <h2>🔐 Step 2: Verify OTP</h2>
-                <p>Check your email for the OTP code</p>
-                <input type="text" id="otp" placeholder="000000" maxlength="6">
-                <button onclick="verifyOTP()" class="btn btn-primary">Verify OTP</button>
-            </section>
-
-            <!-- Step 3: Payment (Hidden until authenticated) -->
-            <section id="paymentSection" class="section hidden">
-                <h2>✅ Step 3: Make Payment</h2>
-                <textarea id="command" placeholder="Example: Pay Usman 1M to UBA bank account number 0123456789 OR Upload a file in format xlsx,csv"></textarea>
+            <!-- Step 1: Make Payment -->
+            <section id="paymentSection" class="section">
+                <h2>✅ Step 1: Make Payment</h2>
+                <textarea id="command" placeholder="Example: Pay Usman 1M to UBA bank account number 0123456789 OR Upload a file in format xlsx,csv" rows="4"></textarea>
                 
                 <button onclick="executePayment()" class="btn btn-success">Execute Payment</button>
+
+                <!-- FILE UPLOAD SECTION -->
+                <div class="upload-section">
+                    <h3>📁 Or Upload CSV/Excel File</h3>
+                    <input type="file" id="paymentFile" accept=".csv,.xlsx,.xls">
+                    <button onclick="uploadFile()" class="btn btn-primary">Upload and Process File</button>
+                </div>
+                
+                <!-- Results -->
+                <div id="results" class="results hidden">
+                    <h3>Payment Results</h3>
+                    <pre id="resultsContent"></pre>
+                    <h3>Success Transfers</h3>
+                    <div id="successTransfer"></div>
+                    <h3>Failed Transfers</h3>
+                    <div id="failedTransfers"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Logout Button -->
+        <footer style="text-align: center; padding: 20px; background: #f9f9f9;">
+            <button onclick="logout()" class="btn" style="background: #f44336; color: white; max-width: 150px;">Logout</button>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>                <button onclick="executePayment()" class="btn btn-success">Execute Payment</button>
                 <!-- FILE UPLOAD SECTION - ADD ONLY THIS -->
 <div class="upload-section">
     <h3>📁 Or Upload CSV/Excel File</h3>
