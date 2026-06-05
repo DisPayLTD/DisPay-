@@ -155,7 +155,7 @@ async function uploadFile() {
         
         const resultsDiv = document.getElementById('results');
         const resultsContent = document.getElementById('command');
-        
+        alert('walid your file is processed' + data.message);
         if (data.status === 'success') {
             resultsContent.textContent = data.result;
             resultsDiv.classList.remove('hidden', 'error');
