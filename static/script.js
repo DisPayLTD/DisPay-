@@ -78,7 +78,6 @@ async function verifyOTP() {
         
 // Step 3: Execute Payment
 async function executePayment() {
-    alert("we are in ")
     if (!isAuthenticated) {
         alert('❌ Not authenticated. Verify OTP first');
         return;
