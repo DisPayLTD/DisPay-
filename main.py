@@ -139,6 +139,9 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
     hash_password = hp.verify(saved_password, password)
     print("Walid this user exists and he enters his password right ")
     session_id = request.session.get("thread_id")
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        request.session["thread_id"]= session_id
     return {"status":"success","message":"login successfully" ,"url":"/agent"}
   except Exception:
     verified = False
@@ -181,8 +184,10 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
     data = "".join(data)
     session_id = request.session.get("thread_id")
     if not session_id:
-        session_id = str(uuid.uuid4())
-    request.session["thread_id"]= session_id
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZE,
+            detail = "user is not logged"
+        )
     res = agent.command(data, uuid = session_id)
     output = res.get("messages",[])
     tools_output = "{}"
@@ -197,7 +202,13 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
     tools_output = json.loads(tools_output)
     success_html_table = tools_output.get("success_html_table")
     failed_html_table = tools_output.get("failed_html_table")
-    res = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
+    res = {
+        "status":"success",
+        "message":"file processed successfully",
+        "ai_msg":ai_msg,
+        "success_html_table": success_html_table,
+        "failed_html_table": failed_html_table
+    }
     return res
   
   
