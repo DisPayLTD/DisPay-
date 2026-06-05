@@ -1,3 +1,4 @@
+pip requirements
 langchain
 langchain-core
 langchain-google-genai
@@ -18,3 +19,4 @@ pydantic[email]
 pandas 
 openpyxl
 python-multipart
+psycopg2
