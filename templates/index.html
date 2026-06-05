@@ -45,21 +45,6 @@
             <button onclick="logout()" class="btn" style="background: #f44336; color: white; max-width: 150px;">Logout</button>
         </footer>
     </div>
-
     <script src="/static/script.js"></script>
-    <script>
-    console.log('Checking if static files are mounted...');
-    fetch('/static/script.js')
-        .then(res => {
-            console.log('script.js status:', res.status);
-            if (res.ok) {
-                alert('✅ script.js found!');
-            } else {
-                alert('❌ script.js not found - status ' + res.status);
-            }
-        })
-        .catch(err => alert('❌ Error: ' + err));
-</script>
-<script src="/static/script.js"></script>
 </body>
 </html>
