@@ -152,7 +152,12 @@ def home():
     return HTMLResponse(content = f.read())
 
 @app.post("/upload-file")
-async def upload_file(file:UploadFile = File(...), request: Request):
+async def upload_file(request: Request,file:UploadFile = File(...)):
+    if "user_id" not in request.session:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Please login before attempting"
+        )
     content = await file.read()
     file_type = None
     filename = file.filename.lower()
