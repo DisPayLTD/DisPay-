@@ -2,7 +2,6 @@ const API = '';
 
 let userEmail = '';
 let isAuthenticated = false;
-const sendOtpBtn = document.getElementsByClassName("send-otp-btn")
 const sessionUUID = crypto.randomUUID()
 
 
@@ -16,6 +15,7 @@ async function sendOTP() {
     }
     
     try {
+        const sendOtpBtn = document.getElementsByClassName("send-otp-btn")
         sendOtpBtn[0].textContent = `Processing...`
         sendOtpBtn[0].disabled = true
         const res = await fetch('/send-otp', {
