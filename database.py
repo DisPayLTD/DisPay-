@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import String,Float,create_engine,Column,Integer,DateTime,func,ForeignKey,Text,JSON
+from sqlalchemy import String,Float,create_engine,Column,Integer,DateTime,func,ForeignKey,Text,JSON,Boolean
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base, relationship 
 
@@ -20,7 +20,7 @@ class Users(Base):
 	nin = Column(String)
 	phone_number = Column(String)
 	bvn = Column(String)
-	customer_id = Column(String)
+	has_account = Column(Boolean)
 	account_number = Column(String)
 	bank_name = Column(String)
 	wallet_balance = Column(Float, default= 0.0)
