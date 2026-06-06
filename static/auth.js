@@ -41,14 +41,15 @@ async function handleLogin() {
             body: JSON.stringify({email, password})
         });
         
+        const data = await res.json();
+        
         if (res.ok) {
             showSuccess('✅ Login successful! Redirecting...');
             setTimeout(() => {
-                window.location.href = '/agent';
+                window.location.href = data.url || '/agent';
             }, 1500);
         } else {
-            const data = await res.json();
-            showError('❌ Invalid email or password');
+            showError('❌ ' + (data.detail || 'Invalid email or password'));
         }
     } catch (error) {
         showError('❌ Error: ' + error.message);
@@ -123,7 +124,6 @@ async function handleSignup() {
         }
     } catch (error) {
         showError('❌ Error: ' + error.message);
-        alert(res.message);
     }
 }
 
