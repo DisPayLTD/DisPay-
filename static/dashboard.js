@@ -306,10 +306,39 @@ async function uploadFile(event) {
 // SIDEBAR TOGGLE (Mobile)
 // ============================================
 
-function toggleSidebar() {
+function toggleSidebar(event) {
+    if (event) {
+        event.preventDefault();
+    }
+    
     const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const hamburger = document.querySelector('.hamburger-menu');
+    
     if (sidebar) {
         sidebar.classList.toggle('open');
+    }
+    if (overlay) {
+        overlay.classList.toggle('active');
+    }
+    if (hamburger) {
+        hamburger.classList.toggle('active');
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const hamburger = document.querySelector('.hamburger-menu');
+    
+    if (sidebar) {
+        sidebar.classList.remove('open');
+    }
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+    if (hamburger) {
+        hamburger.classList.remove('active');
     }
 }
 
@@ -318,9 +347,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
-            const sidebar = document.querySelector('.sidebar');
-            if (window.innerWidth <= 768 && sidebar) {
-                sidebar.classList.remove('open');
+            if (window.innerWidth <= 768) {
+                closeSidebar();
             }
         });
     });
@@ -367,5 +395,5 @@ function logout() {
                 window.location.href = '/auth';
             });
     }
-          }
-          
+            }
+                 
