@@ -44,23 +44,23 @@ class EmailOTP(BaseModel):
     otp: str
 
 class Login(BaseModel):
-  email: EmailStr
-  password:str
+    email: EmailStr
+    password: str
 
 
 class SignupRequest(BaseModel):
-  first_name : str
-  last_name: str
-  email:EmailStr
-  password: str
-  nin: str
-  phone_number: str
-  bvn: str
+    first_name: str
+    last_name: str
+    email: EmailStr
+    password: str
+    nin: str
+    phone_number: str
+    bvn: str
 
 
 @app.on_event("startup")
 def startup():
-  init_db()
+    init_db()
 
 
 @app.get("/")
@@ -79,119 +79,117 @@ def auth_page():
         
 @app.post("/signup")
 def signup(details: SignupRequest,db:Session = Depends(get_db)):
-  ph = PasswordHasher()
-  email = details.email
-  password = details.password
-  
-  nin = details.nin
-  phone_number = details.phone_number
-  bvn = details.bvn
-  first_name = details.first_name
-  last_name = details.last_name
-  hash_password = ph.hash(password)
-  existing_user = db.query(Users).filter(Users.email == email).first()
-  if existing_user:
-      raise HTTPException(
-          status_code = status.HTTP_400_BAD_REQUEST,
-          detail = "User already exists"
-      )
-  try:
-      user = Users(
-          email = email,
-          password = hash_password,
-          phone_number = phone_number,
-          bvn = bvn,
-          nin = nin,
-          first_name = first_name,
-          last_name = last_name
-      )
-      db.add(user)
-      db.commit()
-      db.refresh(user)
-      return {
+    ph = PasswordHasher()
+    email = details.email
+    password = details.password
+    
+    nin = details.nin
+    phone_number = details.phone_number
+    bvn = details.bvn
+    first_name = details.first_name
+    last_name = details.last_name
+    hash_password = ph.hash(password)
+    existing_user = db.query(Users).filter(Users.email == email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = "User already exists"
+        )
+    try:
+        user = Users(
+            email = email,
+            password = hash_password,
+            phone_number = phone_number,
+            bvn = bvn,
+            nin = nin,
+            first_name = first_name,
+            last_name = last_name
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return {
             "status": "success",
             "message": "Account created successfully"
-      }
-  except Exception as e:
-      print("walid the error is: ",str(e))
-      db.rollback()
-      raise HTTPException(
-          status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-          detail = "failed to save data to database"
-      )
-       
-      return {"status":"failed","message":str(e)}
+        }
+    except Exception as e:
+        print("walid the error is: ",str(e))
+        db.rollback()
+        raise HTTPException(
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = "failed to save data to database"
+        )
 
 @app.post("/login")
 def login(details:Login, request: Request,db: Session= Depends(get_db)):
-  email = details.email
-  password = details.password
-  user = db.query(Users).filter(Users.email == email).first()
-  
-  if not user:
-    raise HTTPException(
-      status_code = status.HTTP_401_UNAUTHORIZED,
-      detail = "Invalid Email"
-     )
-  hp = PasswordHasher()
-  saved_password = user.password
-  verified = False
-  try:
-    hash_password = hp.verify(saved_password, password)
-    print("Walid this user exists and he enters his password is right ")
-    session_id = request.session.get("thread_id")
-    request.session["user_id"] = user.id
-    if not session_id:
-        session_id = str(uuid.uuid4())
-        request.session["thread_id"]= session_id
-    return {"status":"success","message":"login successfully" ,"url":"/agent"}
-  except Exception:
+    email = details.email
+    password = details.password
+    user = db.query(Users).filter(Users.email == email).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Invalid Email"
+        )
+    hp = PasswordHasher()
+    saved_password = user.password
     verified = False
-    raise HTTPException(
-      status_code = status.HTTP_401_UNAUTHORIZED,
-      detail = "Invalid Password "
-    )
+    try:
+        hash_password = hp.verify(saved_password, password)
+        print("Walid this user exists and he enters his password is right ")
+        session_id = request.session.get("thread_id")
+        request.session["user_id"] = user.id
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            request.session["thread_id"]= session_id
+        return {"status":"success","message":"login successfully" ,"url":"/agent"}
+    except Exception:
+        verified = False
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Invalid Password "
+        )
 
 @app.get("/agent")
 def home():
-  with open("templates/index.html") as f:
-    return HTMLResponse(content = f.read())
+    with open("templates/index.html") as f:
+        return HTMLResponse(content = f.read())
     
 
 user_code = {}
 
 @app.post("/send-otp")
 def send_otp(email: EmailRequest):
-  msg = EmailMessage()
-  secret = pyotp.random_base32()
-  
-  totp = pyotp.TOTP(secret,interval = 300)
-  otp = totp.now()
-  print('ur otp is: ',otp)
-  user_code[email.email] = {"secret":secret,"otp":otp}
-  msg["Subject"] = "OTP"
-  msg["From"] = EMAIL
-  msg["To"] = email.email
-  msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
-  try:
-    with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 5) as server:
-      server.login(EMAIL,PASSWORD)
-      server.send_message(msg)
-      return {"status":"success","message":"sent"}
-  except Exception as e:
-    if otp:
-      return {"status":"success","message":f"walid your culprit {str(e)}","otp":str(otp)}
-  
+    msg = EmailMessage()
+    secret = pyotp.random_base32()
+    
+    totp = pyotp.TOTP(secret,interval = 300)
+    otp = totp.now()
+    print('ur otp is: ',otp)
+    user_code[email.email] = {"secret":secret,"otp":otp}
+    msg["Subject"] = "OTP"
+    msg["From"] = EMAIL
+    msg["To"] = email.email
+    msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 5) as server:
+            server.login(EMAIL,PASSWORD)
+            server.send_message(msg)
+            return {"status":"success","message":"sent"}
+    except Exception as e:
+        if otp:
+            return {"status":"success","message":f"walid your culprit {str(e)}","otp":str(otp)}
+    
 @app.post("/verify-otp")
 def verify(user: EmailOTP):
-  if not user_code.get(user.email):
-    return {"Mesage":"No Secret key" }
-  otp = user.otp
-  totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
-  val = totp.verify(otp)
-  if val:
-    del user_code[user.email]
-  return {"authenticated":val}
+    if not user_code.get(user.email):
+        return {"Mesage":"No Secret key" }
+    otp = user.otp
+    totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
+    val = totp.verify(otp)
+    if val:
+        del user_code[user.email]
+    return {"authenticated":val}
 
 @app.post("/upload-file")
 async def upload_file(request: Request,file:UploadFile = File(...)):
@@ -200,7 +198,7 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
             "status":"failed",
             "message": "user not logged in",
             "url": "/auth"
-               }
+        }
     try:
         content = await file.read()
         file_type = None
@@ -256,36 +254,36 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
 
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
-  if "user_id" not in request.session:
-    return {
-        "status": "failed",
-        "message": "user is not logged in",
-        "url": "/auth"
-    }
-  session_id = request.session.get("thread_id")
-  if not session_id:
-    return {
-        "status": "failed",
-        "message": "user is not logged in",
-        "url": "/auth"
-    }
-  res = agent.command(command.command, uuid = session_id)
-  output = res.get("messages",[])
-  tools_output = "{}"
-  for msg in reversed(output):
-    if "success_html_table" in msg.content:
-      tools_output = msg.content
-      break
-  
-  ai_msg = res.get("messages")[-1].content
-  if isinstance(ai_msg,list):
-    ai_msg = ai_msg[0]["text"]
-  ai_msg = re.sub(r"\*\*(.*?)\*\*",r"<b>\1</b>",str(ai_msg))
-  tools_output = json.loads(tools_output)
-  success_html_table = tools_output.get("success_html_table")
-  failed_html_table = tools_output.get("failed_html_table")
- 
-  res = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
-  
-  print(res)
-  return res
+    if "user_id" not in request.session:
+        return {
+            "status": "failed",
+            "message": "user is not logged in",
+            "url": "/auth"
+        }
+    session_id = request.session.get("thread_id")
+    if not session_id:
+        return {
+            "status": "failed",
+            "message": "user is not logged in",
+            "url": "/auth"
+        }
+    res = agent.command(command.command, uuid = session_id)
+    output = res.get("messages",[])
+    tools_output = "{}"
+    for msg in reversed(output):
+        if "success_html_table" in msg.content:
+            tools_output = msg.content
+            break
+    
+    ai_msg = res.get("messages")[-1].content
+    if isinstance(ai_msg,list):
+        ai_msg = ai_msg[0]["text"]
+    ai_msg = re.sub(r"\*\*(.*?)\*\*",r"<b>\1</b>",str(ai_msg))
+    tools_output = json.loads(tools_output)
+    success_html_table = tools_output.get("success_html_table")
+    failed_html_table = tools_output.get("failed_html_table")
+
+    res = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
+    
+    print(res)
+    return res
