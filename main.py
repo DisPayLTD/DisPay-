@@ -187,7 +187,7 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
     data = "".join(data)
     print(data)
     session_id = request.session.get("thread_id")
-    if not session_id:
+    if not session_id or "user_id" not in request.session:
         return {
             "status":"failed",
             "message": "user not logged in",
@@ -223,6 +223,11 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
 
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
+  if "user_id" not in request.session:
+    raise HTTPException(
+        status_code = status.HTTP_401_UNAUTHORIZED,
+        detail = "user is not logged in"
+    )
   session_id = request.session.get("thread_id")
   if not session_id:
     raise HTTPException(
