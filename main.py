@@ -218,22 +218,24 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
     return res
   
   
-    
-    
+     
+     
 
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
   if "user_id" not in request.session:
-    raise HTTPException(
-        status_code = status.HTTP_401_UNAUTHORIZED,
-        detail = "user is not logged in"
-    )
+    return {
+        "status": "failed",
+        "message": "user is not logged in",
+        "url": "/auth"
+    }
   session_id = request.session.get("thread_id")
   if not session_id:
-    raise HTTPException(
-        status_code = status.HTTP_400_UNAUTHORIZED,
-        detail = "user is not logged in"
-    )
+    return {
+        "status": "failed",
+        "message": "user is not logged in",
+        "url": "/auth"
+    }
   res = agent.command(command.command, uuid = session_id)
   output = res.get("messages",[])
   tools_output = "{}"
