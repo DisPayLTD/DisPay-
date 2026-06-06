@@ -397,3 +397,25 @@ function logout() {
     }
             }
                  
+
+// ============================================
+// SIDEBAR TOGGLE FOR MOBILE
+// ============================================
+
+let clicked = false;
+const hideSidebar = document.querySelector(".logo-sidebar i");
+
+if (hideSidebar) {
+    hideSidebar.addEventListener("click", () => {
+        const sidebar = document.querySelector(".sidebar");
+        
+        if (!clicked) {
+            sidebar.classList.add("sidebar-show");
+            clicked = true;
+        } else {
+            sidebar.classList.remove("sidebar-show");
+            sidebar.classList.add("sidebar-hide");
+            clicked = false;
+        }
+    });
+            }
