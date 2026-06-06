@@ -742,3 +742,12 @@ body {
     }
     }
                      
+
+/* SIDEBAR TOGGLE CLASSES */
+.sidebar-show {
+    display: block;
+}
+
+.sidebar-hide {
+    display: none;
+}
