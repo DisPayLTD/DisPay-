@@ -52,6 +52,14 @@ body {
     font-weight: bold;
     letter-spacing: 1px;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-sidebar i {
+    font-size: 28px;
+    color: white;
 }
 
 .user-profile {
@@ -553,26 +561,184 @@ body {
     display: none !important;
 }
 
+/* HAMBURGER MENU */
+.hamburger-menu {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 10px;
+}
+
+.hamburger-menu span {
+    width: 25px;
+    height: 3px;
+    background: #333;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu.active span:nth-child(1) {
+    transform: rotate(45deg) translate(10px, 10px);
+}
+
+.hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* MOBILE RESPONSIVE */
 @media (max-width: 768px) {
+    .hamburger-menu {
+        display: none;
+    }
+
     .dashboard-container {
-        flex-direction: column;
+        flex-direction: row;
     }
 
     .sidebar {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 280px;
-        z-index: 1000;
+        flex: 0 0 220px;
+        width: 220px;
+        position: relative;
+        height: auto;
+        max-height: 100vh;
+        overflow-y: auto;
+        z-index: 100;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
     }
 
     .sidebar.open {
-        display: flex;
+        transform: none;
+    }
+
+    .main-content {
+        flex: 1;
+        width: auto;
+    }
+
+    .sidebar-nav {
+        padding: 15px 8px;
     }
 
     .payments-grid {
         grid-template-columns: 1fr;
     }
+
+    .logo-sidebar {
+        font-size: 16px;
+    }
+
+    .sidebar-header {
+        padding: 15px 10px;
+    }
+
+    .user-profile {
+        margin: 10px;
+        padding: 12px;
+        font-size: 12px;
+    }
+
+    .profile-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .profile-info h3 {
+        font-size: 12px;
+    }
+
+    .account-section,
+    .account-number-section {
+        margin: 0 10px;
+        padding: 12px;
+    }
+
+    .balance-amount {
+        font-size: 20px;
+    }
+
+    .results-tables {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .top-header {
+        padding: 15px 20px;
+    }
+
+    .header-left h1 {
+        font-size: 20px;
+    }
+
+    .content-area {
+        padding: 15px;
+    }
+
+    /* Overlay for mobile */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
 }
+
+@media (max-width: 480px) {
+    .sidebar {
+        flex: 0 0 180px;
+        width: 180px;
+    }
+
+    .main-content {
+        width: auto;
+    }
+
+    .logo-sidebar {
+        font-size: 14px;
+    }
+
+    .nav-text {
+        font-size: 11px;
+    }
+
+    .nav-icon {
+        font-size: 16px;
+    }
+
+    .account-section,
+    .account-number-section {
+        padding: 10px;
+        margin: 0 8px;
+    }
+
+    .balance-amount {
+        font-size: 18px;
+    }
+
+    .header-left h1 {
+        font-size: 18px;
+    }
+
+    .top-header {
+        padding: 10px 15px;
+    }
+    }
+                     
