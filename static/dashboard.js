@@ -9,7 +9,31 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDateTime();
     setInterval(updateDateTime, 1000);
     setupFileUploadDragDrop();
+    initializeSidebarState();
 });
+
+// ============================================
+// INITIALIZE SIDEBAR STATE
+// ============================================
+
+function initializeSidebarState() {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const overlay = document.getElementById('overlay');
+    
+    // Ensure sidebar starts CLOSED on mobile
+    if (window.innerWidth <= 768) {
+        if (sidebar) {
+            sidebar.classList.remove('open');
+        }
+        if (mainContent) {
+            mainContent.classList.remove('blur');
+        }
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+}
 
 // ============================================
 // USER DATA FUNCTIONS
@@ -96,6 +120,11 @@ function switchTab(tabName) {
         document.getElementById('navHistory').classList.add('active');
     } else if (tabName === 'settings') {
         document.getElementById('navSettings').classList.add('active');
+    }
+    
+    // Close sidebar on mobile after clicking nav
+    if (window.innerWidth <= 768) {
+        closeSidebar();
     }
 }
 
@@ -303,7 +332,7 @@ async function uploadFile(event) {
 }
 
 // ============================================
-// SIDEBAR TOGGLE (Mobile)
+// SIDEBAR TOGGLE WITH BLUR - SIMPLE & CLEAN
 // ============================================
 
 function toggleSidebar(event) {
@@ -312,50 +341,36 @@ function toggleSidebar(event) {
     }
     
     const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const overlay = document.getElementById('overlay');
     const hamburger = document.querySelector('.hamburger-menu');
     
-    if (sidebar) {
-        if (sidebar.classList.contains('sidebar-open')) {
-            sidebar.classList.remove('sidebar-open');
-            sidebar.classList.add('sidebar-closed');
-        } else {
-            sidebar.classList.add('sidebar-open');
-            sidebar.classList.remove('sidebar-closed');
-        }
-    }
+    // Toggle sidebar
+    sidebar.classList.toggle('open');
     
-    if (hamburger) {
-        hamburger.classList.toggle('active');
+    // Add/remove blur and overlay
+    if (sidebar.classList.contains('open')) {
+        mainContent.classList.add('blur');
+        overlay.classList.add('active');
+        hamburger.classList.add('active');
+    } else {
+        mainContent.classList.remove('blur');
+        overlay.classList.remove('active');
+        hamburger.classList.remove('active');
     }
 }
 
 function closeSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    const overlay = document.querySelector('.sidebar-overlay');
+    const mainContent = document.querySelector('.main-content');
+    const overlay = document.getElementById('overlay');
     const hamburger = document.querySelector('.hamburger-menu');
     
-    if (sidebar) {
-        sidebar.classList.remove('open');
-    }
-    if (overlay) {
-        overlay.classList.remove('active');
-    }
-    if (hamburger) {
-        hamburger.classList.remove('active');
-    }
+    sidebar.classList.remove('open');
+    mainContent.classList.remove('blur');
+    overlay.classList.remove('active');
+    hamburger.classList.remove('active');
 }
-
-// Close sidebar when a nav link is clicked on mobile
-document.addEventListener('DOMContentLoaded', function() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                closeSidebar();
-            }
-        });
-    });
-});
 
 // ============================================
 // DATE AND TIME UPDATE
@@ -398,27 +413,5 @@ function logout() {
                 window.location.href = '/auth';
             });
     }
-            }
-                 
-
-// ============================================
-// SIDEBAR TOGGLE FOR MOBILE
-// ============================================
-
-let clicked = false;
-const hideSidebar = document.querySelector(".logo-sidebar i");
-
-if (hideSidebar) {
-    hideSidebar.addEventListener("click", () => {
-        const sidebar = document.querySelector(".sidebar");
-        
-        if (!clicked) {
-            sidebar.classList.add("sidebar-show");
-            clicked = true;
-        } else {
-            sidebar.classList.remove("sidebar-show");
-            sidebar.classList.add("sidebar-hide");
-            clicked = false;
-        }
-    });
-            }
+    }
+    
