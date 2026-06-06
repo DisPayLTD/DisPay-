@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from argon2 import PasswordHasher
 import pandas as pd
 import io
+import requests
 
 
 
@@ -287,3 +288,68 @@ def send_money(command:Command,request: Request):
     
     print(res)
     return res
+    
+tx_ref = f"REMITRON-VA-{str(uuid.uuid4().hex[:16])}"
+
+@app.get("/generate-account-number")
+def generate_account_number(req: Request,db:Session = Depends(get_db)):
+     
+    user_id = req.session.get("user_id")
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        return {
+            "status":"failed",
+            "message":"User does not exists please signup or login first",
+            "url":"/auth"
+        }
+    if user.has_wallet:
+        return {
+            "status":"failed",
+            "message":"User already has an account number",
+            "url":"/agent",
+        }
+    bvn = user.bvn
+    email = user.email
+    phone = user.phone_number
+    first_name = user.first_name
+    last_name = user.last_name
+    
+    api = os.getenv("FLUTTER_SECRET_API_KEY")
+    header = {
+        "Authorization":f"Bearer {api}" ,
+        "Content-Type":"application/json"
+    }
+    body = {
+        "email":email,
+        "firstname":first_name,
+        "lastname" :last_name,
+        "bvn":bvn,
+        "is_permanent":True,
+        "phonenumber:phone,
+        "tx_ref" : tx_ref,
+        "narration":f"virtual account for {first_name} {last_name}"
+    }
+    url = "https://api.flutterwave.com/v3/virtual-account-numbers"
+    try:
+        res = requests.post(
+            url,
+            headers = header,
+            json = body
+        )
+        res = res.json()
+        account_number = res.get("data").get("account_number")
+        bank_name = res.get("data").get("bank_name")
+        user.account_number = account_number
+        user.bank_name = bank_name
+        user.has_wallet = True
+        db.commit()
+        db.refresh()
+        return {
+            "status":"success",
+            "message":"Wallet successfully created!",
+            "url":"/agent"
+        }
+    except requests.exceptions.REQUEST_EXCEPTION as e:
+        return {"status":"failed","message":f"An error occured {str(e)}"}
+        
+    
