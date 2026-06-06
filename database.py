@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import String,Float,create_engine,Column,Integer,DateTime,func
+from sqlalchemy import String,Float,create_engine,Column,Integer,DateTime,func,ForeignKey,Text,JSON
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base, relationship 
 
@@ -25,7 +25,7 @@ class Users(Base):
 	bank_name = Column(String)
 	wallet_balance = Column(Float, default= 0.0)
 	creation_time = Column(DateTime(timezone=True),server_default = func.now())
-	transfers = relationship("Transfers",back_populates("transfers"))
+	transfers = relationship("Transfers",back_populates="transfers")
 
 class Transfers(Base):
 	__tablename__ = "transfers"
