@@ -25,7 +25,7 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 my_secret_key = os.getenv("MY_SECRET_KEY")
-app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600)
+app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600, https_only = True)
 
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
