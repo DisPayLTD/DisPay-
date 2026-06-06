@@ -66,10 +66,10 @@ def startup():
 
 @app.get("/")
 def index(request: Request):
-    """Redirect to auth or agent based on session"""
+    """Redirect to auth or dashboard based on session"""
     session = request.session
     if "user_id" in session:
-        return RedirectResponse(url="/agent", status_code=302)
+        return RedirectResponse(url="/dashboard", status_code=302)
     return RedirectResponse(url="/auth", status_code=302)
 
 @app.get("/auth")
@@ -77,6 +77,63 @@ def auth_page():
     """Serve authentication page"""
     with open("templates/auth.html") as f:
         return HTMLResponse(content=f.read())
+
+@app.get("/dashboard")
+def dashboard(request: Request):
+    """Serve dashboard page - requires authentication"""
+    if "user_id" not in request.session:
+        return RedirectResponse(url="/auth", status_code=302)
+    with open("templates/dashboard.html") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/agent")
+def home():
+    """Legacy agent page - redirects to dashboard"""
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+@app.post("/logout")
+def logout(request: Request):
+    """Logout user and clear session"""
+    request.session.clear()
+    return {"status": "success", "message": "Logged out successfully"}
+
+@app.get("/get-user-data")
+def get_user_data(request: Request, db: Session = Depends(get_db)):
+    """Get current user data for dashboard"""
+    user_id = request.session.get("user_id")
+    
+    if not user_id:
+        return {
+            "status": "failed",
+            "message": "User not logged in",
+            "url": "/auth"
+        }
+    
+    user = db.query(Users).filter(Users.id == user_id).first()
+    
+    if not user:
+        return {
+            "status": "failed",
+            "message": "User not found",
+            "url": "/auth"
+        }
+    
+    return {
+        "status": "success",
+        "user": {
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "wallet_balance": user.wallet_balance,
+            "has_wallet": user.has_wallet,
+            "account_number": user.account_number,
+            "bank_name": user.bank_name,
+            "nin": user.nin,
+            "bvn": user.bvn
+        }
+    }
         
 @app.post("/signup")
 def signup(details: SignupRequest,db:Session = Depends(get_db)):
@@ -143,19 +200,13 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
         if not session_id:
             session_id = str(uuid.uuid4())
             request.session["thread_id"]= session_id
-        return {"status":"success","message":"login successfully" ,"url":"/agent"}
+        return {"status":"success","message":"login successfully" ,"url":"/dashboard"}
     except Exception:
         verified = False
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "Invalid Password "
         )
-
-@app.get("/agent")
-def home():
-    with open("templates/index.html") as f:
-        return HTMLResponse(content = f.read())
-    
 
 user_code = {}
 
@@ -306,13 +357,13 @@ def generate_account_number(req: Request,db:Session = Depends(get_db)):
         return {
             "status":"failed",
             "message":"User does not exist please signup or login first",
-            "url":"/auth"
+            "url":"/auth",
         }
     if user.has_wallet:
         return {
             "status":"failed",
             "message":"User already has an account number",
-            "url":"/agent",
+            "url":"/dashboard",
         }
     bvn = user.bvn
     email = user.email
@@ -353,9 +404,7 @@ def generate_account_number(req: Request,db:Session = Depends(get_db)):
         return {
             "status":"success",
             "message":"Wallet successfully created!",
-            "url":"/agent"
+            "url":"/dashboard"
         }
     except requests.exceptions.RequestException as e:
         return {"status":"failed","message":f"An error occurred {str(e)}"}
-        
-    
