@@ -20,7 +20,7 @@ class Users(Base):
 	nin = Column(String)
 	phone_number = Column(String)
 	bvn = Column(String)
-	has_account = Column(Boolean)
+	has_wallet = Column(Boolean)
 	account_number = Column(String)
 	bank_name = Column(String)
 	wallet_balance = Column(Float, default= 0.0)
