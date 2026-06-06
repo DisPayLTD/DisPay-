@@ -1,7 +1,7 @@
 import os
-from sqlalchemy import String,Float,create_engine,Column,Integer
+from sqlalchemy import String,Float,create_engine,Column,Integer,DatetTime,func
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship 
 
 SQL_URL = os.getenv("DATABASE_URL", "sqlite:///./remitron.db")
 
@@ -24,6 +24,21 @@ class Users(Base):
 	account_number = Column(String)
 	bank_name = Column(String)
 	wallet_balance = Column(Float, default= 0.0)
+	account_number = Column(String)
+	bank_name = Column(String)
+	creation_time = Column(DateTime(timezone=True),server_default = func.now())
+	transfers = relationship("Transfers",back_populates("transfers"))
+
+class Transfers(Base):
+	__tablename__ = "transfers"
+	id = Column(Integer, primary_key = True, unique= True)
+	user_id = Column(Integer, ForeignKey("users.id"))
+	sucess_transfers = Column(Text)
+	failed_transfers = Column(Text)
+	transaction_ids = Column(String)
+	receipts = Column(JSON)
+	user = relationship("Users",back_populates="transfers")
+
 
 engine = create_engine(SQL_URL)
 sessionLocal = sessionmaker(autocommit = False,autoflush = False,bind = engine)
@@ -37,6 +52,7 @@ def get_db():
 		db.close()
 
 def init_db():
+	Base.metadata.drop_all(bind = engine)
 	Base.metadata.create_all(bind = engine)
 	
 	
