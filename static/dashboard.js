@@ -312,15 +312,18 @@ function toggleSidebar(event) {
     }
     
     const sidebar = document.querySelector('.sidebar');
-    const overlay = document.querySelector('.sidebar-overlay');
     const hamburger = document.querySelector('.hamburger-menu');
     
     if (sidebar) {
-        sidebar.classList.toggle('open');
+        if (sidebar.classList.contains('sidebar-open')) {
+            sidebar.classList.remove('sidebar-open');
+            sidebar.classList.add('sidebar-closed');
+        } else {
+            sidebar.classList.add('sidebar-open');
+            sidebar.classList.remove('sidebar-closed');
+        }
     }
-    if (overlay) {
-        overlay.classList.toggle('active');
-    }
+    
     if (hamburger) {
         hamburger.classList.toggle('active');
     }
