@@ -25,7 +25,7 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 my_secret_key = os.getenv("MY_SECRET_KEY")
-app.add_middleware(SessionMiddleware, secret_key = my_secret_key)
+app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600)
 
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
@@ -119,7 +119,7 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
           status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
           detail = "failed to save data to database"
       )
-      
+       
       return {"status":"failed","message":str(e)}
 
 @app.post("/login")
