@@ -160,10 +160,6 @@ def home():
 @app.post("/upload-file")
 async def upload_file(request: Request,file:UploadFile = File(...)):
     if "user_id" not in request.session:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "Please login before attempting"
-        )
         return {
             "status":"failed",
             "message": "user not logged in",
@@ -192,10 +188,6 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
     print(data)
     session_id = request.session.get("thread_id")
     if not session_id:
-        raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZE,
-            detail = "user is not logged"
-        )
         return {
             "status":"failed",
             "message": "user not logged in",
