@@ -24,8 +24,6 @@ class Users(Base):
 	account_number = Column(String)
 	bank_name = Column(String)
 	wallet_balance = Column(Float, default= 0.0)
-	account_number = Column(String)
-	bank_name = Column(String)
 	creation_time = Column(DateTime(timezone=True),server_default = func.now())
 	transfers = relationship("Transfers",back_populates("transfers"))
 
