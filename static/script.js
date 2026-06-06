@@ -116,12 +116,13 @@ async function executePayment() {
             resultsDiv.classList.remove('hidden', 'error');
             resultsDiv.classList.add('success');
         } else {
+            window.location.href = data.url
             resultsContent.textContent = data.message;
             resultsDiv.classList.remove('hidden', 'success');
             resultsDiv.classList.add('error');
         }
     } catch (error) {
-        alert('❌ walid the Error: ' + error);
+        alert("❌ error "+ error);
     } finally {
         btn.textContent = 'Execute Payment';
         btn.disabled = false;
@@ -157,13 +158,13 @@ async function uploadFile() {
         const successTransfers = document.getElementById("successTransfer");
         const failedTransfers = document.getElementById("failedTransfers");
         
-        alert('walid your file is processed ' + data.message);
+        alert('your file is processed ' + data.message);
         if (data.status === 'success') {
             
             successTransfers.innerHTML = data.success_html_table;
             failedTransfers.innerHTML = data.failed_html_table;
             resultsContent.innerHTML = data.ai_msg;
-            alert("ai message"+ data.ai_msg);
+            //alert("ai message"+ data.ai_msg);
             resultsDiv.classList.remove('hidden', 'error');
             resultsDiv.classList.add('success');
         } else {
