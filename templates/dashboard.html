@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Remitron</title>
     <link rel="stylesheet" href="/static/dashboard.css">
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="dashboard-container">
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-sidebar">💳 Remitron</div>
+                <div class="logo-sidebar">
+                    <i class="fas fa-credit-card"></i> Remitron
+                </div>
             </div>
 
             <!-- User Profile Section -->
@@ -72,8 +76,15 @@
         <main class="main-content">
             <!-- Header -->
             <header class="top-header">
-                <div class="header-left">
-                    <h1>Dashboard</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="hamburger-menu" onclick="toggleSidebar(event)">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="header-left">
+                        <h1>Dashboard</h1>
+                    </div>
                 </div>
                 <div class="header-right">
                     <div class="header-info">
@@ -219,6 +230,9 @@
             </div>
         </main>
     </div>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
 
     <!-- JavaScript -->
     <script src="/static/dashboard.js"></script>
