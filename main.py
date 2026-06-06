@@ -295,11 +295,17 @@ tx_ref = f"REMITRON-VA-{str(uuid.uuid4().hex[:16])}"
 def generate_account_number(req: Request,db:Session = Depends(get_db)):
      
     user_id = req.session.get("user_id")
+    if not user_id:
+        return {
+            "status":"failed",
+            "message":"User not logged in",
+            "url":"/auth"
+        }
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         return {
             "status":"failed",
-            "message":"User does not exists please signup or login first",
+            "message":"User does not exist please signup or login first",
             "url":"/auth"
         }
     if user.has_wallet:
@@ -325,7 +331,7 @@ def generate_account_number(req: Request,db:Session = Depends(get_db)):
         "lastname" :last_name,
         "bvn":bvn,
         "is_permanent":True,
-        "phonenumber:phone,
+        "phonenumber": phone,
         "tx_ref" : tx_ref,
         "narration":f"virtual account for {first_name} {last_name}"
     }
@@ -343,13 +349,13 @@ def generate_account_number(req: Request,db:Session = Depends(get_db)):
         user.bank_name = bank_name
         user.has_wallet = True
         db.commit()
-        db.refresh()
+        db.refresh(user)
         return {
             "status":"success",
             "message":"Wallet successfully created!",
             "url":"/agent"
         }
-    except requests.exceptions.REQUEST_EXCEPTION as e:
-        return {"status":"failed","message":f"An error occured {str(e)}"}
+    except requests.exceptions.RequestException as e:
+        return {"status":"failed","message":f"An error occurred {str(e)}"}
         
     
