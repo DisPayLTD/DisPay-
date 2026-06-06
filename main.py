@@ -156,6 +156,42 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
 def home():
   with open("templates/index.html") as f:
     return HTMLResponse(content = f.read())
+    
+
+user_code = {}
+
+@app.post("/send-otp")
+def send_otp(email: EmailRequest):
+  msg = EmailMessage()
+  secret = pyotp.random_base32()
+  
+  totp = pyotp.TOTP(secret,interval = 300)
+  otp = totp.now()
+  print('ur otp is: ',otp)
+  user_code[email.email] = {"secret":secret,"otp":otp}
+  msg["Subject"] = "OTP"
+  msg["From"] = EMAIL
+  msg["To"] = email.email
+  msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
+  try:
+    with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 5) as server:
+      server.login(EMAIL,PASSWORD)
+      server.send_message(msg)
+      return {"status":"success","message":"sent"}
+  except Exception as e:
+    if otp:
+      return {"status":"success","message":f"walid your culprit {str(e)}","otp":str(otp)}
+  
+@app.post("/verify-otp")
+def verify(user: EmailOTP):
+  if not user_code.get(user.email):
+    return {"Mesage":"No Secret key" }
+  otp = user.otp
+  totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
+  val = totp.verify(otp)
+  if val:
+    del user_code[user.email]
+  return {"authenticated":val}
 
 @app.post("/upload-file")
 async def upload_file(request: Request,file:UploadFile = File(...)):
@@ -216,10 +252,7 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
         "failed_html_table": failed_html_table
     }
     return res
-  
-  
-     
-     
+
 
 @app.post("/send-money")
 def send_money(command:Command,request: Request):
@@ -256,39 +289,3 @@ def send_money(command:Command,request: Request):
   
   print(res)
   return res
-
-
-user_code = {}
-
-@app.post("/send-otp")
-def send_otp(email: EmailRequest):
-  msg = EmailMessage()
-  secret = pyotp.random_base32()
-  
-  totp = pyotp.TOTP(secret,interval = 300)
-  otp = totp.now()
-  print('ur otp is: ',otp)
-  user_code[email.email] = {"secret":secret,"otp":otp}
-  msg["Subject"] = "OTP"
-  msg["From"] = EMAIL
-  msg["To"] = email.email
-  msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
-  try:
-    with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 5) as server:
-      server.login(EMAIL,PASSWORD)
-      server.send_message(msg)
-      return {"status":"success","message":"sent"}
-  except Exception as e:
-    if otp:
-      return {"status":"success","message":f"walid your culprit {str(e)}","otp":str(otp)}
-  
-@app.post("/verify-otp")
-def verify(user: EmailOTP):
-  if not user_code.get(user.email):
-    return {"Mesage":"No Secret key" }
-  otp = user.otp
-  totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
-  val = totp.verify(otp)
-  if val:
-    del user_code[user.email]
-  return {"authenticated":val}
