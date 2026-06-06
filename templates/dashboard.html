@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Remitron</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-sidebar">💳 Remitron</div>
+            </div>
+
+            <!-- User Profile Section -->
+            <div class="user-profile">
+                <div class="profile-avatar">
+                    <span id="profileInitial">U</span>
+                </div>
+                <div class="profile-info">
+                    <h3 id="userName">User Name</h3>
+                    <p id="userEmail">user@example.com</p>
+                </div>
+            </div>
+
+            <!-- Account Balance -->
+            <div class="account-section">
+                <h4>Account Balance</h4>
+                <div class="balance-display">
+                    <span class="balance-amount">₦<span id="walletBalance">0.00</span></span>
+                </div>
+                <p class="balance-label">Available Balance</p>
+            </div>
+
+            <!-- Account Number Section -->
+            <div class="account-number-section">
+                <h4>Account Number</h4>
+                <div id="accountNumberDiv" class="account-number-display">
+                    <p id="accountNumber" class="account-number-text">Not Generated</p>
+                    <p id="bankName" class="bank-name-text"></p>
+                </div>
+                <button id="generateAccountBtn" onclick="generateAccountNumber()" class="btn btn-generate">
+                    Generate Account Number
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav">
+                <a href="#" onclick="switchTab('payments'); return false;" class="nav-link active" id="navPayments">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Make Payments</span>
+                </a>
+                <a href="#" onclick="switchTab('history'); return false;" class="nav-link" id="navHistory">
+                    <span class="nav-icon">📜</span>
+                    <span class="nav-text">Transaction History</span>
+                </a>
+                <a href="#" onclick="switchTab('settings'); return false;" class="nav-link" id="navSettings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </nav>
+
+            <!-- Logout Button -->
+            <button onclick="logout()" class="btn btn-logout">
+                <span>🚪</span> Logout
+            </button>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-info">
+                        <div id="headerTime">--:--:--</div>
+                        <div id="headerDate">--/--/----</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+
+                <!-- PAYMENTS TAB -->
+                <section id="paymentsTab" class="tab-content active">
+                    <div class="tab-header">
+                        <h2>💰 Make Payments</h2>
+                        <p>Send money using natural language or upload a file</p>
+                    </div>
+
+                    <div class="payments-grid">
+                        <!-- Manual Payment -->
+                        <div class="payment-card">
+                            <h3>Manual Payment</h3>
+                            <p class="card-description">Enter payment details manually</p>
+                            <textarea id="command" placeholder="Example: Pay Usman 1M to UBA bank account number 0123456789" rows="4" class="payment-textarea"></textarea>
+                            <button onclick="executePayment(event)" class="btn btn-primary btn-execute">Execute Payment</button>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="payment-card">
+                            <h3>📁 Bulk Upload</h3>
+                            <p class="card-description">Upload CSV or Excel file</p>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="paymentFile" accept=".csv,.xlsx,.xls" class="file-input">
+                                <label for="paymentFile" class="file-label">
+                                    <span class="upload-icon">📤</span>
+                                    <span id="fileName">Choose File or Drag & Drop</span>
+                                </label>
+                            </div>
+                            <button onclick="uploadFile(event)" class="btn btn-success btn-upload">Upload and Process</button>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="results" class="results-section hidden">
+                        <h3>Payment Results</h3>
+                        
+                        <div class="results-message">
+                            <pre id="resultsContent"></pre>
+                        </div>
+
+                        <div class="results-tables">
+                            <div class="results-table-wrapper">
+                                <h4>✅ Successful Transfers</h4>
+                                <div id="successTransfer" class="results-table"></div>
+                            </div>
+
+                            <div class="results-table-wrapper">
+                                <h4>❌ Failed Transfers</h4>
+                                <div id="failedTransfers" class="results-table"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- HISTORY TAB -->
+                <section id="historyTab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>📜 Transaction History</h2>
+                        <p>View all your past transactions</p>
+                    </div>
+
+                    <div class="history-placeholder">
+                        <h3>Transaction History</h3>
+                        <p>Your transaction history will appear here. All successful and failed transfers are logged for your records.</p>
+                        <div id="historyContent" style="margin-top: 20px;">
+                            <p style="color: #999; text-align: center;">No transactions yet</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SETTINGS TAB -->
+                <section id="settingsTab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>⚙️ Settings</h2>
+                        <p>Manage your account preferences</p>
+                    </div>
+
+                    <div class="settings-grid">
+                        <!-- Profile Settings -->
+                        <div class="settings-card">
+                            <h3>👤 Profile Information</h3>
+                            <div class="setting-item">
+                                <label>Full Name</label>
+                                <p id="settingsName">-</p>
+                            </div>
+                            <div class="setting-item">
+                                <label>Email Address</label>
+                                <p id="settingsEmail">-</p>
+                            </div>
+                            <div class="setting-item">
+                                <label>Phone Number</label>
+                                <p id="settingsPhone">-</p>
+                            </div>
+                        </div>
+
+                        <!-- Account Settings -->
+                        <div class="settings-card">
+                            <h3>🔐 Account Settings</h3>
+                            <div class="setting-item">
+                                <label>Account Status</label>
+                                <p>✅ Active</p>
+                            </div>
+                            <div class="setting-item">
+                                <label>Last Login</label>
+                                <p id="lastLogin">Just now</p>
+                            </div>
+                            <div class="setting-item">
+                                <label>Two-Factor Authentication</label>
+                                <p>🔒 Enabled</p>
+                            </div>
+                        </div>
+
+                        <!-- Preferences -->
+                        <div class="settings-card">
+                            <h3>🎨 Preferences</h3>
+                            <div class="setting-item">
+                                <label>Theme</label>
+                                <p>Light Mode</p>
+                            </div>
+                            <div class="setting-item">
+                                <label>Notifications</label>
+                                <p>✅ Enabled</p>
+                            </div>
+                            <div class="setting-item">
+                                <label>Language</label>
+                                <p>English</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
