@@ -96,7 +96,6 @@ def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
 		status_code = status.HTTP_400_UNAUTHORIZED,
 		detail = "Unauthorize signature"
 		)
-		
 	try:
 		account_number = payload.get("data").get("account_number")
 		user = db.query(Users).filter(Users.account_number == account_number).first()
@@ -114,9 +113,8 @@ def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
             "status":"success",
             "message":"Wallet updated successfully",
         }
-    except Exception as e:
-        return {"status":"failed","message":"An error has occurred: ":str(e)}
-
+	except Exception as e:
+		return {"status":"failed","message":"An error has occurred: ":str(e)}
 
 
 @app.get("/agent")
