@@ -128,7 +128,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
         }
     
     user = db.query(Users).filter(Users.id == user_id).first()
-    
+    print("the user id walid is: ",user_id if user else None)
     if not user:
 		return {
 			"status": "failed",
@@ -136,7 +136,6 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
 			"url": "/auth"
 		}
 	set_user_id({"user_id":user_id})
-	print("walid we set the userid and it is: ",user_id)
     return {
         "status": "success",
         "user": {
