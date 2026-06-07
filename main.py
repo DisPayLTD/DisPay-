@@ -121,8 +121,8 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
     user_id = request.session.get("user_id")
     
     if not user_id:
-				return {
-            "status": "failed",
+		return {
+			"status": "failed",
             "message": "User not logged in",
             "url": "/auth"
         }
