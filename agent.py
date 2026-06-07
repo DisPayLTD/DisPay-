@@ -10,7 +10,7 @@ import os
 from context import get_db_session,get_user_id
 
 
-print("get_user_id: " get_user_id())
+print("get_user_id: " ,get_user_id())
 api = os.getenv("FLUTTER_SECRET_API_KEY")
 llm_api = os.getenv("LLM_API_KEY")
 @tool
