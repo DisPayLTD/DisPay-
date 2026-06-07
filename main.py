@@ -86,12 +86,7 @@ def dashboard(request: Request):
     with open("templates/dashboard.html") as f:
         return HTMLResponse(content=f.read())
 
-import os
-from fastapi import FastAPI,Depends,Request
-from sqlalchemy.orm import Session
 
-def get_d
-app = FastAPI()
 secret = os.getenv("SECRET_HASH")
 @app.post("/remitron/webhook/flutterwave")
 def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
