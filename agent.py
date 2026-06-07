@@ -205,5 +205,5 @@ CRITICAL OPERATIONAL RULES FOR PAYTRON:
 
    return output 
 
-
+print("walid this is the userid: ",get_user_id)
 tools = [send_money]
