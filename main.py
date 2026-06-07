@@ -128,7 +128,6 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
         }
     
     user = db.query(Users).filter(Users.id == user_id).first()
-    print("the user id walid is: ",user_id if user else None)
     if not user:
 		return {
 			"status": "failed",
