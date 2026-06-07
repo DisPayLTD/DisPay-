@@ -322,7 +322,7 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
 
 
 @app.post("/send-money")
-def send_money(command:Command,request: Request):
+def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
     if "user_id" not in request.session:
         return {
             "status": "failed",
