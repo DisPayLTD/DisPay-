@@ -52,10 +52,18 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
     return "User does not exists sorry this transaction can not proceed"
   account_balance = user.wallet_balance
   for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
-    if amt < account_balance:
-      return f"Sorry this transaction can not happen insufficient fund your balance is {account_balance} and the transaction required {amt}"
+    if amt > account_balance:
+      return data_creation(
+        responses = responses, 
+        account_number = account_number,
+        db = db, 
+        account_balance = account_balance,
+        table_rows_success = table_rows_success,
+        table_rows_failed = table_rows_failed,
+        user = user,
+        msg = f"Sorry this transaction can not proceed due to insufficient fund your balance is: {account_balance} and the transaction required: {amt}"
+      )
     account_balance -= amt
-    
     bank_code = bank_codes.get(bank)
     payload = {
     "account_number":acc,
@@ -64,8 +72,6 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
     "narration": f"payment to {nam} for {narr}",
     "currency": "NGN"
     }
-     
-    
     try: 
       response = requests.post(
       f"{url}/transfers",
@@ -77,24 +83,43 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       
       if res_json.get("status") == "success":
         table_rows_success.append([nam,bank, acc, amt, narr])
-        db.commit()
-        db.refresh(user)
       else:
         table_rows_failed.append([nam,bank, acc, amt, narr])
         account_balance += amt
-        db.commit()
-        db.refresh(user)
       responses.append(response.json())
     except requests.exceptions.RequestException as e:
       errors.append(f"error {e} has occured")
+  return data_creation(
+    responses = responses, 
+    account_number = account_number,
+    db = db, 
+    account_balance = account_balance,
+    table_rows_success = table_rows_success,
+    table_rows_failed = table_rows_failed,
+    user = user,
+    msg = "All transactions completed ✅ ")
+  
+  
+
+def data_creation(
+  responses, 
+  account_number, 
+  db, 
+  account_balance, 
+  user,
+  table_rows_success,
+  table_rows_failed,
+  msg
+):
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
   headers = ["Name","Bank Name","Account Number","Amount","Narration"]
-  suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]]
-  
+  suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]] 
   obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
   obj_success = tabulate(table_rows_success,headers = headers,tablefmt = "html")
-  
+  user.wallet_balance = account_balance
+  db.commit()
+  db.refresh(user)
   return {
   "Total_transactions": len(account_number),
   "Processed" : len(responses),
@@ -110,10 +135,9 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   "Details_failed":{
   "Data": [detail.get("data") for detail in failed],
   "Message" :[msg["message"] for msg in failed]
+  },
+  "Transaction_Message":msg
   }
-  }
-
-
 
 class SalaryAgentPayer:
   def __init__(self,tools):
