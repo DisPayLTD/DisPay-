@@ -294,7 +294,9 @@ async def upload_file(request: Request,file:UploadFile = File(...)):
             "message": "user not logged in",
             "url": "/auth"
         }
-        
+    
+    set_db_session(db)
+    set_user_id({"user_id": request.session["user_id"]})
     res = agent.command(data, uuid = session_id)
     output = res.get("messages",[])
     tools_output = "{}"
@@ -334,6 +336,8 @@ def send_money(command:Command,request: Request):
             "message": "user is not logged in",
             "url": "/auth"
         }
+    set_db_session(db)
+    set_user_id({"user_id": request.session["user_id"]})
     res = agent.command(command.command, uuid = session_id)
     output = res.get("messages",[])
     tools_output = "{}"
