@@ -113,23 +113,23 @@ def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
 	except Exception as e:
 		return {"status":"failed","message":f"An error has occurred: {str(e)}"}
 
-	
-
 @app.get("/get-user-data")
 def get_user_data(request: Request, db: Session = Depends(get_db)):
     """Get current user data for dashboard"""
     user_id = request.session.get("user_id")
     
     if not user_id:
-		return {
-			"status": "failed",
+        return {
+            "status": "failed",
             "message": "User not logged in",
             "url": "/auth"
         }
     
     user = db.query(Users).filter(Users.id == user_id).first()
-	
-	set_user_id({"user_id":user_id})
+    if not user:
+        return {"status": "failed", "message": "User not found", "url": "/auth"}
+        
+    set_user_id({"user_id": user_id})
     return {
         "status": "success",
         "user": {
@@ -146,7 +146,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
             "bvn": user.bvn
         }
     }
-        
+
 @app.post("/signup")
 def signup(details: SignupRequest,db:Session = Depends(get_db)):
     ph = PasswordHasher()
