@@ -46,6 +46,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   }
   db = get_db_session()
   user_data = get_user_id()
+  print("walid this is the variable name user data",user_data)
   if not user_data or not isinstance(user_data,dict):
     return "Authentication Error: The system could not securely identify your user context inside this thread loop. Please verify your session."
   user_id = user_data.get("user_id")
