@@ -86,8 +86,12 @@ def dashboard(request: Request):
     with open("templates/dashboard.html") as f:
         return HTMLResponse(content=f.read())
 
+import os
+from fastapi import FastAPI,Depends,Request
+from sqlalchemy.orm import Session
 
-
+def get_d
+app = FastAPI()
 secret = os.getenv("SECRET_HASH")
 @app.post("/remitron/webhook/flutterwave")
 def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
@@ -96,6 +100,7 @@ def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
 		status_code = status.HTTP_400_UNAUTHORIZED,
 		detail = "Unauthorize signature"
 		)
+		
 	try:
 		account_number = payload.get("data").get("account_number")
 		user = db.query(Users).filter(Users.account_number == account_number).first()
@@ -109,24 +114,10 @@ def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
 		user.wallet_balance += amount_deposited
 		db.commit()
 		db.refresh(user)
-        return {
-            "status":"success",
-            "message":"Wallet updated successfully",
-        }
 	except Exception as e:
-		return {"status":"failed","message":"An error has occurred: ":str(e)}
+		return {"status":"failed","message":f"An error has occurred: {str(e)}"}
 
-
-@app.get("/agent")
-def home():
-    """Legacy agent page - redirects to dashboard"""
-    return RedirectResponse(url="/dashboard", status_code=302)
-
-@app.post("/logout")
-def logout(request: Request):
-    """Logout user and clear session"""
-    request.session.clear()
-    return {"status": "success", "message": "Logged out successfully"}
+	
 
 @app.get("/get-user-data")
 def get_user_data(request: Request, db: Session = Depends(get_db)):
