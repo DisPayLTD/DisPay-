@@ -18,6 +18,7 @@ from argon2 import PasswordHasher
 import pandas as pd
 import io
 import requests
+from context import set_db_session,set_user_id
 
 
 
@@ -214,9 +215,12 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
         print("Walid this user exists and he enters his password is right ")
         session_id = request.session.get("thread_id")
         request.session["user_id"] = user.id
+		set_db_session(db)
+		set_user_id({"user_id":user.id,"email":email})
         if not session_id:
             session_id = str(uuid.uuid4())
             request.session["thread_id"]= session_id
+			
         return {"status":"success","message":"login successfully" ,"url":"/dashboard"}
     except Exception:
         verified = False
