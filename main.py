@@ -129,7 +129,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
     
     user = db.query(Users).filter(Users.id == user_id).first()
 	if not user:
-		return {
+        return {
 			"status": "failed",
 			"message": "User not found",
 			"url": "/auth"
