@@ -6,14 +6,15 @@ from typing import List
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.utils.uuid import uuid7
 from tabulate import tabulate
-import os 
+import os
+from context import get_db_session,get_user_id
 
 
 
 api = os.getenv("FLUTTER_SECRET_API_KEY")
 llm_api = os.getenv("LLM_API_KEY")
 @tool
-def send_money(bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
+def send_money(name:List[str],bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
   """ Use this tool to send money """
   bank_codes = {
   "Access Bank":"044",
@@ -42,18 +43,30 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
   headers = {
 "Authorization" : f"Bearer {api}",
 "Content-Type": "application/json"
-}
-  for acc,bank,amt,narr in zip(account_number,bank_name, amount, narration):
-    bank_code = bank_codes.get(bank)
+  }
+  db = get_db_session()
+  user_data = get_user_id()
+  user_id = user_data.get("user_id")
+  user = db.query(Users).filter(Users.id == user_id).first()
+  if not user:
+    return "User does not exists sorry this transaction can not proceed"
+  account_balance = user.wallet_balance
+  for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
+    if amt < account_balance:
+      return f"Sorry this transaction can not happen insufficient fund your balance is {account_balance} and the transaction required {amt}"
+    account_balance -= amt
     
+    bank_code = bank_codes.get(bank)
     payload = {
     "account_number":acc,
     "account_bank": bank_code,
     "amount": amt,
-    "narration": narr,
+    "narration": f"payment to {nam} for {narr}",
     "currency": "NGN"
     }
-    try:
+     
+    
+    try: 
       response = requests.post(
       f"{url}/transfers",
       headers = headers,
@@ -63,15 +76,20 @@ def send_money(bank_name:List[str],account_number:List[str],amount:List[float],n
       res_json = response.json()
       
       if res_json.get("status") == "success":
-        table_rows_success.append([bank, acc, amt, narr])
+        table_rows_success.append([nam,bank, acc, amt, narr])
+        db.commit()
+        db.refresh(user)
       else:
-        table_rows_failed.append([bank, acc, amt, narr])
+        table_rows_failed.append([nam,bank, acc, amt, narr])
+        account_balance += amt
+        db.commit()
+        db.refresh(user)
       responses.append(response.json())
     except requests.exceptions.RequestException as e:
       errors.append(f"error {e} has occured")
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
-  headers = ["Bank Name","Account Number","Amount","Narration"]
+  headers = ["Name","Bank Name","Account Number","Amount","Narration"]
   suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]]
   
   obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
@@ -101,7 +119,8 @@ class SalaryAgentPayer:
   def __init__(self,tools):
    system_prompt = ("""
 
-Your name is Paytron, a high-precision, AI Salary Payment Agent. Your primary function is to process payroll transactions safely and accurately using your available tools.
+Your name is Remitron, a high-precision, AI Salary Payment Agent. Your primary function is to process payroll transactions safely and accurately using your available tools.
+and you are developed by Remitron.co
 
 SESSION & MEMORY MANAGEMENT CONTEXT:
 - You maintain conversation history and context across the current multi-turn workspace session. 
