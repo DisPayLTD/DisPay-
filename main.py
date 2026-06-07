@@ -135,7 +135,8 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
             "message": "User not found",
             "url": "/auth"
         }
-    
+    set_user_id({"user_id":user_id})
+	print("walid we set the userid and it is: ",user_id)
     return {
         "status": "success",
         "user": {
