@@ -214,7 +214,7 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
         hash_password = hp.verify(saved_password, password)
         print("Walid this user exists and he enters his password is right ")
         session_id = request.session.get("thread_id")
-        request.session["user_id"] = user.id
+		request.session["user_id"] = user.id
 		set_db_session(db)
 		set_user_id({"user_id":user.id,"email":email})
         if not session_id:
