@@ -15,6 +15,7 @@
             <div id="loginForm" class="form-section">
                 <h2>Login</h2>
                 <input type="email" id="loginEmail" placeholder="Email" required>
+                
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button onclick="handleLogin()" class="btn btn-primary">Login</button>
                 <p class="toggle-text">Don't have an account? <a onclick="toggleForm()">Sign Up</a></p>
@@ -29,7 +30,7 @@
                 <input type="password" id="signupPassword" placeholder="Password" required>
                 <input type="tel" id="phone" placeholder="Phone Number" required>
                 <input type="text" id="nin" placeholder="NIN (National ID)" required>
-                <input type="text" id="bvn" placeholder="BVN (Optional)">
+                <input type="text" id="bvn" placeholder="BVN" required>
                 <button onclick="handleSignup()" class="btn btn-success">Sign Up</button>
                 <p class="toggle-text">Already have an account? <a onclick="toggleForm()">Login</a></p>
             </div>
@@ -40,5 +41,18 @@
     </div>
 
     <script src="/static/auth.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hideshowpassword/2.2.0/hideShowPassword.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Target your specific login password ID
+        $('#loginPassword').hideShowPassword({
+            show: false,          // Keep password masked initially
+            innerToggle: true,    // Injects a "Show" button inside the right edge of the input
+            touchSupport: true    // Ensures it works smoothly on mobile/tablet screens
+        });
+    });
+    </script>
 </body>
 </html>
