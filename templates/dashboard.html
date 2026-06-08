@@ -57,22 +57,25 @@
             <!-- Navigation Links -->
             <nav class="sidebar-nav">
                 <a href="#" onclick="switchTab('payments'); return false;" class="nav-link active" id="navPayments">
-                    <span class="nav-icon"><i class="fa-solid fa-wallet" style="color: #2ecc71;font-size:24px"></i></span>
-                    <span class="nav-text">Make Payments</span>
+                    <span class="nav-icon"><i class="fa-solid fa-gauge" style="color: #2ecc71;font-size:24px"></i></span>
+                    <span class="nav-text">Dashboard </span>
                 </a>
                 <a href="#" onclick="switchTab('history'); return false;" class="nav-link" id="navHistory">
-                    <span class="nav-icon">📜</span>
+                    <span class="nav-icon"><i class="fa-solid fa-clock-rotate-left" style="font-size: 24px;"></i>
+                    </span>
                     <span class="nav-text">Transaction History</span>
                 </a>
                 <a href="#" onclick="switchTab('settings'); return false;" class="nav-link" id="navSettings">
-                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-icon"><i class="bi bi-gear-fill" style="font-size: 24px;"></i>
+                    </span>
                     <span class="nav-text">Settings</span>
                 </a>
             </nav>
 
             <!-- Logout Button -->
             <button onclick="logout()" class="btn btn-logout">
-                <span>🚪</span> Logout
+                <span><i class="fa-solid fa-right-from-bracket" style="font-size: 24px;"></i>
+                </span> Logout
             </button>
         </aside>
 
@@ -119,12 +122,14 @@
 
                         <!-- File Upload -->
                         <div class="payment-card">
-                            <h3>📁 Bulk Upload</h3>
+                            <h3><i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px;"></i>
+                                Bulk Upload</h3>
                             <p class="card-description">Upload CSV or Excel file</p>
                             <div class="file-upload-wrapper">
                                 <input type="file" id="paymentFile" accept=".csv,.xlsx,.xls" class="file-input">
                                 <label for="paymentFile" class="file-label">
-                                    <span class="upload-icon">📤</span>
+                                    <span class="upload-icon"><i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px;"></i>
+                                    </span>
                                     <span id="fileName">Choose File or Drag & Drop</span>
                                 </label>
                             </div>
@@ -142,12 +147,14 @@
 
                         <div class="results-tables">
                             <div class="results-table-wrapper">
-                                <h4>✅ Successful Transfers</h4>
+                                <h4><i class="fa-solid fa-circle-check" style="font-size: 24px; color: #2ecc71;"></i>
+                                    Successful Transfers</h4>
                                 <div id="successTransfer" class="results-table"></div>
                             </div>
 
                             <div class="results-table-wrapper">
-                                <h4>❌ Failed Transfers</h4>
+                                <h4><i class="fa-solid fa-circle-xmark" style="font-size: 24px; color: #e74c3c;"></i>
+                                    Failed Transfers</h4>
                                 <div id="failedTransfers" class="results-table"></div>
                             </div>
                         </div>
@@ -157,7 +164,8 @@
                 <!-- HISTORY TAB -->
                 <section id="historyTab" class="tab-content">
                     <div class="tab-header">
-                        <h2>📜 Transaction History</h2>
+                        <h2><i class="fa-solid fa-clock" style="font-size: 24px;"></i>
+                            Transaction History</h2>
                         <p>View all your past transactions</p>
                     </div>
 
@@ -173,14 +181,16 @@
                 <!-- SETTINGS TAB -->
                 <section id="settingsTab" class="tab-content">
                     <div class="tab-header">
-                        <h2>⚙️ Settings</h2>
+                        <h2><i class="fa-solid fa-gear" style="font-size: 24px;"></i>
+                            Settings</h2>
                         <p>Manage your account preferences</p>
                     </div>
 
                     <div class="settings-grid">
                         <!-- Profile Settings -->
                         <div class="settings-card">
-                            <h3>👤 Profile Information</h3>
+                            <h3><i class="fa-solid fa-user" style="font-size: 24px;"></i>
+                                Profile Information</h3>
                             <div class="setting-item">
                                 <label>Full Name</label>
                                 <p id="settingsName">-</p>
@@ -197,10 +207,12 @@
 
                         <!-- Account Settings -->
                         <div class="settings-card">
-                            <h3>🔐 Account Settings</h3>
+                            <h3><i class="fa-solid fa-user-lock" style="font-size: 24px;"></i>
+                                Account Settings</h3>
                             <div class="setting-item">
                                 <label>Account Status</label>
-                                <p>✅ Active</p>
+                                <p><i class="fa-solid fa-circle" style="font-size: 12px; color: #2ecc71;"></i>
+                                    Active</p>
                             </div>
                             <div class="setting-item">
                                 <label>Last Login</label>
@@ -208,20 +220,23 @@
                             </div>
                             <div class="setting-item">
                                 <label>Two-Factor Authentication</label>
-                                <p>🔒 Enabled</p>
+                                <p><i class="fa-solid fa-lock" style="font-size: 24px;"></i>
+                                    Enabled</p>
                             </div>
                         </div>
 
                         <!-- Preferences -->
                         <div class="settings-card">
-                            <h3>🎨 Preferences</h3>
+                            <h3><i class="fa-solid fa-sliders" style="font-size: 24px;"></i>
+                                Preferences</h3>
                             <div class="setting-item">
                                 <label>Theme</label>
                                 <p>Light Mode</p>
                             </div>
                             <div class="setting-item">
                                 <label>Notifications</label>
-                                <p>✅ Enabled</p>
+                                <p><i class="fa-solid fa-bell" style="font-size: 24px;"></i>
+                                    Enabled</p>
                             </div>
                             <div class="setting-item">
                                 <label>Language</label>
