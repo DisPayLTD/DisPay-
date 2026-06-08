@@ -54,6 +54,8 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   user = db.query(Users).filter(Users.id == user_id).first()
   if not user:
     return "User does not exists sorry this transaction can not proceed"
+  if not user.has_account:
+      return "User does not have an account please open the side bar and press generate account number"
   account_balance = user.wallet_balance
   for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
     if amt > account_balance:
