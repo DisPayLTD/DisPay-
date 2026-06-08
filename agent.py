@@ -47,14 +47,14 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   }
   db = get_db_session()
   user_data = get_user_id()
-  print("walid this is the variable name user data",user_data)
+  #print("walid this is the variable name user data",user_data)
   if not user_data or not isinstance(user_data,dict):
     return "Authentication Error: The system could not securely identify your user context inside this thread loop. Please verify your session."
   user_id = user_data.get("user_id")
   user = db.query(Users).filter(Users.id == user_id).first()
   if not user:
     return "User does not exists sorry this transaction can not proceed"
-  if not user.has_account:
+  if not user.has_wallet:
       return "User does not have an account please open the side bar and press generate account number"
   account_balance = user.wallet_balance
   for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
