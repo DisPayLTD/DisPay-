@@ -259,7 +259,7 @@ def verify(user: EmailOTP):
     return {"authenticated":val}
 
 @app.post("/upload-file")
-async def upload_file(request: Request,file:UploadFile = File(...)):
+async def upload_file(request: Request,db:Session = Depends(get_db), file:UploadFile = File(...)):
     if "user_id" not in request.session:
         return {
             "status":"failed",
