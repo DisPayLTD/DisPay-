@@ -260,6 +260,7 @@ def verify(user: EmailOTP):
 
 @app.post("/upload-file")
 async def upload_file(request: Request,db:Session = Depends(get_db), file:UploadFile = File(...)):
+    db_sesson = db
     if "user_id" not in request.session:
         return {
             "status":"failed",
@@ -284,6 +285,7 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
     except Exception as e:
         return {"status":"failed","message": str(e)}
     df = content
+    df.columns = df.columns.str.lower()
     data = [f"{idx + 1}. pay \"{row.name}\" \"{row.get('amount')} \" (NGN)  to  account number \"{row.get('account_number')}\"  \"{row.get('bank_name')}\" bank\n" for idx,row in df.iterrows()]
     data = "".join(data)
     print(data)
@@ -295,7 +297,8 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
             "url": "/auth"
         }
     
-    set_db_session(db)
+    set_db_session(db_session)
+    print("session exists " if db_session else "session_does not exists")
     set_user_id({"user_id": request.session["user_id"]})
     res = agent.command(data, uuid = session_id)
     output = res.get("messages",[])
