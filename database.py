@@ -33,8 +33,7 @@ class Transfers(Base):
 	user_id = Column(Integer, ForeignKey("users.id"))
 	sucess_transfers = Column(Text)
 	failed_transfers = Column(Text)
-	transaction_ids = Column(String)
-	receipts = Column(JSON)
+	transactions = Column(JSON)
 	user = relationship("Users",back_populates="transfers")
 
 
@@ -50,7 +49,7 @@ def get_db():
 		db.close()
 
 def init_db():
-	#Base.metadata.drop_all(bind = engine)
+	Base.metadata.drop_all(bind = engine)
 	Base.metadata.create_all(bind = engine)
 	
 	
