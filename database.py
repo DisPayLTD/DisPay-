@@ -23,6 +23,7 @@ class Users(Base):
 	has_wallet = Column(Boolean, default=False)
 	account_number = Column(String)
 	bank_name = Column(String)
+    transactions = Column(JSON)
 	wallet_balance = Column(Float, default= 0.0)
 	creation_time = Column(DateTime(timezone=True),server_default = func.now())
 	transfers = relationship("Transfers",back_populates="user")
@@ -33,7 +34,6 @@ class Transfers(Base):
 	user_id = Column(Integer, ForeignKey("users.id"))
 	sucess_transfers = Column(Text)
 	failed_transfers = Column(Text)
-	transactions = Column(JSON)
 	user = relationship("Users",back_populates="transfers")
 
 
