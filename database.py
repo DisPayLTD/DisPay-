@@ -12,11 +12,11 @@ class Users(Base):
     id = Column(Integer, primary_key=True)
     first_name = Column(String, default="Unknown")
     last_name = Column(String, default="Unknown")
-    email = Column(String)
+    email = Column(String(255), unique = True)
     password = Column(String)
-    nin = Column(String)
-    phone_number = Column(String)
-    bvn = Column(String)
+    nin = Column(String, unique = True)
+    phone_number = Column(String, unique=True)
+    bvn = Column(String, unique=True)
     has_wallet = Column(Boolean, default=False)
     account_number = Column(String)
     bank_name = Column(String)
@@ -28,9 +28,10 @@ class Users(Base):
 class Transfers(Base):
     __tablename__ = "transfers"
     id = Column(Integer, primary_key=True, unique=True)
+    time_of_transfer = Column(DateTime(timezone=True),server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"))
-    sucess_transfers = Column(Text)
-    failed_transfers = Column(Text)
+    sucess_transfers_tables = Column(Text)
+    failed_transfers_tables = Column(Text)
     user = relationship("Users", back_populates="transfers")
 
 engine = create_engine(SQL_URL)
