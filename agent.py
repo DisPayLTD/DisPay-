@@ -9,6 +9,7 @@ from tabulate import tabulate
 import os
 from context import get_db_session,get_user_id
 from database import Users
+import pandas as pd
 
 
 print("get_user_id: " ,get_user_id())
@@ -147,6 +148,22 @@ def data_creation(
   "Transaction_Message":msg
   }
 
+@tool
+def transfer_history(tr_ref[List]):
+    """Use this tool to get transfers details"""
+    db = get_db_session()
+    user_id = get_user_id()
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        return "User does not exists"
+    transactions = user.transfers.transactions
+    if not transactions:
+        return "No transactions were performed"
+    df = pd.DataFrame(transactions)
+    payroll = df[df["tx_ref"].isin(tx_ref)]
+    return payroll.to_dict()
+    
+    
 class SalaryAgentPayer:
   def __init__(self,tools):
    system_prompt = ("""
@@ -210,5 +227,5 @@ CRITICAL OPERATIONAL RULES FOR PAYTRON:
 
    return output 
 
-print("walid this is the userid: ",get_user_id)
-tools = [send_money]
+#tools for the agent
+tools = [send_money,transfer_history]
