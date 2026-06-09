@@ -149,7 +149,7 @@ def data_creation(
   }
 
 @tool
-def transfer_history(tr_ref[List]):
+def transfer_history(tr_ref:List[str]):
     """Use this tool to get transfers details"""
     db = get_db_session()
     user_id = get_user_id()
