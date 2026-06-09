@@ -1,14 +1,11 @@
 import os
-from sqlalchemy import String,Float,create_engine,Column,Integer,DateTime,func,ForeignKey,Text,JSON,Boolean
+from sqlalchemy import String, Float, create_engine, Column, Integer, DateTime, func, ForeignKey, Text, JSON, Boolean
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base, relationship 
 
 SQL_URL = os.getenv("DATABASE_URL", "sqlite:///./remitron.db")
 
-
-
 Base = declarative_base()
-
 
 class Users(Base):
     __tablename__ = "users"
@@ -29,27 +26,24 @@ class Users(Base):
     transfers = relationship("Transfers", back_populates="user")
     
 class Transfers(Base):
-	__tablename__ = "transfers"
-	id = Column(Integer, primary_key = True, unique= True)
-	user_id = Column(Integer, ForeignKey("users.id"))
-	sucess_transfers = Column(Text)
-	failed_transfers = Column(Text)
-	user = relationship("Users",back_populates="transfers")
-
+    __tablename__ = "transfers"
+    id = Column(Integer, primary_key=True, unique=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    sucess_transfers = Column(Text)
+    failed_transfers = Column(Text)
+    user = relationship("Users", back_populates="transfers")
 
 engine = create_engine(SQL_URL)
-sessionLocal = sessionmaker(autocommit = False,autoflush = False,bind = engine)
-
+sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
-	db = sessionLocal()
-	try:
-		yield db
-	finally:
-		db.close()
+    db = sessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def init_db():
-	Base.metadata.drop_all(bind = engine)
-	Base.metadata.create_all(bind = engine)
-	
-	
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    
