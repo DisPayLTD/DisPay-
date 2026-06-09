@@ -399,6 +399,21 @@ function updateDateTime() {
 }
 
 // ============================================
+// HISTORY 
+// ============================================
+
+function history(){
+    try{
+        const res = fetch("/transaction-history");
+        const data = res.json();
+        success_table = data.success_table;
+        failed_table = data.success_table;
+        time_of_transaction = data.time_of_transaction
+    }catch(e){
+        alert("❌ error: "+ String(e))
+    }
+}
+// ============================================
 // LOGOUT FUNCTION
 // ============================================
 
