@@ -11,23 +11,23 @@ Base = declarative_base()
 
 
 class Users(Base):
-	__tablename__ = "users"
-	id = Column(Integer,primary_key = True)
-	first_name = Column(String,default = "Unknown")
-	last_name = Column(String,default = "Unknown")
-	email = Column(String)
-	password = Column(String)
-	nin = Column(String)
-	phone_number = Column(String)
-	bvn = Column(String)
-	has_wallet = Column(Boolean, default=False)
-	account_number = Column(String)
-	bank_name = Column(String)
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    first_name = Column(String, default="Unknown")
+    last_name = Column(String, default="Unknown")
+    email = Column(String)
+    password = Column(String)
+    nin = Column(String)
+    phone_number = Column(String)
+    bvn = Column(String)
+    has_wallet = Column(Boolean, default=False)
+    account_number = Column(String)
+    bank_name = Column(String)
     transactions = Column(JSON)
-	wallet_balance = Column(Float, default= 0.0)
-	creation_time = Column(DateTime(timezone=True),server_default = func.now())
-	transfers = relationship("Transfers",back_populates="user")
-
+    wallet_balance = Column(Float, default=0.0)
+    creation_time = Column(DateTime(timezone=True), server_default=func.now())
+    transfers = relationship("Transfers", back_populates="user")
+    
 class Transfers(Base):
 	__tablename__ = "transfers"
 	id = Column(Integer, primary_key = True, unique= True)
