@@ -152,7 +152,7 @@ def data_creation(
 def transfer_history(tr_ref:List[str]):
     """Use this tool to get transfers details"""
     db = get_db_session()
-    user_id = get_user_id()
+    user_id = get_user_id().get("user_id")
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         return "User does not exists"
