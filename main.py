@@ -430,3 +430,14 @@ def generate_account_number(req: Request,db:Session = Depends(get_db)):
         }
     except requests.exceptions.RequestException as e:
         return {"status":"failed","message":f"An error occurred {str(e)}"}
+
+
+@app.get("/transactions-history")
+def transactions_history(request: Request,db: Session=Depends(get_db)):
+    if not "user_id" in request.session:
+        return {"status":"failed","message":"User is not logged in"}
+    user_id = request.session.get("user_id")
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        return {"status":"failed","message":"User does not exists","url":"/auth"}
+    
