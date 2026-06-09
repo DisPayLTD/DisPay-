@@ -156,7 +156,7 @@ def transfer_history(tr_ref:List[str]):
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         return "User does not exists"
-    transactions = user.transfers.transactions
+    transactions = user.transactions
     if not transactions:
         return "No transactions were performed"
     df = pd.DataFrame(transactions)
