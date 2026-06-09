@@ -121,7 +121,7 @@ def data_creation(
 ):
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
-  headers = ["Name","Bank Name","Account Number","Amount",Tr_Ref,"Narration"]
+  headers = ["Name","Bank Name","Account Number","Amount","Tr_Ref","Narration"]
   suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]] 
   obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
   obj_success = tabulate(table_rows_success,headers = headers,tablefmt = "html")
