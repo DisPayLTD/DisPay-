@@ -69,16 +69,18 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
         user = user,
         msg = f"Sorry this transaction can not proceed due to insufficient fund your balance is: {account_balance} and the transaction required: {amt}"
       )
-    account_balance -= amt
     bank_code = bank_codes.get(bank)
-    payload = {
-    "account_number":acc,
-    "account_bank": bank_code,
-    "amount": amt,
-    "narration": f"payment to {nam} for {narr}",
-    "currency": "NGN"
-    }
-    try: 
+    
+    try:
+      tx_ref = f"REMITRON-TR-{uuid.uuid4().hex[:14]}"
+      payload = {
+          "account_number":acc,
+          "account_bank": bank_code,
+          "amount": amt,
+          "narration": f"payment to {nam} for {narr}",
+          "currency": "NGN",
+          "tx_ref":tx_ref
+      }
       response = requests.post(
       f"{url}/transfers",
       headers = headers,
@@ -88,10 +90,10 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       res_json = response.json()
       
       if res_json.get("status") == "success":
-        table_rows_success.append([nam,bank, acc, amt, narr])
+        account_balance -= amt
+        table_rows_success.append([nam,bank, acc, amt, tx_ref,narr])
       else:
-        table_rows_failed.append([nam,bank, acc, amt, narr])
-        account_balance += amt
+        table_rows_failed.append([nam,bank, acc, amt,tx_ref, narr])
       responses.append(response.json())
     except requests.exceptions.RequestException as e:
       errors.append(f"error {e} has occured")
@@ -119,7 +121,7 @@ def data_creation(
 ):
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
-  headers = ["Name","Bank Name","Account Number","Amount","Narration"]
+  headers = ["Name","Bank Name","Account Number","Amount",Tr_Ref,"Narration"]
   suc_data = [[(r.get("data").get("account_number"),r.get("data").get("amount")) for r in success]] 
   obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
   obj_success = tabulate(table_rows_success,headers = headers,tablefmt = "html")
