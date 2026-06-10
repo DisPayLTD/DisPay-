@@ -440,4 +440,13 @@ def transactions_history(request: Request,db: Session=Depends(get_db)):
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         return {"status":"failed","message":"User does not exists","url":"/auth"}
-    
+    transactions= user.transfers
+    time_of_transactions = transactions.time_of_transfer
+    success_tables = transactions.success_transfers_tables
+    failed_tables = transactions.failed_transfers_table
+    data = [{time_of_transfer:{"success_table":suc_table,"failed_table":fail_table}} for time_of_transfer,suc_table,fail_table in zip(time_of_transactions, success_table,failed_table)]
+    return {
+        "status":"success",
+        "message":"Successfully load user history",
+        "data": data 
+    }
