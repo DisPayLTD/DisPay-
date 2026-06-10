@@ -406,9 +406,14 @@ function history(){
     try{
         const res = fetch("/transaction-history");
         const data = res.json();
-        success_table = data.success_table;
-        failed_table = data.success_table;
-        time_of_transaction = data.time_of_transaction
+        if(data.success == 'success'){
+            success_table = data.success_table;
+            failed_table = data.success_table;
+            time_of_transaction = data.time_of_transaction;
+        }else{
+            alert("message "+data.message)
+            window.location.href = data.url
+        }
     }catch(e){
         alert("❌ error: "+ String(e))
     }
