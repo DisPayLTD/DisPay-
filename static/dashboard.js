@@ -399,25 +399,110 @@ function updateDateTime() {
 }
 
 // ============================================
-// HISTORY 
+// LOAD TRANSACTION HISTORY
 // ============================================
 
-function history(){
-    try{
-        const res = fetch("/transaction-history");
-        const data = res.json();
-        if(data.success == 'success'){
-            success_table = data.success_table;
-            failed_table = data.success_table;
-            time_of_transaction = data.time_of_transaction;
-        }else{
-            alert("message "+data.message)
-            window.location.href = data.url
+async function loadTransactionHistory() {
+    try {
+        const res = await fetch("/transaction-history");  // ✅ Add await
+        const data = await res.json();  // ✅ Add await
+        
+        if (data.status === 'success') {
+            // Insert HTML directly into historyContent
+            document.getElementById('historyContent').innerHTML = data.html;
+            
+            // Setup pagination for tables
+            setupTablePagination();
+        } else {
+            document.getElementById('historyContent').innerHTML = 
+                `<p style='color: #e74c3c; text-align: center;'>❌ ${data.message}</p>`;
         }
-    }catch(e){
-        alert("❌ error: "+ String(e))
+    } catch (e) {
+        document.getElementById('historyContent').innerHTML = 
+            `<p style='color: #e74c3c; text-align: center;'>❌ Error: ${e.message}</p>`;
     }
 }
+
+// ============================================
+// TABLE PAGINATION (Show More)
+// ============================================
+
+function setupTablePagination() {
+    const tables = document.querySelectorAll('.history-table-section table');
+    
+    tables.forEach(table => {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const rowsPerPage = 5;  // Show 5 rows initially
+        
+        if (rows.length <= rowsPerPage) {
+            return;  // Don't paginate if less than limit
+        }
+        
+        // Hide rows after the limit
+        rows.forEach((row, index) => {
+            if (index >= rowsPerPage) {
+                row.style.display = 'none';
+                row.classList.add('hidden-row');
+            }
+        });
+        
+        // Add "Show More" button
+        const showMoreBtn = document.createElement('button');
+        showMoreBtn.textContent = `📂 Show More (${rows.length - rowsPerPage} more)`;
+        showMoreBtn.className = 'btn-show-more';
+        showMoreBtn.onclick = function(e) {
+            e.preventDefault();
+            
+            // Show all hidden rows
+            tbody.querySelectorAll('.hidden-row').forEach(row => {
+                row.style.display = 'table-row';
+                row.classList.remove('hidden-row');
+            });
+            
+            // Hide button
+            showMoreBtn.style.display = 'none';
+        };
+        
+        // Insert button after table
+        table.parentNode.appendChild(showMoreBtn);
+    });
+}
+
+// Call loadTransactionHistory when history tab is clicked
+function switchTab(tabName) {
+    // Hide all tabs
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Remove active class from nav links
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => link.classList.remove('active'));
+    
+    // Show selected tab
+    const tabElement = document.getElementById(tabName + 'Tab');
+    if (tabElement) {
+        tabElement.classList.add('active');
+    }
+    
+    // Add active class to clicked nav link
+    if (tabName === 'payments') {
+        document.getElementById('navPayments').classList.add('active');
+    } else if (tabName === 'history') {
+        document.getElementById('navHistory').classList.add('active');
+        loadTransactionHistory();  // ✅ Load history when tab is clicked
+    } else if (tabName === 'settings') {
+        document.getElementById('navSettings').classList.add('active');
+    }
+    
+    // Close sidebar on mobile after clicking nav
+    if (window.innerWidth <= 768) {
+        closeSidebar();
+    }
+                }
+
 // ============================================
 // LOGOUT FUNCTION
 // ============================================
