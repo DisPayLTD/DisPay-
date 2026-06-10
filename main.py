@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status
 import json
+from slowapi import Limiter 
+from slowapi.util import get_remote_address
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from agent import SalaryAgentPayer
@@ -24,7 +26,8 @@ from context import set_db_session,set_user_id
 
 
 app = FastAPI()
-
+limiter = Limiter(key_func = get_remote_address)
+app.state.limiter = limiter
 app.mount("/static", StaticFiles(directory="static"), name="static")
 my_secret_key = os.getenv("MY_SECRET_KEY")
 app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600, https_only = True)
@@ -148,6 +151,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
     }
 
 @app.post("/signup")
+@limiter.limit("1/minute")
 def signup(details: SignupRequest,db:Session = Depends(get_db)):
     ph = PasswordHasher()
     email = details.email
@@ -191,6 +195,7 @@ def signup(details: SignupRequest,db:Session = Depends(get_db)):
         )
 
 @app.post("/login")
+@limiter.limit("3/minute")
 def login(details:Login, request: Request,db: Session= Depends(get_db)):
     email = details.email
     password = details.password
@@ -226,6 +231,7 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
 user_code = {}
 
 @app.post("/send-otp")
+@limiter.limit("3/hour")
 def send_otp(email: EmailRequest):
     msg = EmailMessage()
     secret = pyotp.random_base32()
@@ -325,6 +331,7 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
 
 
 @app.post("/send-money")
+@limiter.limit("5/minute")
 def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
     if "user_id" not in request.session:
         return {
