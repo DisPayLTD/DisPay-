@@ -12,7 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 import uuid
 import re
-from database import get_db, init_db,Users,Transfer
+from database import get_db, init_db,Users,Transfers
 from sqlalchemy.orm import Session
 from argon2 import PasswordHasher
 import pandas as pd
