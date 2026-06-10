@@ -446,9 +446,9 @@ async def transaction_history(request: Request, db: Session = Depends(get_db)):
             raise HTTPException(status_code=401)
         
         # Get all transfers sorted by date (newest first)
-        transfers = db.query(Transfer).filter(
-            Transfer.user_id == user.id
-        ).order_by(Transfer.time_of_transfer.desc()).all()
+        transfers = db.query(Transfers).filter(
+            Transfers.user_id == user.id
+        ).order_by(Transfers.time_of_transfer.desc()).all()
         
         if not transfers:
             return {
