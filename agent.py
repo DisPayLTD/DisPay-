@@ -127,6 +127,8 @@ def data_creation(
   obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
   obj_success = tabulate(table_rows_success,headers = headers,tablefmt = "html")
   user.wallet_balance = account_balance
+  user.success_transfers_tables = table_rows_success
+  user.success_transfers_tables = table_rows_failed
   db.commit()
   db.refresh(user)
   return {
