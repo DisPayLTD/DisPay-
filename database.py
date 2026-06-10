@@ -30,7 +30,7 @@ class Transfers(Base):
     id = Column(Integer, primary_key=True, unique=True)
     time_of_transfer = Column(DateTime(timezone=True),server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"))
-    sucess_transfers_tables = Column(Text)
+    success_transfers_tables = Column(Text)
     failed_transfers_tables = Column(Text)
     user = relationship("Users", back_populates="transfers")
 
