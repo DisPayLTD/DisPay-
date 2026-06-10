@@ -152,7 +152,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/signup")
 @limiter.limit("1/minute")
-def signup(details: SignupRequest,db:Session = Depends(get_db)):
+def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)):
     ph = PasswordHasher()
     email = details.email
     password = details.password
