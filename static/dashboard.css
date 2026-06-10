@@ -749,3 +749,112 @@ body {
     }
     }
     
+
+/* ============================================
+   HISTORY SECTION STYLES
+   ============================================ */
+
+.history-container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.history-entry {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.history-date-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 25px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.history-date-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.history-tables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+    padding: 25px;
+}
+
+.history-table-section {
+    background: #f8f9ff;
+    border-radius: 8px;
+    padding: 15px;
+    overflow-x: auto;
+}
+
+.history-table-section h5 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.history-table-section table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.history-table-section th,
+.history-table-section td {
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #e0e0e0;
+}
+
+.history-table-section th {
+    background: #667eea;
+    color: white;
+    font-weight: 600;
+}
+
+.history-table-section tbody tr:nth-child(even) {
+    background: #f5f7fa;
+}
+
+.btn-show-more {
+    margin-top: 15px;
+    padding: 10px 15px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-show-more:hover {
+    background: #5568d3;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* ============================================
+   WIDER SIDEBAR ON MOBILE (75% instead of 40%)
+   ============================================ */
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 75%;  /* ✅ Changed from 40% to 75% */
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 85%;  /* ✅ Even wider on small phones */
+    }
+}
