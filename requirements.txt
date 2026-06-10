@@ -19,3 +19,4 @@ pandas
 openpyxl
 python-multipart
 psycopg2
+slowapi
