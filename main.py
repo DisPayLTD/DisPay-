@@ -432,21 +432,68 @@ def generate_account_number(req: Request,db:Session = Depends(get_db)):
         return {"status":"failed","message":f"An error occurred {str(e)}"}
 
 
-@app.get("/transactions-history")
-def transactions_history(request: Request,db: Session=Depends(get_db)):
-    if not "user_id" in request.session:
-        return {"status":"failed","message":"User is not logged in"}
-    user_id = request.session.get("user_id")
-    user = db.query(Users).filter(Users.id == user_id).first()
-    if not user:
-        return {"status":"failed","message":"User does not exists","url":"/auth"}
-    transactions= user.transfers
-    time_of_transactions = transactions.time_of_transfer
-    success_tables = transactions.success_transfers_tables
-    failed_tables = transactions.failed_transfers_table
-    data = [{time_of_transfer:{"success_table":suc_table,"failed_table":fail_table}} for time_of_transfer,suc_table,fail_table in zip(time_of_transactions, success_table,failed_table)]
-    return {
-        "status":"success",
-        "message":"Successfully load user history",
-        "data": data 
-    }
+@app.get("/transaction-history")
+async def transaction_history(request: Request, db: Session = Depends(get_db)):
+    """Get transaction history"""
+    
+    try:
+        if "user_id" not in request.session:
+            raise HTTPException(status_code=401)
+        
+        # Get user with transfers
+        user = db.query(Users).filter(Users.id == request.session["user_id"]).first()
+        if not user:
+            raise HTTPException(status_code=401)
+        
+        # Get all transfers sorted by date (newest first)
+        transfers = db.query(Transfer).filter(
+            Transfer.user_id == user.id
+        ).order_by(Transfer.time_of_transfer.desc()).all()
+        
+        if not transfers:
+            return {
+                "status": "success",
+                "message": "No transactions yet",
+                "html": "<p style='text-align: center; color: #999; padding: 30px;'>No transactions yet. Your transaction history will appear here.</p>"
+            }
+        
+        # Build HTML with pagination
+        html = "<div class='history-container'>"
+        
+        for transfer in transfers:
+            # Format date
+            date_str = transfer.time_of_transfer.strftime("%B %d, %Y at %I:%M %p")
+            
+            html += f"""
+            <div class="history-entry">
+                <div class="history-date-header">
+                    <h4>📅 {date_str}</h4>
+                </div>
+                
+                <div class="history-tables">
+                    <div class="history-table-section">
+                        <h5>✅ Successful Transfers</h5>
+                        {transfer.success_transfers_tables if transfer.success_transfers_tables else '<p>No successful transfers</p>'}
+                    </div>
+                    
+                    <div class="history-table-section">
+                        <h5>❌ Failed Transfers</h5>
+                        {transfer.failed_transfers_tables if transfer.failed_transfers_tables else '<p>No failed transfers</p>'}
+                    </div>
+                </div>
+            </div>
+            """
+        
+        html += "</div>"
+        
+        return {
+            "status": "success",
+            "message": f"Loaded {len(transfers)} transaction records",
+            "html": html
+        }
+    
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
