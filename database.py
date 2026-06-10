@@ -1,7 +1,8 @@
 import os
 from sqlalchemy import String, Float, create_engine, Column, Integer, DateTime, func, ForeignKey, Text, JSON, Boolean
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import declarative_base, relationship 
+from typing import Any
+from sqlalchemy.orm import declarative_base, relationship,Mapped,mapped_column
 
 SQL_URL = os.getenv("DATABASE_URL", "sqlite:///./remitron.db")
 
@@ -20,7 +21,7 @@ class Users(Base):
     has_wallet = Column(Boolean, default=False)
     account_number = Column(String)
     bank_name = Column(String)
-    transactions = Column(JSON)
+    transactions:Mapped[list[dict[str,Any]]] = mapped_column(JSON)
     wallet_balance = Column(Float, default=0.0)
     creation_time = Column(DateTime(timezone=True), server_default=func.now())
     transfers = relationship("Transfers", back_populates="user")
