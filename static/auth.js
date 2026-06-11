@@ -79,7 +79,7 @@ async function handleSignup() {
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        showError('❌ Invalid email address');
+        showError('❌ Invalid email address or password');
         return;
     }
     
