@@ -232,7 +232,7 @@ user_code = {}
 
 @app.post("/send-otp")
 @limiter.limit("3/hour")
-def send_otp(email: EmailRequest):
+def send_otp(request: Request,email: EmailRequest):
     msg = EmailMessage()
     secret = pyotp.random_base32()
     
