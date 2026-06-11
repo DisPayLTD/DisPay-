@@ -14,7 +14,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 import uuid
 import re
-from database import get_db, init_db,Users,Transfers
+from database import get_db, init_db,Users,Transfers, Idempotency
 from sqlalchemy.orm import Session
 from argon2 import PasswordHasher
 import pandas as pd
@@ -39,7 +39,7 @@ agent = SalaryAgentPayer(tools)
 
 class Command(BaseModel):
     command: str
-    sessionUUID: str
+    idempotency: str
 
 class EmailRequest(BaseModel):
     email: str 
@@ -332,13 +332,19 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
 
 @app.post("/send-money")
 @limiter.limit("5/minute")
-def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
+def send_money(command:Command,request: Request,db: Session=Depends(get_db):
     if "user_id" not in request.session:
         return {
             "status": "failed",
             "message": "user is not logged in",
             "url": "/auth"
         }
+    idempotency_key = command.idempotency
+    user_id = request.session.get("user_id")
+    existing= db.query(Idempotency).filter(Idempotency.user_id == user_id, Idempotency.key == idempotency_key).first()
+    if existing:
+        return existing.result
+    
     session_id = request.session.get("thread_id")
     if not session_id:
         return {
@@ -364,10 +370,17 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
     success_html_table = tools_output.get("success_html_table")
     failed_html_table = tools_output.get("failed_html_table")
 
-    res = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
+    result = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
+    new_idempotency = Idempotency(
+        user_id = user_id,
+        idempotency_key = idempotency_key,
+        result = result 
+    )
+    db.add(new_idempotency)
+    db.commit()
+    db.refresh(new_idempotency)
     
-    print(res)
-    return res
+    return result 
     
 tx_ref = f"REMITRON-VA-{str(uuid.uuid4().hex[:16])}"
 
