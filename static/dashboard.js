@@ -186,12 +186,15 @@ async function executePayment(event) {
     const btn = event.target;
     btn.textContent = 'Processing...';
     btn.disabled = true;
+
+    const idempotency_key = `REMUTRON-${Date.now()}-${Math.random().toString(36).substr(2,9)}`
     
+        
     try {
         const res = await fetch('/send-money', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({command: command, sessionUUID: sessionUUID})
+            body: JSON.stringify({command: command, idempotency_key: idempotency_key})
         });
         
         const data = await res.json();
