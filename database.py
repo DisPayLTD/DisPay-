@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from typing import Any
 from sqlalchemy.orm import declarative_base, relationship,Mapped,mapped_column
 
+
 SQL_URL = os.getenv("DATABASE_URL", "sqlite:///./remitron.db")
 
 Base = declarative_base()
@@ -34,6 +35,16 @@ class Transfers(Base):
     success_transfers_tables = Column(Text)
     failed_transfers_tables = Column(Text)
     user = relationship("Users", back_populates="transfers")
+
+
+class Idempotency(Base):
+    __tablename__ = "idempotency"
+    id = Column(Integer,primary_key = True)
+    user_id = Column(Integer,ForeignKey("users.id"))
+    idempotency_key= Column(String, unique=True)
+    result = Column(JSON)
+    created_at = Column(DateTime(timezone=True),server_default = func.now())
+
 
 engine = create_engine(SQL_URL)
 sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
