@@ -8,7 +8,7 @@ function toggleForm() {
 
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
-    if(message.contains("per")){
+    if(message.includes("per")){
         words = message.split(" ")
         errorDiv.textContent = `Sorry only ${words[0]} attempts are allowed<br>try again after ${words[2]}`;
     }else{
