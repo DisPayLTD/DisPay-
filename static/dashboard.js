@@ -1,8 +1,18 @@
 const API = '';
 let userEmail = '';
 let isAuthenticated = true;
-const sessionUUID = crypto.randomUUID();
+let csrf = null;
 
+function loadCsrf(){
+    try{
+        const res = await fetch("/csrf-token");
+        const data = await res.json();
+        csrf = data.csrf
+    }catch(error){
+        alert("error: "+ String(error))
+    }
+}
+window.addEventListener("load",loadCsrf)
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadUserData();
@@ -163,6 +173,10 @@ async function generateAccountNumber() {
 // ============================================
 
 async function executePayment(event) {
+    if(!csrf){
+        alert("Please login or refresh the page");
+        return 
+    }
     if (event) {
         event.preventDefault();
     }
@@ -193,7 +207,7 @@ async function executePayment(event) {
     try {
         const res = await fetch('/send-money', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json',"X-CSRF-Token":csrf},
             body: JSON.stringify({command: command, idempotency_key: idempotency_key})
         });
         
