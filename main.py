@@ -337,7 +337,7 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
 
 @app.post("/send-money")
 @limiter.limit("5/minute")
-def send_money(command:Command,request: Request,db: Session=Depends(get_db):
+def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
     if "user_id" not in request.session:
         return {
             "status": "failed",
