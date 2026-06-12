@@ -28,7 +28,7 @@ from starlette_csrf import CSRFMiddleware
 
 app = FastAPI()
 app.add_middleware(
-    CSRFMiddlware,
+    CSRFMiddleware,
     secret = os.getenv("MY_SECRET_KEY")
 )
 limiter = Limiter(key_func = get_remote_address)
