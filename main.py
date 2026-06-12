@@ -21,11 +21,16 @@ import pandas as pd
 import io
 import requests
 from context import set_db_session,set_user_id
+from starlette_csrf import CSRFMiddleware
 
 
 
 
 app = FastAPI()
+app.add_middleware(
+    CSRFMiddlware,
+    secret = os.getenv("MY_SECRET_KEY")
+)
 limiter = Limiter(key_func = get_remote_address)
 app.state.limiter = limiter
 app.mount("/static", StaticFiles(directory="static"), name="static")
