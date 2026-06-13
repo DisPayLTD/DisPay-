@@ -6,17 +6,16 @@ async function loadCsrfToken() {
     try {
         const res = await fetch("/csrf-token");
         
-        const data = await res.json();
-        if(data.csrf){
-            alert("hello");
-        }else{
-            alert("fuck")
-        }
+        const text = await res.text();  // Get as TEXT first
+        alert("Raw response:", text);  // See what it actually is
+        
+        const data = JSON.parse(text);  // Then parse
         csrf_token = data.csrf;
-        console.log("CSRF loaded:", csrf_token);
+        alert("CSRF token loaded:", csrf_token);
     } catch (e) {
-        console.error("Failed to load CSRF token:", e);
-    }
+        console.error("CSRF loading failed:", e);
+        alert("Response was:", text);  // Show what came back
+}
 }
 
 // Call on page load
