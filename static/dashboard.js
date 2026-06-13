@@ -3,7 +3,7 @@ let userEmail = '';
 let isAuthenticated = true;
 let csrf = null;
 
-function loadCsrf(){
+async function loadCsrf(){
     try{
         const res = await fetch("/csrf-token");
         const data = await res.json();
