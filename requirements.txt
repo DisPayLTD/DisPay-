@@ -21,3 +21,4 @@ python-multipart
 psycopg2
 slowapi
 starlette-csrf
+asgi-csrf
