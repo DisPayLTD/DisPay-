@@ -5,7 +5,13 @@ let csrf_token = null;
 async function loadCsrfToken() {
     try {
         const res = await fetch("/csrf-token");
-        const data = await res.json();  // ← Add 'await' here
+        
+        const data = await res.json();
+        if(data.csrf){
+            alert("hello");
+        }else{
+            alert("fuck")
+        }
         csrf_token = data.csrf;
         console.log("CSRF loaded:", csrf_token);
     } catch (e) {
