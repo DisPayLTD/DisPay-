@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status
 import json
+import secrets 
 from slowapi import Limiter 
 from slowapi.util import get_remote_address
 from fastapi.staticfiles import StaticFiles
@@ -74,7 +75,7 @@ def startup():
     
 @app.get("/csrf-token")
 def csrf_token(request: Request):
-    token = secrets.urlsafe(32)
+    token = secrets.token_urlsafe(32)
     request.session["csrf-token"] = token
     return {"csrf":token}
 
