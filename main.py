@@ -28,15 +28,15 @@ from starlette_csrf import CSRFMiddleware
 
 
 app = FastAPI()
-app.add_middleware(
-    CSRFMiddleware,
-    secret = os.getenv("MY_SECRET_KEY")
-)
 limiter = Limiter(key_func = get_remote_address)
 app.state.limiter = limiter
 app.mount("/static", StaticFiles(directory="static"), name="static")
 my_secret_key = os.getenv("MY_SECRET_KEY")
 app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600, https_only = True)
+app.add_middleware(
+    CSRFMiddleware,
+    secret = os.getenv("MY_SECRET_KEY")
+)
 
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
