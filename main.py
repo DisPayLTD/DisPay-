@@ -22,7 +22,7 @@ import pandas as pd
 import io
 import requests
 from context import set_db_session,set_user_id
-from starlette_csrf import CSRFMiddleware
+from asgi_csrf import asgi_csrf
 
 
 
@@ -34,8 +34,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 my_secret_key = os.getenv("MY_SECRET_KEY")
 app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600, https_only = True)
 app.add_middleware(
-    CSRFMiddleware,
-    secret = os.getenv("MY_SECRET_KEY")
+    asgi_csrf,
+    signing_secret = os.getenv("MY_SECRET_KEY"),
+    cookie_name = "csrftoken",
+    always_set_cookie = True,
+    cookie_secure = True
 )
 
 EMAIL = os.getenv("EMAIL")
