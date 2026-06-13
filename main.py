@@ -75,9 +75,13 @@ def startup():
     
 @app.get("/csrf-token")
 def csrf_token(request: Request):
-    token = secrets.token_urlsafe(32)
-    request.session["csrf_token"] = token
-    return {"csrf":token}
+    try:
+        token = secrets.token_urlsafe(32)
+        request.session["csrf_token"] = token
+        return {"csrf":token}
+    except Exception as e:
+        print(str(e))
+        return {"message":str(e)}
 
 @app.get("/")
 def index(request: Request):
