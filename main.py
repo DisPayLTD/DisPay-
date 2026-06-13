@@ -71,7 +71,12 @@ class SignupRequest(BaseModel):
 @app.on_event("startup")
 def startup():
     init_db()
-
+    
+@app.get("/csrf-token")
+def csrf_token(request: Request):
+    token = secrets.urlsafe(32)
+    request.session["csrf-token"] = token
+    return {"csrf":token}
 
 @app.get("/")
 def index(request: Request):
