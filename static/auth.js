@@ -81,8 +81,8 @@ async function handleLogin() {
             showError('❌ ' + (data.detail || 'Invalid email or password'));
         }
     } catch (error) {
-        alert("the error is: " + error)
-        showError('❌ Error: ' + error.message);
+        alert("the error is: " + error.message)
+        showError('❌ Error walid: ' + error.message);
     }
 }
 
