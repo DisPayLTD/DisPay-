@@ -115,7 +115,7 @@ async function handleSignup() {
     try {
         const res = await fetch('/signup', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json','X-CSRF-Token': csrf_token },
             body: JSON.stringify({
                 first_name: firstName,
                 last_name: lastName,
