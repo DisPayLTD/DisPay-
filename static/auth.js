@@ -2,8 +2,8 @@ const API = '';
 
 function getCsrfToken(){
     const value = `; ${document.cookie}`;
-    const data = value.split(";");
-    if(data.length ==== 2){
+    const data = value.split("; csrftoken=");
+    if(data.length === 2){
         const res = data.pop().split(";").shift();
         return res;
     } else{
