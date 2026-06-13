@@ -1,4 +1,21 @@
 const API = '';
+let csrf_token = null;
+
+// Load CSRF token on page load
+async function loadCsrfToken() {
+    try {
+        const res = await fetch("/csrf-token");
+        const data = await res.json();  // ← Add 'await' here
+        csrf_token = data.csrf;
+        console.log("CSRF loaded:", csrf_token);
+    } catch (e) {
+        console.error("Failed to load CSRF token:", e);
+    }
+}
+
+// Call on page load
+window.addEventListener('load', loadCsrfToken);
+
 
 function toggleForm() {
     document.getElementById('loginForm').classList.toggle('hidden');
