@@ -35,6 +35,7 @@ function showError(message) {
         words = message.split(" ")
         errorDiv.textContent = `Sorry only ${words[0]} attempts are allowed<br>try again after ${words[2]}`;
     }else{
+        alert("this is our error "+ message);
         errorDiv.textContent = message;
     }
     errorDiv.classList.remove('hidden');
