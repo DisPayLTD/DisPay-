@@ -1,26 +1,15 @@
 const API = '';
-let csrf_token = null;
 
-// Load CSRF token on page load
-async function loadCsrfToken() {
-    try {
-        const res = await fetch("/csrf-token");
-        
-        const text = await res.text();  // Get as TEXT first
-        alert("Raw response:", text);  // See what it actually is
-        
-        const data = JSON.parse(text);  // Then parse
-        csrf_token = data.csrf;
-        alert("CSRF token loaded:", csrf_token);
-    } catch (e) {
-        console.error("CSRF loading failed:", e);
-        alert("Response was:", text);  // Show what came back
+function getCsrfToken(){
+    const value = `; ${document.cookie}`;
+    const data = value.split(";");
+    if(data.length ==== 2){
+        const res = data.pop().split(";").shift();
+        return res;
+    } else{
+        return "";
+    }
 }
-}
-
-// Call on page load
-window.addEventListener('load', loadCsrfToken);
-
 
 function toggleForm() {
     document.getElementById('loginForm').classList.toggle('hidden');
@@ -65,7 +54,7 @@ async function handleLogin() {
     try {
         const res = await fetch('/login', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json','X-CSRF-Token': csrf_token },
+            headers: {'Content-Type': 'application/json','X-CSRF-Token': getCsrfToken},
             body: JSON.stringify({email, password})
         });
         
@@ -122,7 +111,7 @@ async function handleSignup() {
     try {
         const res = await fetch('/signup', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json','X-CSRF-Token': csrf_token },
+            headers: {'Content-Type': 'application/json','X-CSRF-Token': getCsrfToken},
             body: JSON.stringify({
                 first_name: firstName,
                 last_name: lastName,
