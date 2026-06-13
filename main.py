@@ -45,7 +45,7 @@ agent = SalaryAgentPayer(tools)
 
 class Command(BaseModel):
     command: str
-    idempotency: str
+    idempotency_key: str
 
 class EmailRequest(BaseModel):
     email: str 
@@ -76,7 +76,7 @@ def startup():
 @app.get("/csrf-token")
 def csrf_token(request: Request):
     token = secrets.token_urlsafe(32)
-    request.session["csrf-token"] = token
+    request.session["csrf_token"] = token
     return {"csrf":token}
 
 @app.get("/")
@@ -350,9 +350,9 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
             "message": "user is not logged in",
             "url": "/auth"
         }
-    idempotency_key = command.idempotency
+    idempotency_key = command.idempotency_key
     user_id = request.session.get("user_id")
-    existing= db.query(Idempotency).filter(Idempotency.user_id == user_id, Idempotency.key == idempotency_key).first()
+    existing= db.query(Idempotency).filter(Idempotency.user_id == user_id, Idempotency.idempotency_key == idempotency_key).first()
     if existing:
         return existing.result
     
