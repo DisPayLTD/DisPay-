@@ -114,46 +114,40 @@ secret = os.getenv("SECRET_HASH")
 @app.post("/remitron/webhook/flutterwave")
 def webhook(payload: dict, req: Request, db: Session = Depends(get_db)):
     # 1. Signature Security Check
-    print("WEBHOOK PAYLOAD:", payload)
-    print("EVENT:", payload.get("event"))
-    print("DATA:", payload.get("data"))
-    
     if req.headers.get("verif-hash") != secret:
-        raise HTTPException(
-            status_code=401,
-            detail="Unauthorized signature"
-        )
-        
+        raise HTTPException(status_code=401, detail="Unauthorized signature")
+    
     try:
-        # 2. Check the event type FIRST before hitting the database
         if payload.get("event") != "charge.completed":
-            return {"status": "ignored", "message": "Not a charge.completed event"}
+            return {"status": "ignored"}
+        
         tx_data = payload.get("data", {})
-        
-        
-        account_number = tx_data.get("virtual_account_number") or tx_data.get("account_number")
-        
-        if not account_number:
-            return {"status": "failed", "message": "No account number found in payload data"}
-
-
-        user = db.query(Users).filter(Users.account_number == account_number).first()
-        if not user:
-            return {"status": "failed", "message": f"User with account {account_number} does not exist"}
-            
         amount_deposited = tx_data.get("amount")
+        
+        # ===== FIX: Use customer email to find user =====
+        customer_email = tx_data.get("customer", {}).get("email")
+        
+        if not customer_email:
+            return {"status": "failed", "message": "No customer email in payload"}
+        
+        user = db.query(Users).filter(Users.email == customer_email).first()
+        
+        if not user:
+            return {"status": "failed", "message": f"User with email {customer_email} not found"}
+        
         if amount_deposited:
             user.wallet_balance += float(amount_deposited)
             db.commit()
             db.refresh(user)
-            return {"status": "success", "message": f"Balance updated for account {account_number}"}
+            print(f"✅ Balance updated! New balance: {user.wallet_balance}")
+            return {"status": "success", "message": f"Balance updated to {user.wallet_balance}"}
         
-        return {"status": "failed", "message": "Amount was zero or missing"}
-
+        return {"status": "failed", "message": "Amount was zero"}
+    
     except Exception as e:
-        db.rollback() 
-        return {"status": "failed", "message": f"An error has occurred: {str(e)}"}
-
+        db.rollback()
+        print(f"❌ Webhook error: {str(e)}")
+        return {"status": "failed", "message": str(e)}
 @app.get("/get-user-data")
 def get_user_data(request: Request, db: Session = Depends(get_db)):
     """Get current user data for dashboard"""
