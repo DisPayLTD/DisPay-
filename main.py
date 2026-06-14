@@ -114,6 +114,10 @@ secret = os.getenv("SECRET_HASH")
 @app.post("/remitron/webhook/flutterwave")
 def webhook(payload: dict, req: Request, db: Session = Depends(get_db)):
     # 1. Signature Security Check
+    print("WEBHOOK PAYLOAD:", payload)
+    print("EVENT:", payload.get("event"))
+    print("DATA:", payload.get("data"))
+    
     if req.headers.get("verif-hash") != secret:
         raise HTTPException(
             status_code=401,
@@ -167,6 +171,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
         return {"status": "failed", "message": "User not found", "url": "/auth"}
         
     set_user_id({"user_id": user_id})
+    print("acct-balance: ",user.wallet_balance)
     return {
         "status": "success",
         "user": {
