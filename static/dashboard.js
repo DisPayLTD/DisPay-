@@ -172,10 +172,7 @@ async function generateAccountNumber() {
 // ============================================
 
 async function executePayment(event) {
-    if(!csrf){
-        alert("Please login or refresh the page");
-        return 
-    }
+    
     if (event) {
         event.preventDefault();
     }
