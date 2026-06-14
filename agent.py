@@ -90,7 +90,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       )
       print(response)
       res_json = response.json()
-      
+      print("FLUTTERWAVE ERROR BODY:", response.json())
       if res_json.get("status") == "success":
         account_balance -= amt
         table_rows_success.append([nam,bank, acc, amt, tx_ref,narr])
