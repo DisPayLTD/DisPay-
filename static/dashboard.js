@@ -206,7 +206,7 @@ async function executePayment(event) {
     try {
         const res = await fetch('/send-money', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json',"X-CSRF-Token":csrf},
+            headers: {'Content-Type': 'application/json',"X-CSRFToken": getCsrftoken()},
             body: JSON.stringify({command: command, idempotency_key: idempotency_key})
         });
         
