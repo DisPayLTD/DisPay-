@@ -22,7 +22,7 @@ class Users(Base):
     has_wallet = Column(Boolean, default=False)
     account_number = Column(String)
     bank_name = Column(String)
-    transactions:Mapped[list[dict[str,Any]]] = mapped_column(JSON)
+    transactions:Mapped[list[dict[str,Any]]] = mapped_column(JSON,nullable = True, default=list)
     wallet_balance = Column(Float, default=0.0)
     creation_time = Column(DateTime(timezone=True), server_default=func.now())
     transfers = relationship("Transfers", back_populates="user")
