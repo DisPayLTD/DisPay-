@@ -54,7 +54,7 @@ async function handleLogin() {
     try {
         const res = await fetch('/login', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json','X-CSRF-Token': getCsrfToken()},
+            headers: {'Content-Type': 'application/json','X-CSRFToken': getCsrfToken()},
             body: JSON.stringify({email, password})
         });
         
@@ -111,7 +111,7 @@ async function handleSignup() {
     try {
         const res = await fetch('/signup', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json','X-CSRF-Token': getCsrfToken},
+            headers: {'Content-Type': 'application/json','X-CSRFToken': getCsrfToken()},
             body: JSON.stringify({
                 first_name: firstName,
                 last_name: lastName,
