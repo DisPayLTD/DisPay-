@@ -1,19 +1,18 @@
 const API = '';
 let userEmail = '';
 let isAuthenticated = true;
-let csrf = null;
 
-async function loadCsrf(){
-    try{
-        const res = await fetch("/csrf-token");
-        const data = await res.json();
-        csrf = data.csrf
-    }catch(error){
-        alert("error: "+ String(error))
+function getCsrfToken(){
+    const value = `; ${document.cookie}`;
+    const data = value.split("; csrftoken=")
+    if(data.length === 2){
+        res = data.pop().split(";").shift()
+        return res;
+    }else{
+        return " ";
     }
 }
-window.addEventListener("load",loadCsrf)
-// Initialize dashboard on page load
+
 document.addEventListener('DOMContentLoaded', function() {
     loadUserData();
     updateDateTime();
