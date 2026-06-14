@@ -110,29 +110,45 @@ def dashboard(request: Request):
 
 
 secret = os.getenv("SECRET_HASH")
+
 @app.post("/remitron/webhook/flutterwave")
-def webhook(payload:dict,req:Request,db:Session = Depends(get_db)):
-	if req.headers.get("verif-hash") != secret:
-		raise HTTPException(
-		status_code = status.HTTP_400_UNAUTHORIZED,
-		detail = "Unauthorize signature"
-		)
-		
-	try:
-		account_number = payload.get("data").get("account_number")
-		user = db.query(Users).filter(Users.account_number == account_number).first()
-		if not user:
-			return {"status":"failed","message":"user does not exists","url":"/auth"}
-		if payload.get("event") != "charge.completed":
-			return{
-			"status":"ignored"
-			}
-		amount_deposited= payload.get("data").get("amount")
-		user.wallet_balance += amount_deposited
-		db.commit()
-		db.refresh(user)
-	except Exception as e:
-		return {"status":"failed","message":f"An error has occurred: {str(e)}"}
+def webhook(payload: dict, req: Request, db: Session = Depends(get_db)):
+    # 1. Signature Security Check
+    if req.headers.get("verif-hash") != secret:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized signature"
+        )
+        
+    try:
+        # 2. Check the event type FIRST before hitting the database
+        if payload.get("event") != "charge.completed":
+            return {"status": "ignored", "message": "Not a charge.completed event"}
+        tx_data = payload.get("data", {})
+        
+        
+        account_number = tx_data.get("virtual_account_number") or tx_data.get("account_number")
+        
+        if not account_number:
+            return {"status": "failed", "message": "No account number found in payload data"}
+
+
+        user = db.query(Users).filter(Users.account_number == account_number).first()
+        if not user:
+            return {"status": "failed", "message": f"User with account {account_number} does not exist"}
+            
+        amount_deposited = tx_data.get("amount")
+        if amount_deposited:
+            user.wallet_balance += float(amount_deposited)
+            db.commit()
+            db.refresh(user)
+            return {"status": "success", "message": f"Balance updated for account {account_number}"}
+        
+        return {"status": "failed", "message": "Amount was zero or missing"}
+
+    except Exception as e:
+        db.rollback() 
+        return {"status": "failed", "message": f"An error has occurred: {str(e)}"}
 
 @app.get("/get-user-data")
 def get_user_data(request: Request, db: Session = Depends(get_db)):
