@@ -54,7 +54,7 @@ async function handleLogin() {
     try {
         const res = await fetch('/login', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json','X-CSRF-Token': getCsrfToken},
+            headers: {'Content-Type': 'application/json','X-CSRF-Token': getCsrfToken()},
             body: JSON.stringify({email, password})
         });
         
