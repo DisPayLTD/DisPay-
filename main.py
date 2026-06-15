@@ -118,32 +118,27 @@ def webhook(payload: dict, req: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Unauthorized signature")
     
     try:
-        if payload.get("event") != "charge.completed":
+        event = payload.get("event")
+        event_type = payload.get("event.type")
+        if event != "transfer.completed" or event_type != "Transfer":
             return {"status": "ignored"}
         
-        tx_data = payload.get("data", {})
-        amount_deposited = tx_data.get("amount")
-        
-        
-        customer_email = tx_data.get("customer", {}).get("email")
-        
-        if not customer_email:
-            return {"status": "failed", "message": "No customer email in payload"}
-        
-        user = db.query(Users).filter(Users.email == customer_email).first()
-        
-        if not user:
-            return {"status": "failed", "message": f"User with email {customer_email} not found"}
-        
-        if amount_deposited:
-            user.wallet_balance += float(amount_deposited)
-            db.commit()
-            db.refresh(user)
-            print(f"✅ Balance updated! New balance: {user.wallet_balance}")
-            return {"status": "success", "message": f"Balance updated to {user.wallet_balance}"}
-        
+        data = payload.get("data", {})
+        if data.get("status") == "success":
+            amount_deposited = data.get("amount")
+            account_num = data.get("account_number")
+            if not customer_email:
+                return {"status": "failed", "message": "No customer email in payload"}
+            user = db.query(Users).filter(Users.account_number == account_num).first()
+            if not user:
+                return {"status": "failed", "message": f"User with account number {account_num} not found"}
+            if amount_deposited:
+                user.wallet_balance += float(amount_deposited)
+                db.commit()
+                db.refresh(user)
+                print(f"✅ Balance updated! New balance: {user.wallet_balance}")
+                return {"status": "success", "message": f"Balance updated to {user.wallet_balance}"}
         return {"status": "failed", "message": "Amount was zero"}
-    
     except Exception as e:
         db.rollback()
         print(f"❌ Webhook error: {str(e)}")
