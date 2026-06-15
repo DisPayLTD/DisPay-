@@ -168,6 +168,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
     set_user_id({"user_id": user_id})
     print("acct-balance: ",user.wallet_balance)
     print("psa_ref" ,user.psa_ref)
+    print("user: ",user)  
     return {
         "status": "success",
         "user": {
