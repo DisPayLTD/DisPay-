@@ -120,11 +120,11 @@ def webhook(payload: dict, req: Request, db: Session = Depends(get_db)):
     try:
         event = payload.get("event")
         event_type = payload.get("event.type")
-        if event != "transfer.completed" or event_type != "Transfer":
+        if event != "transfer.completed" and event_type != "Transfer":
             return {"status": "ignored"}
         
         data = payload.get("data", {})
-        if data.get("status") == "success":
+        if data.get("status") == "SUCCESSFUL":
             amount_deposited = data.get("amount")
             account_num = data.get("account_number")
             if not customer_email:
