@@ -81,7 +81,8 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
           "amount": amt,
           "narration": f"payment to {nam} for {narr}",
           "currency": "NGN",
-          "tx_ref":tx_ref
+          "reference":tx_ref,
+          "debit_subaccount": user.psa_ref 
       }
       response = requests.post(
       f"{url}/transfers",
