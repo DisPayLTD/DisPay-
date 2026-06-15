@@ -420,29 +420,29 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
 tx_ref = f"REMITRON-VA-{str(uuid.uuid4().hex[:16])}"
 
 @app.get("/generate-account-number")
-def generate_account_number(req: Request,db:Session = Depends(get_db)):
+def generate_account_number(req: Request, db: Session = Depends(get_db)):
      
     user_id = req.session.get("user_id")
     if not user_id:
         return {
-            "status":"failed",
-            "message":"User not logged in",
-            "url":"/auth"
+            "status": "failed",
+            "message": "User not logged in",
+            "url": "/auth"
         }
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         return {
-            "status":"failed",
-            "message":"User does not exist please signup or login first",
-            "url":"/auth",
+            "status": "failed",
+            "message": "User does not exist please signup or login first",
+            "url": "/auth",
         }
     if user.has_wallet:
         return {
-            "status":"failed",
-            "message":"User already has an account number",
-            "url":"/dashboard",
+            "status": "failed",
+            "message": "User already has an account number",
+            "url": "/dashboard",
         }
-    bvn = user.bvn
+    
     email = user.email
     phone = user.phone_number
     first_name = user.first_name
@@ -450,41 +450,57 @@ def generate_account_number(req: Request,db:Session = Depends(get_db)):
     
     api = os.getenv("FLUTTER_SECRET_API_KEY")
     header = {
-        "Authorization":f"Bearer {api}" ,
-        "Content-Type":"application/json"
+        "Authorization": f"Bearer {api}",
+        "Content-Type": "application/json"
     }
+     
     body = {
-        "email":email,
-        "firstname":first_name,
-        "lastname" :last_name,
-        "bvn":bvn,
-        "is_permanent":True,
-        "phonenumber": phone,
-        "tx_ref" : tx_ref,
-        "narration":f"virtual account for {first_name} {last_name}"
+        "account_name": f"{first_name} {last_name}", 
+        "email": email,
+        "mobilenumber": phone,
+        "country": "NG",
+        "bank_code": "035"                           
     }
-    url = "https://api.flutterwave.com/v3/virtual-account-numbers"
+    
+    url = "https://api.flutterwave.com/v3/payout-subaccounts"
+
     try:
         res = requests.post(
             url,
-            headers = header,
-            json = body
+            headers=header,
+            json=body
         )
-        res = res.json()
-        account_number = res.get("data").get("account_number")
-        bank_name = res.get("data").get("bank_name")
-        user.account_number = account_number
-        user.bank_name = bank_name
-        user.has_wallet = True
-        db.commit()
-        db.refresh(user)
-        return {
-            "status":"success",
-            "message":"Wallet successfully created!",
-            "url":"/dashboard"
-        }
+        res_json = res.json()
+        
+        
+        if res_json.get("status") == "success":
+            data = res_json.get("data", {})
+             
+            account_number = data.get("nuban")           
+            bank_name = data.get("bank_name")             
+            psa_ref = data.get("account_reference")       
+            
+            user.account_number = account_number
+            user.bank_name = bank_name
+            user.psa_ref = psa_ref
+            user.has_wallet = True
+            
+            db.commit()
+            db.refresh(user)
+            
+            return {
+                "status": "success",
+                "message": "Wallet successfully created!",
+                "url": "/dashboard"
+            }
+        else:
+            return {
+                "status": "failed",
+                "message": res_json.get("message", "Failed to initialize subaccount wallet container.")
+            }
+            
     except requests.exceptions.RequestException as e:
-        return {"status":"failed","message":f"An error occurred {str(e)}"}
+        return {"status": "failed", "message": f"An error occurred {str(e)}"}
 
 
 @app.get("/transaction-history")
