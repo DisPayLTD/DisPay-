@@ -16,6 +16,7 @@ class Users(Base):
     last_name = Column(String, default="Unknown")
     email = Column(String(255), unique = True)
     password = Column(String)
+    psa_ref = Column(String, unique=True)
     nin = Column(String, unique = True)
     phone_number = Column(String, unique=True)
     bvn = Column(String, unique=True)
@@ -57,6 +58,6 @@ def get_db():
         db.close()
 
 def init_db():
-    #Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     
