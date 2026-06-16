@@ -107,18 +107,25 @@ function populateDashboard(user) {
 // FETCH BALANCE
 // ============================================
 function fetchBalance(){
-    setInterval(async =>{
+    setInterval(async () => {  // ← Add parentheses after async
         try{
             const res = await fetch("/account-balance");
-            const data = res.json()
-            if(data.status === `success`){
-                document.getElementById('walletBalance').textContent = (data.balance || 0.00);
+            const data = await res.json();
+            
+            if(data.status === "success"){  
+                const balance = data.balance || 0.00;
+                // Format with commas: ₦10,000.00
+                document.getElementById('walletBalance').textContent = 
+                    `₦${balance.toLocaleString('en-NG', {minimumFractionDigits: 2})}`;
             }
         }catch(error){
-            alert("error-catch-block: "+ String(error));
+            console.error("Balance fetch error:", error);  // Use console.error, not alert
         }
-    },5000)
+    }, 5000);  // 5000ms = 5 seconds ✓
 }
+
+// Call it when page loads
+window.addEventListener('load', fetchBalance);
 
 // ============================================
 // TAB SWITCHING
