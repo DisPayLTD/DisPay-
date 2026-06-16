@@ -104,6 +104,23 @@ function populateDashboard(user) {
 }
 
 // ============================================
+// FETCH BALANCE
+// ============================================
+function fetchBalance(){
+    setInterval(async =>{
+        try{
+            const res = await fetch("/account-balance");
+            const data = res.json()
+            if(data.status === `success`){
+                document.getElementById('walletBalance').textContent = (data.balance || 0.00);
+            }
+        }catch(error){
+            alert("error-catch-block: "+ String(error));
+        }
+    },5000)
+}
+
+// ============================================
 // TAB SWITCHING
 // ============================================
 
