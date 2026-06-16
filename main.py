@@ -135,6 +135,7 @@ def get_acct_balance(req: Request,db:Session=Depends(get_db)):
     try:
         res = request.get(url,headers = header)
         data = res.json()
+        print(data)
         if data.get("status") == "success":
             balance = data.get("data",{}).get("available_balance")
             user.wallet_balance = balance
