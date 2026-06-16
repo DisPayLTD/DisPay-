@@ -111,43 +111,38 @@ def dashboard(request: Request):
 
 secret = os.getenv("SECRET_HASH")
 
-@app.post("/remitron/webhook/flutterwave")
-def webhook(payload: dict, req: Request, db: Session = Depends(get_db)):
-    print("🔔 WEBHOOK HIT!")  # ← This MUST appear in logs
-    print("Headers:", dict(req.headers))
-    print("Verif-hash:", req.headers.get("verif-hash"))
-    print("Expected secret:", secret)
-    
-    if req.headers.get("verif-hash") != secret:
-        raise HTTPException(status_code=401, detail="Unauthorized signature")
-    
+@app.get("/account-balance")
+def get_acct_balance(req: Request,db:Session=Depends(get_db)):
+    user_id = req.session.get("user_id")
+    if not user_id:
+        raise HTTPException(
+            status_code = status.HTTP_403_UNAUTHORIZED,
+            detail = "unauthorized access"
+        )
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        return {
+            "status":"failed",
+            "message":"User does not exists",
+            "url":"/auth"
+        }
+    api = os.getenv("FLUTTER_SECERET_API_KEY")
+    header = {
+        "Authorization":f"Bearer {api}",
+        "Content-Type" :"application/json",
+    }
+    url = f"https://api.flutterwave.com/v3/payout-subaccounts/{user.psa_ref}/balances"
     try:
-        event = payload.get("event")
-        event_type = payload.get("event.type")
-        if event != "transfer.completed" and event_type != "Transfer":
-            return {"status": "ignored"}
-        
-        data = payload.get("data", {})
-        if data.get("status") == "SUCCESSFUL":
-            amount_deposited = data.get("amount")
-            account_num = data.get("account_number")
-            if not account_num:
-                return {"status": "failed", "message": "No customer account  in payload"}
-            user = db.query(Users).filter(Users.account_number == account_num).first()
-            if not user:
-                return {"status": "failed", "message": f"User with account number {account_num} not found"}
-            if amount_deposited:
-                user.wallet_balance += float(amount_deposited)
-                db.commit()
-                db.refresh(user)
-                print(f"✅ Balance updated! New balance: {user.wallet_balance}")
-                return {"status": "success", "message": f"Balance updated to {user.wallet_balance}"}
-        return {"status": "failed", "message": "Amount was zero"}
+        res = request.get(url,headers = header)
+        data = res.json()
+        if data.get("status") == "success":
+            balance = data.get("data",{}).get("available_balance")
+            return {"status":"success","message":"balance successfully fetched","balance":balance}
     except Exception as e:
-        db.rollback()
-        print(f"❌ Webhook error: {str(e)}")
-        return {"status": "failed", "message": str(e)}
-
+        return {
+            "status":"failed",
+            "message":f"error: {str(e)}"
+        }
 
 @app.get("/get-user-data")
 def get_user_data(request: Request, db: Session = Depends(get_db)):
