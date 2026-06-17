@@ -125,7 +125,7 @@ function fetchBalance(){
 }
 
 // Call it when page loads
-window.addEventListener('load', fetchBalance);
+//window.addEventListener('load', fetchBalance);
 
 // ============================================
 // TAB SWITCHING
