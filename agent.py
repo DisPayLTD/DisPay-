@@ -33,8 +33,8 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
     "Keystone Bank": "082",
     "Kuda Bank": "50211",
     "Moniepoint MFB": "50515",
-    "Opay (Paycom)": "305",
-    "Palmpay": "312",   
+    "Opay (Paycom)":"100004",
+    "Palmpay": "100033",   
     "Polaris Bank": "076",
     "Providus Bank": "101",
     "Sparkle": "51310",
@@ -194,8 +194,8 @@ def verify(bank_codes: List[str], acc_no: List[str], names: List[str]):
         "Keystone Bank": "082",
         "Kuda Bank": "50211",
         "Moniepoint MFB": "50515", 
-        "Opay (Paycom)": "305",
-        "Palmpay": "312",
+        "Opay (Paycom)": "100004",
+        "Palmpay": "100033",
         "Polaris Bank": "076", 
         "Providus Bank": "101",
         "Sparkle": "51310", 
@@ -220,9 +220,10 @@ def verify(bank_codes: List[str], acc_no: List[str], names: List[str]):
         "Authorization": f"Bearer {api}",
         "Content-Type": "application/json"
     }
-    
+    clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
     for bank_name, acc, nam in zip(bank_codes, acc_no, names):
-        
+        user_bank_input = bank_name.lower() if bank_name else ""
+        bank_id = clean_matrix.get(user_bank_input)
         bank_id = nigerian_bank_codes.get(bank_name)
         if not bank_id:
             errors.append({"input_name": nam, "account": acc, "message": f"Bank '{bank_name}' does not exist in code matrix"})
@@ -304,8 +305,8 @@ Always look up and cross-reference the exact name of the bank using this referen
     "Keystone Bank": "082",
     "Kuda Bank": "50211",
     "Moniepoint MFB": "50515",
-    "Opay (Paycom)": "305",
-    "Palmpay": "312",
+    "Opay (Paycom)": "100004",
+    "Palmpay": "100033",
     "Polaris Bank": "076",
     "Providus Bank": "101",
     "Sparkle": "51310",
