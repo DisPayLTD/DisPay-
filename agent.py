@@ -19,25 +19,34 @@ llm_api = os.getenv("LLM_API_KEY")
 @tool
 def send_money(name:List[str],bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
   """ Use this tool to send money """
-  bank_codes = {
-  "Access Bank":"044",
-  "Ecobank":"050",
-  "Fidelity Bank":"070",
-  "First Bank":"011",
-  "FCMB":"214",
-  "GTBank (GTCO)":"058",
-  "Moniepoint":"099437 or 796",
-  "OPay":"999992 or 100004",
-  "PalmPay":"999991 or 855",
-  "Polaris Bank":"076",
-  "Stanbic IBTC":"221",
-  "Sterling Bank":"232",
-  "UBA":"033",
-  "Union Bank":"032",
-  "Unity Bank":"215",
-  "Wema Bank / ALAT":"035",
-  "Zenith Bank":"057"
-}
+  nigerian_bank_codes = {
+    "Access Bank": "044",
+    "Carbon (One Finance)": "565",
+    "Citibank Nigeria": "023",
+    "Ecobank Nigeria": "050",
+    "Fidelity Bank": "070",
+    "First Bank of Nigeria": "011",
+    "First City Monument Bank (FCMB)": "214",
+    "Globus Bank": "00103",
+    "Guaranty Trust Bank (GTBank)": "058",
+    "Jaiz Bank": "301",
+    "Keystone Bank": "082",
+    "Kuda Bank": "50211",
+    "Moniepoint MFB": "50515",
+    "Opay (Paycom)": "099437",
+    "Palmpay": "999991",
+    "Polaris Bank": "076",
+    "Providus Bank": "101",
+    "Sparkle": "51310",
+    "Stanbic IBTC Bank": "221",
+    "Standard Chartered Bank": "068",
+    "Sterling Bank": "232",
+    "Union Bank of Nigeria": "032",
+    "United Bank for Africa (UBA)": "033",
+    "Unity Bank": "215",
+    "Wema Bank": "035",
+    "Zenith Bank": "057"
+  }
   errors = []
   responses = []
   table_rows_success = []
@@ -71,15 +80,15 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
         user = user,
         msg = f"Sorry this transaction can not proceed due to insufficient fund your balance is: {account_balance} and the transaction required: {amt}"
       )
-    bank_code = bank_codes.get(bank)
+    bank_code = nigerian_bank_codes.get(bank)
     
     try:
-      tx_ref = f"REMITRON-TR-{uuid.uuid4().hex[:14]}"
+      tx_ref = f"KUDI-TR-{uuid.uuid4().hex[:14]}"
       payload = {
           "account_number":acc,
           "account_bank": bank_code,
           "amount": amt,
-          "narration": f"payment to {nam} for {narr}",
+          "narration": f"Kudi-payment to {nam} for {narr}",
           "currency": "NGN",
           "reference":tx_ref,
           "debit_subaccount": user.psa_ref 
