@@ -126,14 +126,14 @@ def get_acct_balance(req: Request,db:Session=Depends(get_db)):
             "message":"User does not exists",
             "url":"/auth"
         }
-    api = os.getenv("FLUTTER_SECERET_API_KEY")
+    api = os.getenv("FLUTTER_SECRET_API_KEY")
     header = {
         "Authorization":f"Bearer {api}",
         "Content-Type" :"application/json",
     }
     url = f"https://api.flutterwave.com/v3/payout-subaccounts/{user.psa_ref}/balances"
     try:
-        res = request.get(url,headers = header)
+        res = requests.get(url,headers = header)
         data = res.json()
         print(data)
         if data.get("status") == "success":
