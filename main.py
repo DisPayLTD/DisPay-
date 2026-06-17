@@ -138,9 +138,11 @@ def get_acct_balance(req: Request,db:Session=Depends(get_db)):
         print(data)
         if data.get("status") == "success":
             balance = data.get("data",{}).get("available_balance")
-            user.wallet_balance = balance
-            db.commit()
-            db.refresh(user)
+            live_balance = user.wallet_balance
+            if live_balance != balnce:
+                user.wallet_balance = balance
+                db.commit()
+                db.refresh(user)
             return {"status":"success","message":"balance successfully fetched","balance":balance}
     except Exception as e:
         return {
