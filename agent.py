@@ -83,12 +83,12 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
     bank_code = nigerian_bank_codes.get(bank)
     
     try:
-      tx_ref = f"KUDI-TR-{uuid.uuid4().hex[:14]}"
+      tx_ref = f"DisPay-TR-{uuid.uuid4().hex[:14]}"
       payload = {
           "account_number":acc,
           "account_bank": bank_code,
           "amount": amt,
-          "narration": f"Kudi-payment to {nam} for {narr}",
+          "narration": f"DisPay-payment to {nam} from {user.first_name} {user.last_name}",
           "currency": "NGN",
           "reference":tx_ref,
           "debit_subaccount": user.psa_ref 
@@ -345,4 +345,4 @@ Always look up and cross-reference the exact name of the bank using this referen
    return output 
 
 #tools for the agent
-tools = [send_money,transfer_history]
+tools = [send_money,transfer_history,verify]
