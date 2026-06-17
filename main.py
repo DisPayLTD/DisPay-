@@ -116,7 +116,7 @@ def get_acct_balance(req: Request,db:Session=Depends(get_db)):
     user_id = req.session.get("user_id")
     if not user_id:
         raise HTTPException(
-            status_code = status.HTTP_403_UNAUTHORIZED,
+            status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "unauthorized access"
         )
     user = db.query(Users).filter(Users.id == user_id).first()
