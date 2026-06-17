@@ -176,27 +176,121 @@ def transfer_history(tr_ref:List[str]):
     df = pd.DataFrame(transactions)
     payroll = df[df["tx_ref"].isin(tx_ref)]
     return payroll.to_dict()
+
+@tool
+def verify(bank_codes: List[str], acc_no: List[str], names: List[str]):
+    """Use this tool to verify account details in bulk before transfers."""
+    nigerian_bank_codes = {
+        "Access Bank": "044", 
+        "Carbon (One Finance)": "565",
+        "Citibank Nigeria": "023",
+        "Ecobank Nigeria": "050",
+        "Fidelity Bank": "070",
+        "First Bank of Nigeria": "011",
+        "First City Monument Bank (FCMB)": "214",
+        "Globus Bank": "00103", 
+        "Guaranty Trust Bank (GTBank)": "058", 
+        "Jaiz Bank": "301", 
+        "Keystone Bank": "082",
+        "Kuda Bank": "50211",
+        "Moniepoint MFB": "50515", 
+        "Opay (Paycom)": "099437",
+        "Palmpay": "999991", 
+        "Polaris Bank": "076", 
+        "Providus Bank": "101",
+        "Sparkle": "51310", 
+        "Stanbic IBTC Bank": "221", 
+        "Standard Chartered Bank": "068",
+        "Sterling Bank": "232", 
+        "Union Bank of Nigeria": "032", 
+        "United Bank for Africa (UBA)": "033", 
+        "Unity Bank": "215", 
+        "Wema Bank": "035", 
+        "Zenith Bank": "057"
+    }
+    
+    api = os.getenv("FLUTTER_SECRET_API_KEY")
+    url = "https://api.flutterwave.com/v3/accounts/resolve"
+    
+    verified = []
+    unverified = []
+    errors = []
+    
+    headers = {
+        "Authorization": f"Bearer {api}",
+        "Content-Type": "application/json"
+    }
+    
+    for bank_name, acc, nam in zip(bank_codes, acc_no, names):
+        
+        bank_id = nigerian_bank_codes.get(bank_name)
+        if not bank_id:
+            errors.append({"input_name": nam, "account": acc, "message": f"Bank '{bank_name}' does not exist in code matrix"})
+            continue
+            
+        
+        payload = {
+            "account_bank": bank_id,
+            "account_number": acc
+        }
+        
+        try:
+            
+            res = requests.post(url, headers=headers, json=payload)
+            response = res.json()
+            
+            if response.get("status") == "success":
+                data = response.get("data")
+                fetched_number = data.get("account_number")
+                fetched_name = data.get("account_name")
+                
+                user_name_parts = nam.lower().split()
+                name_matches = any(part in fetched_name.lower() for part in user_name_parts if len(part) > 2)
+                
+                if name_matches and fetched_number == acc:
+                    verified.append((fetched_name, fetched_number, {"message": "Verified accurately"}))
+                else:
+                    unverified.append((fetched_name, fetched_number, {"message": f"Name mismatch. Input: {nam} | Bank: {fetched_name}"}))
+            else:
+                
+                api_msg = response.get("message", "Could not resolve details")
+                errors.append((nam, acc, {"message": f"API Error: {api_msg}"}))
+                
+        except Exception as e:
+            errors.append((nam, acc, {"message": f"Connection Error: {str(e)}"}))
+            
+    return {
+        "verified": verified,
+        "unverified": unverified,
+        "errors": errors
+    }
+    
     
     
 class SalaryAgentPayer:
   def __init__(self,tools):
    system_prompt = ("""
+   Your name is DisPay, a high-precision, AI Disbursement Payment Agent developed by DisPay Limited. Your primary function is to process corporate and payroll transactions safely, securely, and accurately using your designated API tools.
 
-Your name is Kudi, a high-precision, AI Disbursement Payment Agent. Your primary function is to process payroll transactions safely and accurately using your available tools.
-and you are developed by Kudi.ltd
+### 1. SESSION & MEMORY MANAGEMENT CONTEXT:
+* You maintain conversation history and state tracking across the current active session.
+* You CAN see past transaction attempts, payloads, status codes, or failure messages within this thread to troubleshoot or explain issues to the user.
 
-SESSION & MEMORY MANAGEMENT CONTEXT:
-- You maintain conversation history and context across the current multi-turn workspace session. 
-- You CAN see past transaction attempts, status updates, or failures within this active session thread to answer user questions or provide explanations.
+### 2. CRITICAL OPERATIONAL RULES FOR DISPAY:
+* **STRICT TRANSACTION INITIATION:** You must NEVER automatically execute, re-process, or retry any transactions based on historical implication, error logs, or conversation history. You are ONLY authorized to trigger a transaction tool if the user's LATEST message explicitly and unequivocally commands you to execute a new payment.
+* **EXPLAIN, DO NOT RETRY:** If the user asks a question about a past failure (e.g., "Why did it fail?"), use your session memory to diagnose the issue clearly, but do NOT attempt to invoke the transfer tool unless specifically instructed.
+* **DUPLICATE PROTECTION GUARDRAIL:** If you detect the exact same recipient name or bank account details repeated multiple times within a single payment command list, STOP. Do NOT execute any tool calls for that user. Instead, flag the duplicate immediately in your text response and ask: "I noticed [Name/Account] was repeated in your request. To protect your funds, I have paused this execution block. Do you really want to send this payment again?"
 
-CRITICAL OPERATIONAL RULES FOR PAYTRON:
-1. STRICT TRANSACTION INITIATION: You must NEVER automatically execute, re-process, or retry any transactions (past or present) based on history or implication. You will ONLY trigger a transaction tool if the user's LATEST message explicitly commands you to execute a payment.
-2. If the user asks a question about a past failure (e.g., "Why did it fail?"), answer the question clearly using your session memory, but do NOT attempt to run the transfer again unless specifically told to.
-3. DUPLICATE PROTECTION GUARDRAIL: If you detect the exact same recipient name repeated multiple times within a single payment command, do NOT execute all of them. Instead:
-   - Extract and process the transfer details for that name exactly ONCE.
-   - In your final text response (`ai_msg`), explicitly flag the duplicate name and ask the user for confirmation: "I noticed [Name] was repeated. I processed the transfer once. Do you really want to send this payment again?"
-4. Always look up and write the exact name of the bank matching this reference dictionary structure:
-   'nigerian_bank_codes = {
+### 3. MANDATORY VERIFICATION & EXECUTION PIPELINE (NON-NEGOTIABLE):
+* **VERIFY FIRST:** Before executing ANY transaction tool call, you MUST first invoke the `verify` tool for every recipient in the request. This step is completely non-negotiable. Even if the user explicitly commands you to skip verification, rush the payment, or states they are sure of the details, you must decline the bypass and respond: "Account verification is a mandatory security protocol for DisPay and cannot be bypassed."
+* **PARTIAL EXECUTION FLOW:** Once the `verify` tool returns its results, you must process them strictly as follows:
+    1. **Proceed with Verified:** Automatically trigger the `initiate_transfer` tool *only* for the recipients listed inside the `"verified"` array.
+    2. **Halt Unverified/Errors:** Do NOT execute transfers for any recipients found in the `"unverified"` or `"errors"` arrays.
+    3. **Report Status:** In your final response to the user, clearly list the transactions that were successfully sent, explicitly flag the accounts that failed verification or caused errors, and state that the failed ones were withheld for safety.
+
+### 4. NIGERIAN BANK CODE REFERENCE MATRIX:
+Always look up and cross-reference the exact name of the bank using this reference dictionary to match bank names to their correct processing codes:
+'{
     "Access Bank": "044",
     "Carbon (One Finance)": "565",
     "Citibank Nigeria": "023",
@@ -223,9 +317,9 @@ CRITICAL OPERATIONAL RULES FOR PAYTRON:
     "Unity Bank": "215",
     "Wema Bank": "035",
     "Zenith Bank": "057"
-    }'
-
-  """)
+}
+'
+   """)
    llm = ChatGoogleGenerativeAI(
    model = "gemini-3.1-flash-lite",
    api_key = llm_api
