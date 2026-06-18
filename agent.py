@@ -11,7 +11,7 @@ from context import get_db_session,get_user_id
 from database import Users, Transfers 
 import pandas as pd
 import uuid
-import datetime
+from datetime import datetime,timezone
 
 
 print("get_user_id: " ,get_user_id())
@@ -148,11 +148,7 @@ def data_creation(
   user_id = user.id
   transfer = Transfers(
     user_id=user_id,
-    status="completed",
-    request_data={"user_input": user_input},
-    response=responses,
-    created_at=datetime.utcnow(),
-    completed_at=datetime.utcnow(),
+    time_of_transfer=datetime.now(timezone.utc()),
     success_transfers_tables=result["success_html_table"],
     failed_transfers_tables=result["failed_html_table"]
   )
