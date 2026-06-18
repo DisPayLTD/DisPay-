@@ -1,100 +1,4 @@
-from langchain.agents import create_agent
-from langchain_core.tools import tool
-from langchain_google_genai import ChatGoogleGenerativeAI
-import requests
-from typing import List
-from langgraph.checkpoint.memory import InMemorySaver
-from langchain_core.utils.uuid import uuid7
-from tabulate import tabulate
-import os
-from context import get_db_session,get_user_id
-from database import Users
-import pandas as pd
-import uuid
-
-
-print("get_user_id: " ,get_user_id())
-api = os.getenv("FLUTTER_SECRET_API_KEY")
-llm_api = os.getenv("LLM_API_KEY")
-@tool
-def send_money(name:List[str],bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
-  """ Use this tool to send money """
-  nigerian_bank_codes = {
-    "Access Bank": "044",
-    "Carbon (One Finance)": "565",
-    "Citibank Nigeria": "023",
-    "Ecobank Nigeria": "050",
-    "Fidelity Bank": "070",
-    "First Bank of Nigeria": "011",
-    "First City Monument Bank (FCMB)": "214",
-    "Globus Bank": "00103",
-    "Guaranty Trust Bank (GTBank)": "058",
-    "Jaiz Bank": "301",
-    "Keystone Bank": "082",
-    "Kuda Bank": "50211",
-    "Moniepoint MFB": "50515",
-    "Opay (Paycom)":"100004",
-    "Palmpay": "100033",   
-    "Polaris Bank": "076",
-    "Providus Bank": "101",
-    "Sparkle": "51310",
-    "Stanbic IBTC Bank": "221",
-    "Standard Chartered Bank": "068",
-    "Sterling Bank": "232",
-    "Union Bank of Nigeria": "032",
-    "United Bank for Africa (UBA)": "033",
-    "Unity Bank": "215",
-    "Wema Bank": "035",
-    "Zenith Bank": "057"
-  }
-  errors = []
-  responses = []
-  table_rows_success = []
-  table_rows_failed = []
-  url = "https://api.flutterwave.com/v3"
-  headers = {
-"Authorization" : f"Bearer {api}",
-"Content-Type": "application/json"
-  }
-  db = get_db_session()
-  user_data = get_user_id()
-  #print("walid this is the variable name user data",user_data)
-  if not user_data or not isinstance(user_data,dict):
-    return "Authentication Error: The system could not securely identify your user context inside this thread loop. Please verify your session."
-  user_id = user_data.get("user_id")
-  user = db.query(Users).filter(Users.id == user_id).first()
-  if not user:
-    return "User does not exists sorry this transaction can not proceed"
-  if not user.has_wallet:
-      return "User does not have an account please open the side bar and press generate account number"
-  account_balance = user.wallet_balance
-  clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
-  for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
-    if amt > account_balance:
-      return data_creation(
-        responses = responses, 
-        account_number = account_number,
-        db = db, 
-        account_balance = account_balance,
-        table_rows_success = table_rows_success,
-        table_rows_failed = table_rows_failed,
-        user = user,
-        msg = f"Sorry this transaction can not proceed due to insufficient fund your balance is: {account_balance} and the transaction required: {amt}"
-      )
-    user_bank_input = bank.lower() if bank else ""
-    bank_id = clean_matrix.get(user_bank_input)
-    bank_code = bank_id
-    
-    try:
-      tx_ref = f"DisPay-TR-{uuid.uuid4().hex[:14]}"
-      payload = {
-          "account_number":acc,
-          "account_bank": bank_code,
-          "amount": amt,
-          "narration": f"DisPay-payment to {nam} from {user.first_name} {user.last_name}",
-          "currency": "NGN",
-          "reference":tx_ref,
-          "debit_subaccount": user.psa_ref 
+subaccount": user.psa_ref 
       }
       response = requests.post(
       f"{url}/transfers",
@@ -287,40 +191,18 @@ class SalaryAgentPayer:
 ### 3. MANDATORY VERIFICATION & EXECUTION PIPELINE (NON-NEGOTIABLE):
 * **VERIFY FIRST:** Before executing ANY transaction tool call, you MUST first invoke the `verify` tool for every recipient in the request. This step is completely non-negotiable. Even if the user explicitly commands you to skip verification, rush the payment, or states they are sure of the details, you must decline the bypass and respond: "Account verification is a mandatory security protocol for DisPay and cannot be bypassed."
 * **PARTIAL EXECUTION FLOW:** Once the `verify` tool returns its results, you must process them strictly as follows:
-    1. **Proceed with Verified:** Automatically trigger the `initiate_transfer` tool *only* for the recipients listed inside the `"verified"` array.
+    1. **Proceed with Verified:** Automatically trigger the `send_money` tool *only* for the recipients listed inside the `"verified"` array.
     2. **Halt Unverified/Errors:** Do NOT execute transfers for any recipients found in the `"unverified"` or `"errors"` arrays.
     3. **Report Status:** In your final response to the user, clearly list the transactions that were successfully sent, explicitly flag the accounts that failed verification or caused errors, and state that the failed ones were withheld for safety.
 
 ### 4. NIGERIAN BANK CODE REFERENCE MATRIX:
-Always look up and cross-reference the exact name of the bank using this reference dictionary to match bank names to their correct processing codes:
-'{
-    "Access Bank": "044",
-    "Carbon (One Finance)": "565",
-    "Citibank Nigeria": "023",
-    "Ecobank Nigeria": "050",
-    "Fidelity Bank": "070",
-    "First Bank of Nigeria": "011",
-    "First City Monument Bank (FCMB)": "214",
-    "Globus Bank": "00103",
-    "Guaranty Trust Bank (GTBank)": "058",
-    "Jaiz Bank": "301",
-    "Keystone Bank": "082",
-    "Kuda Bank": "50211",
-    "Moniepoint MFB": "50515",
-    "Opay (Paycom)": "100004",
-    "Palmpay": "100033",
-    "Polaris Bank": "076",
-    "Providus Bank": "101",
-    "Sparkle": "51310",
-    "Stanbic IBTC Bank": "221",
-    "Standard Chartered Bank": "068",
-    "Sterling Bank": "232",
-    "Union Bank of Nigeria": "032",
-    "United Bank for Africa (UBA)": "033",
-    "Unity Bank": "215",
-    "Wema Bank": "035",
-    "Zenith Bank": "057"
-}
+Always look up and cross-reference the exact name of the bank using this reference list to match bank names to their correct processing codes:
+'["Access Bank","Carbon (One Finance)","Citibank Nigeria","Ecobank Nigeria",
+"Fidelity Bank","First Bank of Nigeria","First City Monument Bank (FCMB)","Globus Bank",
+"Guaranty Trust Bank (GTBank)","Jaiz Bank","Keystone Bank","Kuda Bank",
+"Moniepoint MFB","Opay (Paycom)","Palmpay","Polaris Bank","Providus Bank","Sparkle",
+"Stanbic IBTC Bank","Standard Chartered Bank","Sterling Bank","Union Bank of Nigeria",
+"United Bank for Africa (UBA)","Unity Bank","Wema Bank","Zenith Bank"]
 '
    """)
    llm = ChatGoogleGenerativeAI(
