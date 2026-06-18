@@ -112,7 +112,7 @@ function fetchBalance(){
         try{
             const res = await fetch("/account-balance");
             const data = await res.json();
-            
+            alert("your data is: " + data);
             if(data.status === "success"){  
                 const balance = data.balance || 0.00;
                 alert("your balance is: "+balance)
@@ -120,6 +120,7 @@ function fetchBalance(){
             }
         }catch(error){
             console.log("Balance fetch error:", error);
+            alert("your balance is: "+error)
         }
     }, 5000);  // 5000ms = 5 seconds ✓
 }
