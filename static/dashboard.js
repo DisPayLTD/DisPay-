@@ -108,25 +108,20 @@ function populateDashboard(user) {
 // FETCH BALANCE
 // ============================================
 function fetchBalance(){
-    setInterval(async () => {  // ← Add parentheses after async
+    setInterval(async () => {  
         try{
             const res = await fetch("/account-balance");
             const data = await res.json();
-            alert("your data is: " + JSON.stringify(data));
             if(data.status === "success"){  
                 const balance = data.balance || 0.00;
-                alert("your balance is: "+balance)
                 document.getElementById('walletBalance').textContent = balance.toFixed(2);
             }
         }catch(error){
             console.log("Balance fetch error:", error);
-            alert("your balance is: "+error)
         }
     }, 5000);  // 5000ms = 5 seconds ✓
 }
 
-// Call it when page loads
-//window.addEventListener('load', fetchBalance);
 
 // ============================================
 // TAB SWITCHING
