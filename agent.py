@@ -132,7 +132,7 @@ def data_creation(
   user,
   table_rows_success,
   table_rows_failed,
-  msg
+  msg,
 ):
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
@@ -141,6 +141,7 @@ def data_creation(
   obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
   obj_success = tabulate(table_rows_success,headers = headers,tablefmt = "html")
   user.wallet_balance = account_balance
+  user_id = user.id
   transfer = Transfers(
     user_id=user_id,
     status="completed",
