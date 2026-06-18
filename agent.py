@@ -68,6 +68,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   if not user.has_wallet:
       return "User does not have an account please open the side bar and press generate account number"
   account_balance = user.wallet_balance
+  clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
   for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
     if amt > account_balance:
       return data_creation(
@@ -80,7 +81,9 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
         user = user,
         msg = f"Sorry this transaction can not proceed due to insufficient fund your balance is: {account_balance} and the transaction required: {amt}"
       )
-    bank_code = nigerian_bank_codes.get(bank)
+    user_bank_input = bank.lower() if bank else ""
+    bank_id = clean_matrix.get(user_bank_input)
+    bank_code = bank_id
     
     try:
       tx_ref = f"DisPay-TR-{uuid.uuid4().hex[:14]}"
@@ -224,7 +227,6 @@ def verify(bank_codes: List[str], acc_no: List[str], names: List[str]):
     for bank_name, acc, nam in zip(bank_codes, acc_no, names):
         user_bank_input = bank_name.lower() if bank_name else ""
         bank_id = clean_matrix.get(user_bank_input)
-        bank_id = nigerian_bank_codes.get(bank_name)
         if not bank_id:
             errors.append({"input_name": nam, "account": acc, "message": f"Bank '{bank_name}' does not exist in code matrix"})
             continue
