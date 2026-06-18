@@ -149,8 +149,8 @@ def data_creation(
   transfer = Transfers(
     user_id=user_id,
     time_of_transfer=datetime.now(timezone.utc),
-    success_transfers_tables=result["success_html_table"],
-    failed_transfers_tables=result["failed_html_table"]
+    success_transfers_tables=table_rows_success,
+    failed_transfers_tables= table_rows_failed
   )
   db.add(transfer)
   user.transactions = responses
