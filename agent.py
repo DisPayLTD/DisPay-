@@ -17,7 +17,7 @@ print("get_user_id: " ,get_user_id())
 api = os.getenv("FLUTTER_SECRET_API_KEY")
 llm_api = os.getenv("LLM_API_KEY")
 @tool
-def send_money(name:List[str],bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
+def send_money(name:List[str],bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str],user_input:str):
   """ Use this tool to send money """
   nigerian_bank_codes = {
     "Access Bank": "044",
@@ -133,6 +133,7 @@ def data_creation(
   table_rows_success,
   table_rows_failed,
   msg,
+  user_input
 ):
   success = [response for response in responses if response["status"] == "success"]
   failed =  [response for response in responses if response["status"] == "error"]
@@ -145,7 +146,7 @@ def data_creation(
   transfer = Transfers(
     user_id=user_id,
     status="completed",
-    request_data={"command": command.command},
+    request_data={"user_input": user_input},
     response=result,
     created_at=datetime.utcnow(),
     completed_at=datetime.utcnow(),
