@@ -79,6 +79,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
         table_rows_success = table_rows_success,
         table_rows_failed = table_rows_failed,
         user = user,
+        user_input = user_input,
         msg = f"Sorry this transaction can not proceed due to insufficient fund your balance is: {account_balance} and the transaction required: {amt}"
       )
     user_bank_input = bank.lower() if bank else ""
@@ -120,6 +121,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
     table_rows_success = table_rows_success,
     table_rows_failed = table_rows_failed,
     user = user,
+    user_input = user_input,
     msg = "All transactions completed ✅ ")
   
   
