@@ -149,7 +149,7 @@ def data_creation(
     user_id=user_id,
     status="completed",
     request_data={"user_input": user_input},
-    response=result,
+    response=response,
     created_at=datetime.utcnow(),
     completed_at=datetime.utcnow(),
     success_transfers_tables=result["success_html_table"],
