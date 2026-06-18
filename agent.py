@@ -130,6 +130,7 @@ def verify(bank_codes: List[str], acc_no: List[str], names: List[str]):
     clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
     for bank_name, acc, nam in zip(bank_codes, acc_no, names):
         user_bank_input = bank_name.lower() if bank_name else ""
+        print("bank name: ",user_bank_input)
         bank_id = clean_matrix.get(user_bank_input)
         if not bank_id:
             errors.append({"input_name": nam, "account": acc, "message": f"Bank '{bank_name}' does not exist in code matrix"})
