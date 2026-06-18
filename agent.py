@@ -166,19 +166,30 @@ def data_creation(
   }
 
 @tool
-def transfer_history(tr_ref:List[str]):
+def transfer_history(tr_ref: List[str]):
     """Use this tool to get transfers details"""
     db = get_db_session()
     user_id = get_user_id().get("user_id")
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
-        return "User does not exists"
+        return "User does not exist"
+    
     transactions = user.transactions
     if not transactions:
         return "No transactions were performed"
-    df = pd.DataFrame(transactions)
-    payroll = df[df["tx_ref"].isin(tx_ref)]
-    return payroll.to_dict()
+    
+    
+    filtered_transactions = []
+    for tx in transactions:
+        tx_data = tx.get("data", {}) if isinstance(tx, dict) else {}
+        reference_id = tx_data.get("reference")
+        if reference_id in tr_ref:
+            filtered_transactions.append(tx)
+            
+    if not filtered_transactions:
+        return "No matching transactions found for the provided references"
+        
+    return filtered_transactions
 
 @tool
 def verify(bank_names: List[str], acc_no: List[str], names: List[str]):
