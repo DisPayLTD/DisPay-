@@ -112,7 +112,7 @@ function fetchBalance(){
         try{
             const res = await fetch("/account-balance");
             const data = await res.json();
-            alert("your data is: " + data);
+            alert("your data is: " + JSON.stringify(data));
             if(data.status === "success"){  
                 const balance = data.balance || 0.00;
                 alert("your balance is: "+balance)
