@@ -141,12 +141,21 @@ def data_creation(
   obj_failed = tabulate(table_rows_failed,headers = headers,tablefmt = "html")
   obj_success = tabulate(table_rows_success,headers = headers,tablefmt = "html")
   user.wallet_balance = account_balance
-  transfer = user.transfers
-  transfer.success_transfers_tables = table_rows_success
-  transfer.failed_transfers_tables = table_rows_failed
+  transfer = Transfers(
+    user_id=user_id,
+    status="completed",
+    request_data={"command": command.command},
+    response=result,
+    created_at=datetime.utcnow(),
+    completed_at=datetime.utcnow(),
+    success_transfers_tables=result["success_html_table"],
+    failed_transfers_tables=result["failed_html_table"]
+  )
+  db.add(transfer)
   user.transactions = responses
   db.commit()
   db.refresh(user)
+  db.refresh(transfer)
   return {
   "Total_transactions": len(account_number),
   "Processed" : len(responses),
