@@ -8,7 +8,7 @@ from langchain_core.utils.uuid import uuid7
 from tabulate import tabulate
 import os
 from context import get_db_session,get_user_id
-from database import Users
+from database import Users, Transfers 
 import pandas as pd
 import uuid
 
