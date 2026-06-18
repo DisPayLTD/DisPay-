@@ -102,7 +102,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       headers = headers,
       json = payload
       )
-      print(response)
+      #print(response)
       res_json = response.json()
       print("FLUTTERWAVE ERROR BODY:", response.json())
       if res_json.get("status") == "success":
@@ -149,7 +149,7 @@ def data_creation(
     user_id=user_id,
     status="completed",
     request_data={"user_input": user_input},
-    response=response,
+    response=responses,
     created_at=datetime.utcnow(),
     completed_at=datetime.utcnow(),
     success_transfers_tables=result["success_html_table"],
