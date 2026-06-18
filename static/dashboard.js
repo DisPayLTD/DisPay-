@@ -115,7 +115,7 @@ function fetchBalance(){
             
             if(data.status === "success"){  
                 const balance = data.balance || 0.00;
-                document.getElementById('walletBalance').textContent = balance.toFixed(2);
+                document.getElementById('walletBalance').textContent = 1,000,000//balance.toFixed(2);
     ;
             }
         }catch(error){
