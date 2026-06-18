@@ -1,4 +1,100 @@
-subaccount": user.psa_ref 
+From langchain.agents import create_agent
+from langchain_core.tools import tool
+from langchain_google_genai import ChatGoogleGenerativeAI
+import requests
+from typing import List
+from langgraph.checkpoint.memory import InMemorySaver
+from langchain_core.utils.uuid import uuid7
+from tabulate import tabulate
+import os
+from context import get_db_session,get_user_id
+from database import Users
+import pandas as pd
+import uuid
+
+
+print("get_user_id: " ,get_user_id())
+api = os.getenv("FLUTTER_SECRET_API_KEY")
+llm_api = os.getenv("LLM_API_KEY")
+@tool
+def send_money(name:List[str],bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str]):
+  """ Use this tool to send money """
+  nigerian_bank_codes = {
+    "Access Bank": "044",
+    "Carbon (One Finance)": "565",
+    "Citibank Nigeria": "023",
+    "Ecobank Nigeria": "050",
+    "Fidelity Bank": "070",
+    "First Bank of Nigeria": "011",
+    "First City Monument Bank (FCMB)": "214",
+    "Globus Bank": "00103",
+    "Guaranty Trust Bank (GTBank)": "058",
+    "Jaiz Bank": "301",
+    "Keystone Bank": "082",
+    "Kuda Bank": "50211",
+    "Moniepoint MFB": "50515",
+    "Opay (Paycom)":"100004",
+    "Palmpay": "100033",   
+    "Polaris Bank": "076",
+    "Providus Bank": "101",
+    "Sparkle": "51310",
+    "Stanbic IBTC Bank": "221",
+    "Standard Chartered Bank": "068",
+    "Sterling Bank": "232",
+    "Union Bank of Nigeria": "032",
+    "United Bank for Africa (UBA)": "033",
+    "Unity Bank": "215",
+    "Wema Bank": "035",
+    "Zenith Bank": "057"
+  }
+  errors = []
+  responses = []
+  table_rows_success = []
+  table_rows_failed = []
+  url = "https://api.flutterwave.com/v3"
+  headers = {
+"Authorization" : f"Bearer {api}",
+"Content-Type": "application/json"
+  }
+  db = get_db_session()
+  user_data = get_user_id()
+  #print("walid this is the variable name user data",user_data)
+  if not user_data or not isinstance(user_data,dict):
+    return "Authentication Error: The system could not securely identify your user context inside this thread loop. Please verify your session."
+  user_id = user_data.get("user_id")
+  user = db.query(Users).filter(Users.id == user_id).first()
+  if not user:
+    return "User does not exists sorry this transaction can not proceed"
+  if not user.has_wallet:
+      return "User does not have an account please open the side bar and press generate account number"
+  account_balance = user.wallet_balance
+  clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
+  for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
+    if amt > account_balance:
+      return data_creation(
+        responses = responses, 
+        account_number = account_number,
+        db = db, 
+        account_balance = account_balance,
+        table_rows_success = table_rows_success,
+        table_rows_failed = table_rows_failed,
+        user = user,
+        msg = f"Sorry this transaction can not proceed due to insufficient fund your balance is: {account_balance} and the transaction required: {amt}"
+      )
+    user_bank_input = bank.lower() if bank else ""
+    bank_id = clean_matrix.get(user_bank_input)
+    bank_code = bank_id
+    
+    try:
+      tx_ref = f"DisPay-TR-{uuid.uuid4().hex[:14]}"
+      payload = {
+          "account_number":acc,
+          "account_bank": bank_code,
+          "amount": amt,
+          "narration": f"DisPay-payment to {nam} from {user.first_name} {user.last_name}",
+          "currency": "NGN",
+          "reference":tx_ref,
+          "debit_subaccount": user.psa_ref 
       }
       response = requests.post(
       f"{url}/transfers",
@@ -85,7 +181,7 @@ def transfer_history(tr_ref:List[str]):
     return payroll.to_dict()
 
 @tool
-def verify(bank_codes: List[str], acc_no: List[str], names: List[str]):
+def verify(bank_names: List[str], acc_no: List[str], names: List[str]):
     """Use this tool to verify account details in bulk before transfers."""
     nigerian_bank_codes = {
         "Access Bank": "044", 
@@ -127,10 +223,10 @@ def verify(bank_codes: List[str], acc_no: List[str], names: List[str]):
         "Authorization": f"Bearer {api}",
         "Content-Type": "application/json"
     }
+    print("bank names: ",bank_names)
     clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
-    for bank_name, acc, nam in zip(bank_codes, acc_no, names):
+    for bank_name, acc, nam in zip(bank_names, acc_no, names):
         user_bank_input = bank_name.lower() if bank_name else ""
-        print("bank name: ",user_bank_input)
         bank_id = clean_matrix.get(user_bank_input)
         if not bank_id:
             errors.append({"input_name": nam, "account": acc, "message": f"Bank '{bank_name}' does not exist in code matrix"})
