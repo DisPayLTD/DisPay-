@@ -116,10 +116,9 @@ function fetchBalance(){
             if(data.status === "success"){  
                 const balance = data.balance || 0.00;
                 document.getElementById('walletBalance').textContent = balance.toFixed(2);
-    ;
             }
         }catch(error){
-            console.error("Balance fetch error:", error);
+            console.log("Balance fetch error:", error);
         }
     }, 5000);  // 5000ms = 5 seconds ✓
 }
