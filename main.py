@@ -139,7 +139,7 @@ def get_acct_balance(req: Request,db:Session=Depends(get_db)):
         if data.get("status") == "success":
             balance = data.get("data",{}).get("available_balance")
             live_balance = user.wallet_balance
-            if live_balance != balnce:
+            if live_balance != balance:
                 user.wallet_balance = balance
                 db.commit()
                 db.refresh(user)
