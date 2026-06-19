@@ -174,8 +174,12 @@ async function setPin() {
         }
         return null;
     }
-    
+    const setBtn = document.getElementById("setBtn");
     try {
+        setBtn.addEventListener("click",()=>{
+            setBtn.textContent = "Processing...";
+            setBtn.disable = true;
+        })
         const res = await fetch('/set-transaction-pin', {
             method: 'POST',
             headers: {
@@ -195,6 +199,8 @@ async function setPin() {
         }
     } catch (error) {
         showMessage('Error: ' + error.message, 'error');
+    } finally{
+        setBtn.disable = false;
     }
         }
     </script>
