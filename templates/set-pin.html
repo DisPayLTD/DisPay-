@@ -150,7 +150,7 @@
         </div>
         
         <button class="btn" id="setBtn" onclick="setPin()">Set PIN</button>
-        <button class="btn btn-secondary" onclick="goToDashboard()">Skip for now</button>
+        <!--<button class="btn btn-secondary" onclick="goToDashboard()">Skip for now</button>--/>
     </div>
     
     <script>
@@ -191,7 +191,7 @@ async function setPin() {
         alert(JSON.stringify(data));
         if (data.status === 'success') {
             showMessage('✅ PIN set successfully!', 'success');
-            setTimeout(() => goToDashboard(), 1500);
+            setTimeout(() => window.location.href = "/dashboard", 1500);
         } else {
             showMessage(data.message, 'error');
         }
