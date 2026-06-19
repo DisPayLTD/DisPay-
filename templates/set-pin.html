@@ -191,7 +191,7 @@ async function setPin() {
     
     try {
         setBtn.textContent = "Processing...";
-        setBtn.disabled = true;  // ← Fix: was 'disable', should be 'disabled'
+        setBtn.disabled = true; 
         
         const res = await fetch('/set-transaction-pin', {
             method: 'POST',
@@ -201,9 +201,9 @@ async function setPin() {
             },
             body: JSON.stringify({ pin })
         });
-        
+        alert("the function is called ");
         const data = await res.json();
-        
+        alert(JSON.stringify(data));
         if (data.status === 'success') {
             showMessage('✅ PIN set successfully!', 'success');
             setTimeout(() => goToDashboard(), 1500);
