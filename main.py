@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status
+from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status,Form
 import json
 import secrets 
 from slowapi import Limiter 
@@ -581,7 +581,7 @@ async def transaction_history(request: Request, db: Session = Depends(get_db)):
 
 # ===== PIN SETUP ROUTE =====
 @app.post("/set-transaction-pin")
-def set_transaction_pin(request: Request, pin: str, db: Session = Depends(get_db)):
+def set_transaction_pin(request: Request, pin: str = Form(...), db: Session = Depends(get_db)):
     """Set or update 4-digit transaction PIN"""
     
     user_id = request.session.get("user_id")
