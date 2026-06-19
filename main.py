@@ -202,21 +202,33 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
 @limiter.limit("1/minute")
 def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)):
     ph = PasswordHasher()
+    
     email = details.email
     password = details.password
-    
     nin = details.nin
     phone_number = details.phone_number
     bvn = details.bvn
+    
+    if db.query(Users).filter(Users.email == email).first():
+        return {"status":"failed" ,"message":"Use another email, email has already been used"}
+    if db.query(Users).filter(Users.phone_number == phone_number).first():
+        return {"status":"failed" ,"message":"Use another phone number, this phone number has already been used"}
+    if db.query(Users).filter(Users.nin == nin).first():
+        return {"status":"failed" ,"message":"Use another nin, this nin has already been used"}
+    if db.query(Users).filter(Users.bvn == bvn).first():
+        return {"status":"failed" ,"message":"Use another bvn, this bvn has already been used"}
+    
     first_name = details.first_name
     last_name = details.last_name
     hash_password = ph.hash(password)
     existing_user = db.query(Users).filter(Users.email == email).first()
+    
     if existing_user:
         raise HTTPException(
             status_code = status.HTTP_400_BAD_REQUEST,
             detail = "User already exists"
         )
+        
     try:
         user = Users(
             email = email,
@@ -227,16 +239,20 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
             first_name = first_name,
             last_name = last_name
         )
+        
         db.add(user)
         db.commit()
         db.refresh(user)
+        
         return {
             "status": "success",
             "message": "Account created successfully"
         }
+        
     except Exception as e:
         print("walid the error is: ",str(e))
         db.rollback()
+        
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = "failed to save data to database"
