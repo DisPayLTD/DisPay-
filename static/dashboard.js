@@ -190,9 +190,7 @@ async function generateAccountNumber() {
 // ============================================
 // PAYMENT EXECUTION
 // ============================================
-
 async function executePayment(event) {
-    
     if (event) {
         event.preventDefault();
     }
@@ -203,38 +201,48 @@ async function executePayment(event) {
     }
     
     const command = document.getElementById('command').value;
-    const resultsDiv = document.getElementById('results');
-    const resultsContent = document.getElementById('resultsContent');
-    const successTransfers = document.getElementById("successTransfer");
-    const failedTransfers = document.getElementById("failedTransfers");
     
     if (!command.trim()) {
         alert('❌ Please enter a payment command');
         return;
     }
-    // ===== NEW: SHOW PIN MODAL INSTEAD OF SENDING DIRECTLY =====
+    
     const idempotency_key = `DISPAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     const paymentData = {
         command: command,
-        idempotency_key: idempotency_key,
-        event: event  // Pass event for button state management
+        idempotency_key: idempotency_key
     };
     
     // Show PIN modal (user enters PIN)
     showPinModal(paymentData);
-    const btn = event.target;
-    btn.textContent = 'Processing...';
-    btn.disabled = true;
+    return;  
+}
 
-    const idempotency_key = `REMUTRON-${Date.now()}-${Math.random().toString(36).substr(2,9)}`
+async function submitPin() {
+    const pinInputs = document.querySelectorAll('.pin-modal-input');
+    const pin = Array.from(pinInputs).map(i => i.value).join('');
     
-        
+    if (pin.length !== 4) {
+        showPinError('Please enter a 4-digit PIN');
+        return;
+    }
+    
+    pendingPaymentData.pin = pin;
+    
+    const resultsDiv = document.getElementById('results');
+    const resultsContent = document.getElementById('resultsContent');
+    const successTransfers = document.getElementById("successTransfer");
+    const failedTransfers = document.getElementById("failedTransfers");
+    
     try {
         const res = await fetch('/send-money', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json',"X-CSRFToken": getCsrfToken()},
-            body: JSON.stringify({command: command, idempotency_key: idempotency_key})
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(pendingPaymentData)
         });
         
         const data = await res.json();
@@ -246,22 +254,26 @@ async function executePayment(event) {
             
             resultsDiv.classList.remove('hidden');
             resultsDiv.style.borderLeftColor = '#4caf50';
+            
+            closePinModal();
         } else {
-            if (data.url) {
-                window.location.href = data.url;
-            }
-            resultsContent.textContent = data.message || 'Payment failed';
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.style.borderLeftColor = '#f44336';
+            showPinError(data.message || 'Payment failed');
         }
     } catch (error) {
-        resultsContent.textContent = '❌ Error: ' + error.message;
-        resultsDiv.classList.remove('hidden');
-        resultsDiv.style.borderLeftColor = '#f44336';
-    } finally {
-        btn.textContent = 'Execute Payment';
-        btn.disabled = false;
+        showPinError('Error: ' + error.message);
     }
+}
+
+function showPinError(msg) {
+    document.getElementById('pinError').textContent = msg;
+    document.getElementById('pinError').style.display = 'block';
+}
+
+function closePinModal() {
+    document.getElementById('pinModal').style.display = 'none';
+    document.querySelectorAll('.pin-modal-input').forEach(i => i.value = '');
+    document.getElementById('pinError').style.display = 'none';
+    pendingPaymentData = null;
 }
 // ============================================
 // FILE UPLOAD FUNCTIONALITY
