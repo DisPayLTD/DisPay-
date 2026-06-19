@@ -43,7 +43,7 @@ app.add_middleware(
 
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
-ph = PasswordHassher()
+ph = PasswordHasher()
 agent = SalaryAgentPayer(tools)
 
 class Command(BaseModel):
