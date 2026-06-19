@@ -154,60 +154,48 @@
     </div>
     
     <script>
-        const inputs = document.querySelectorAll('.pin-input');
-        
-        inputs.forEach((input, index) => {
-            input.addEventListener('input', (e) => {
-                if (e.target.value && index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                }
-            });
-            
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                    inputs[index - 1].focus();
-                }
-            });
+async function setPin() {
+    const inputs = document.querySelectorAll('.pin-input');
+    const pin = Array.from(inputs).map(i => i.value).join('');
+    
+    if (pin.length !== 4) {
+        showMessage('Please enter a 4-digit PIN', 'error');
+        return;
+    }
+    
+    // ===== GET CSRF TOKEN FROM COOKIE =====
+    function getCsrfTokenFromCookie() {
+        const name = "csrftoken=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const cookieArray = decodedCookie.split(';');
+        for(let i = 0; i < cookieArray.length; i++) {
+            let cookie = cookieArray[i].trim();
+            if (cookie.indexOf(name) === 0) return cookie.substring(name.length);
+        }
+        return null;
+    }
+    
+    try {
+        const res = await fetch('/set-transaction-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFTOKEN': getCsrfTokenFromCookie()  // ← ADD THIS
+            },
+            body: JSON.stringify({ pin })
         });
         
-        async function setPin() {
-            const pin = Array.from(inputs).map(i => i.value).join('');
-            
-            if (pin.length !== 4) {
-                showMessage('Please enter a 4-digit PIN', 'error');
-                return;
-            }
-            
-            try {
-                const res = await fetch('/set-transaction-pin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ pin })
-                });
-                
-                const data = await res.json();
-                
-                if (data.status === 'success') {
-                    showMessage('✅ PIN set successfully!', 'success');
-                    setTimeout(() => goToDashboard(), 1500);
-                } else {
-                    showMessage(data.message, 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
+        const data = await res.json();
         
-        function showMessage(text, type) {
-            const msg = document.getElementById('message');
-            msg.textContent = text;
-            msg.className = `message ${type}`;
+        if (data.status === 'success') {
+            showMessage('✅ PIN set successfully!', 'success');
+            setTimeout(() => goToDashboard(), 1500);
+        } else {
+            showMessage(data.message, 'error');
         }
-        
-        function goToDashboard() {
-            window.location.href = '/dashboard';
+    } catch (error) {
+        showMessage('Error: ' + error.message, 'error');
+    }
         }
     </script>
 </body>
