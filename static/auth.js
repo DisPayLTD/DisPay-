@@ -64,13 +64,12 @@ async function handleLogin() {
             showSuccess('✅ Login successful! Redirecting...');
             setTimeout(() => {
                 window.location.href = data.url || '/agent';
-            }, 1500);
+            }, 1000);
         } else {
             showError('❌ ' + (data.detail || 'Invalid email or password'));
         }
     } catch (error) {
-        alert("the error is: " + error.message)
-        showError('❌ Error walid: ' + error.message);
+        showError('❌ Error: ' + error.message);
     }
 }
 
@@ -122,8 +121,8 @@ async function handleSignup() {
                 bvn
             })
         });
-        
-        if (res.ok) {
+        const data = res.json();
+        if (data.status === `success`) {
             showSuccess('✅ Account created successfully! Switching to login...');
             setTimeout(() => {
                 toggleForm();
@@ -137,8 +136,7 @@ async function handleSignup() {
                 document.getElementById('bvn').value = '';
             }, 1500);
         } else {
-            const data = await res.json();
-            showError('❌ ' + (data.detail || 'Signup failed'));
+            showError('❌ ' + (data.detail || data.message || 'Signup failed'));
         }
     } catch (error) {
         showError('❌ Error: ' + error.message);
