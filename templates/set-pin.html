@@ -150,16 +150,17 @@
         </div>
         
         <button class="btn" id="setBtn" onclick="setPin()">Set PIN</button>
-        <!--<button class="btn btn-secondary" onclick="goToDashboard()">Skip for now</button>--/>
+        <!--<button class="btn btn-secondary" onclick="goToDashboard()">Skip for now</button>/-->
     </div>
     
     <script>
-// ===== HELPER FUNCTIONS =====
-function showMessage(text, type) {
-    const msg = document.getElementById('message');
-    msg.textContent = text;
-    msg.className = `message ${type}`;
-}
+        // ===== HELPER FUNCTIONS =====
+        
+        function showMessage(text, type) {
+        const msg = document.getElementById('message');
+        msg.textContent = text;
+        msg.className = `message ${type}`;
+        }
 
 function goToDashboard() {
     window.location.href = '/dashboard';
@@ -233,5 +234,5 @@ document.querySelectorAll('.pin-input').forEach((input, index) => {
     });
 });
     </script>
-        <body/>
-        <html/>
+        </body>
+        </html>
