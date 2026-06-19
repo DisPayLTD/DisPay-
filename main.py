@@ -49,6 +49,7 @@ agent = SalaryAgentPayer(tools)
 class Command(BaseModel):
     command: str
     idempotency_key: str
+    pin:None
 
 class EmailRequest(BaseModel):
     email: str 
@@ -105,6 +106,13 @@ def dashboard(request: Request):
     """Serve dashboard page - requires authentication"""
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
+    user_id = request.session.get("user_id")
+    user = db.query(Users).filter(Users.id == user_id).first()
+    
+    # ===== NEW: CHECK IF PIN IS SET =====
+    if not user.transaction_pin:
+        # Redirect to PIN setup if not set
+        return RedirectResponse(url="/set-pin", status_code=302)
     with open("templates/dashboard.html") as f:
         return HTMLResponse(content=f.read())
 
@@ -570,3 +578,54 @@ async def transaction_history(request: Request, db: Session = Depends(get_db)):
             "status": "error",
             "message": str(e)
         }
+
+# ===== PIN SETUP ROUTE =====
+@app.post("/set-transaction-pin")
+def set_transaction_pin(request: Request, pin: str, db: Session = Depends(get_db)):
+    """Set or update 4-digit transaction PIN"""
+    
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return {"status": "error", "message": "Not logged in"}
+    
+    user = db.query(Users).filter(Users.id == user_id).first()
+    
+    # Validate PIN is 4 digits
+    if not pin.isdigit() or len(pin) != 4:
+        return {"status": "error", "message": "PIN must be exactly 4 digits"}
+    
+    try:
+        # Hash the PIN
+        hashed_pin = ph.hash(pin)
+        user.transaction_pin = hashed_pin
+        db.commit()
+        
+        return {
+            "status": "success",
+            "message": "PIN set successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
+
+
+# ===== PIN VERIFICATION ROUTE =====
+@app.post("/verify-transaction-pin")
+def verify_transaction_pin(request: Request, pin: str, db: Session = Depends(get_db)):
+    """Verify 4-digit PIN before payment"""
+    
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return {"status": "error", "message": "Not logged in"}
+    
+    user = db.query(Users).filter(Users.id == user_id).first()
+    
+    if not user.transaction_pin:
+        return {"status": "error", "message": "No PIN set"}
+    
+    try:
+        # Verify PIN
+        ph.verify(user.transaction_pin, pin)
+        return {"status": "success", "message": "PIN verified"}
+    except Exception:
+        return {"status": "error", "message": "Incorrect PIN"}
