@@ -154,6 +154,30 @@
     </div>
     
     <script>
+// ===== HELPER FUNCTIONS =====
+function showMessage(text, type) {
+    const msg = document.getElementById('message');
+    msg.textContent = text;
+    msg.className = `message ${type}`;
+}
+
+function goToDashboard() {
+    window.location.href = '/dashboard';
+}
+
+// ===== GET CSRF TOKEN =====
+function getCsrfTokenFromCookie() {
+    const name = "csrftoken=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookieArray = decodedCookie.split(';');
+    for(let i = 0; i < cookieArray.length; i++) {
+        let cookie = cookieArray[i].trim();
+        if (cookie.indexOf(name) === 0) return cookie.substring(name.length);
+    }
+    return null;
+}
+
+// ===== SET PIN FUNCTION =====
 async function setPin() {
     const inputs = document.querySelectorAll('.pin-input');
     const pin = Array.from(inputs).map(i => i.value).join('');
@@ -163,44 +187,49 @@ async function setPin() {
         return;
     }
     
-    // ===== GET CSRF TOKEN FROM COOKIE =====
-    function getCsrfTokenFromCookie() {
-        const name = "csrftoken=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const cookieArray = decodedCookie.split(';');
-        for(let i = 0; i < cookieArray.length; i++) {
-            let cookie = cookieArray[i].trim();
-            if (cookie.indexOf(name) === 0) return cookie.substring(name.length);
-        }
-        return null;
-    }
     const setBtn = document.getElementById("setBtn");
+    
     try {
         setBtn.textContent = "Processing...";
-        setBtn.disable = true;
+        setBtn.disabled = true;  // ← Fix: was 'disable', should be 'disabled'
+        
         const res = await fetch('/set-transaction-pin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFTOKEN': getCsrfTokenFromCookie()  // ← ADD THIS
+                'X-CSRFTOKEN': getCsrfTokenFromCookie()
             },
             body: JSON.stringify({ pin })
         });
         
         const data = await res.json();
-        alert(JSON.stringify(data));
+        
         if (data.status === 'success') {
             showMessage('✅ PIN set successfully!', 'success');
-            window.location.href = "/dashboard";
+            setTimeout(() => goToDashboard(), 1500);
         } else {
-            showMessage(data.message, 'error');
+            showMessage(data.message || 'Failed to set PIN', 'error');
         }
     } catch (error) {
         showMessage('Error: ' + error.message, 'error');
-    } finally{
-        setBtn.disable = false;
+    } finally {
+        setBtn.textContent = "Set PIN";
+        setBtn.disabled = false;
     }
+}
+
+// ===== AUTO-FOCUS PIN INPUTS =====
+document.querySelectorAll('.pin-input').forEach((input, index) => {
+    input.addEventListener('input', (e) => {
+        if (e.target.value && index < 3) {
+            document.querySelectorAll('.pin-input')[index + 1].focus();
         }
+    });
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            document.querySelectorAll('.pin-input')[index - 1].focus();
+        }
+    });
+});
     </script>
-</body>
-</html>
