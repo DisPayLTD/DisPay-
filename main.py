@@ -102,7 +102,7 @@ def auth_page():
         return HTMLResponse(content=f.read())
 
 @app.get("/dashboard")
-def dashboard(request: Request):
+def dashboard(request: Request,db: Session=Depends(get_db)):
     """Serve dashboard page - requires authentication"""
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
