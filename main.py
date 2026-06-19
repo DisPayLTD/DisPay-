@@ -629,3 +629,12 @@ def verify_transaction_pin(request: Request, pin: str, db: Session = Depends(get
         return {"status": "success", "message": "PIN verified"}
     except Exception:
         return {"status": "error", "message": "Incorrect PIN"}
+
+@app.get("/set-pin")
+def set_pin_page(request: Request):
+    """Serve PIN setup page"""
+    if "user_id" not in request.session:
+        return RedirectResponse(url="/auth", status_code=302)
+    
+    with open("templates/set-pin.html") as f:
+        return HTMLResponse(content=f.read())
