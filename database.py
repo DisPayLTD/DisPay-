@@ -23,18 +23,21 @@ class Users(Base):
     has_wallet = Column(Boolean, default=False)
     account_number = Column(String)
     bank_name = Column(String)
+    transaction_pin = Column(String)
     transactions:Mapped[list[dict[str,Any]]] = mapped_column(JSON,nullable = True, default=list)
     wallet_balance = Column(Float, default=0.0)
     creation_time = Column(DateTime(timezone=True), server_default=func.now())
     transfers = relationship("Transfers", back_populates="user")
     
 class Transfers(Base):
+    
     __tablename__ = "transfers"
     id = Column(Integer, primary_key=True, unique=True)
     time_of_transfer = Column(DateTime(timezone=True),server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"))
     success_transfers_tables = Column(Text)
     failed_transfers_tables = Column(Text)
+    status = Column(String)
     user = relationship("Users", back_populates="transfers")
 
 
@@ -58,6 +61,6 @@ def get_db():
         db.close()
 
 def init_db():
-    #Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     
