@@ -212,7 +212,17 @@ async function executePayment(event) {
         alert('❌ Please enter a payment command');
         return;
     }
+    // ===== NEW: SHOW PIN MODAL INSTEAD OF SENDING DIRECTLY =====
+    const idempotency_key = `DISPAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    const paymentData = {
+        command: command,
+        idempotency_key: idempotency_key,
+        event: event  // Pass event for button state management
+    };
+    
+    // Show PIN modal (user enters PIN)
+    showPinModal(paymentData);
     const btn = event.target;
     btn.textContent = 'Processing...';
     btn.disabled = true;
@@ -253,7 +263,6 @@ async function executePayment(event) {
         btn.disabled = false;
     }
 }
-
 // ============================================
 // FILE UPLOAD FUNCTIONALITY
 // ============================================
@@ -552,4 +561,98 @@ function logout() {
             });
     }
     }
+
+
+let pendingPaymentData = null;
+
+// Auto-focus PIN inputs
+document.querySelectorAll('.pin-modal-input').forEach((input, index) => {
+    input.addEventListener('input', (e) => {
+        if (e.target.value && index < 3) {
+            document.querySelectorAll('.pin-modal-input')[index + 1].focus();
+        }
+    });
     
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            document.querySelectorAll('.pin-modal-input')[index - 1].focus();
+        }
+    });
+});
+
+function showPinModal(paymentData) {
+    pendingPaymentData = paymentData;
+    document.getElementById('pinModal').style.display = 'flex';
+}
+
+async function submitPin() {
+    const pinInputs = document.querySelectorAll('.pin-modal-input');
+    const pin = Array.from(pinInputs).map(i => i.value).join('');
+    
+    if (pin.length !== 4) {
+        showPinError('Please enter a 4-digit PIN');
+        return;
+    }
+    
+    pendingPaymentData.pin = pin;
+    
+    const btn = document.querySelector('[onclick="executePayment()"]') || 
+                document.querySelector('button:contains("Execute Payment")');
+    
+    if (btn) {
+        btn.textContent = 'Processing...';
+        btn.disabled = true;
+    }
+    
+    try {
+        const res = await fetch('/send-money', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFTOKEN': getCsrfToken()
+            },
+            body: JSON.stringify(pendingPaymentData)
+        });
+        
+        const data = await res.json();
+        
+        // ===== YOUR EXISTING RESULT DISPLAY CODE =====
+        const resultsDiv = document.getElementById('results');
+        const resultsContent = document.getElementById('resultsContent');
+        const successTransfers = document.getElementById("successTransfer");
+        const failedTransfers = document.getElementById("failedTransfers");
+        
+        if (data.status === 'success') {
+            successTransfers.innerHTML = data.success_html_table || '<p>No successful transfers</p>';
+            failedTransfers.innerHTML = data.failed_html_table || '<p>No failed transfers</p>';
+            resultsContent.innerHTML = data.ai_msg || 'Payment processed successfully';
+            
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.style.borderLeftColor = '#4caf50';
+            
+            closePinModal();
+        } else {
+            if (data.url) {
+                window.location.href = data.url;
+            }
+            resultsContent.textContent = data.message || 'Payment failed';
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.style.borderLeftColor = '#f44336';
+            
+            showPinError(data.message || 'Payment failed');
+        }
+    } catch (error) {
+        const resultsDiv = document.getElementById('results');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        resultsContent.textContent = '❌ Error: ' + error.message;
+        resultsDiv.classList.remove('hidden');
+        resultsDiv.style.borderLeftColor = '#f44336';
+        
+        showPinError('Error: ' + error.message);
+    } finally {
+        if (btn) {
+            btn.textContent = 'Execute Payment';
+            btn.disabled = false;
+        }
+    }
