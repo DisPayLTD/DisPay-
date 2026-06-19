@@ -191,7 +191,7 @@ async function setPin() {
         alert(JSON.stringify(data));
         if (data.status === 'success') {
             showMessage('✅ PIN set successfully!', 'success');
-            setTimeout(() => window.location.href = "/dashboard", 1500);
+            window.location.href = "/dashboard";
         } else {
             showMessage(data.message, 'error');
         }
