@@ -1,4 +1,329 @@
-    file_type = None
+from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status,Form
+import json
+import secrets 
+from slowapi import Limiter 
+from slowapi.util import get_remote_address
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, RedirectResponse
+from agent import SalaryAgentPayer
+from agent import tools
+from pydantic import BaseModel,EmailStr
+from email.message import EmailMessage
+import pyotp
+import smtplib
+from starlette.middleware.sessions import SessionMiddleware 
+import os
+import uuid
+import re
+from database import get_db, init_db,Users,Transfers, Idempotency
+from sqlalchemy.orm import Session
+from argon2 import PasswordHasher
+import pandas as pd
+import io
+import requests
+from context import set_db_session,set_user_id
+from asgi_csrf import asgi_csrf
+
+
+
+
+app = FastAPI()
+limiter = Limiter(key_func = get_remote_address)
+app.state.limiter = limiter
+app.mount("/static", StaticFiles(directory="static"), name="static")
+my_secret_key = os.getenv("MY_SECRET_KEY")
+app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600, https_only = True)
+app.add_middleware(
+    asgi_csrf,
+    signing_secret = os.getenv("MY_SECRET_KEY"),
+    cookie_name = "csrftoken",
+    always_set_cookie = True,
+    cookie_secure = True
+)
+
+EMAIL = os.getenv("EMAIL")
+PASSWORD = os.getenv("PASSWORD")
+
+agent = SalaryAgentPayer(tools)
+
+class Command(BaseModel):
+    command: str
+    idempotency_key: str
+    pin:None
+
+class EmailRequest(BaseModel):
+    email: str 
+
+class EmailOTP(BaseModel):
+    email: str  
+    otp: str
+
+class Login(BaseModel):
+    email: EmailStr
+    password: str
+
+class PinModel(BaseModel):
+    pin : str
+
+
+class SignupRequest(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    password: str
+    nin: str
+    phone_number: str
+    bvn: str
+
+
+@app.on_event("startup")
+def startup():
+    init_db()
+    
+@app.get("/csrf-token")
+def csrf_token(request: Request):
+    try:
+        token = secrets.token_urlsafe(32)
+        request.session["csrf_token"] = token
+        return {"csrf":token}
+    except Exception as e:
+        print(str(e))
+        return {"message":str(e)}
+
+@app.get("/")
+def index(request: Request):
+    """Redirect to auth or dashboard based on session"""
+    session = request.session
+    if "user_id" in session:
+        return RedirectResponse(url="/dashboard", status_code=302)
+    return RedirectResponse(url="/auth", status_code=302)
+
+@app.get("/auth")
+def auth_page():
+    """Serve authentication page"""
+    with open("templates/auth.html") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/dashboard")
+def dashboard(request: Request,db: Session=Depends(get_db)):
+    """Serve dashboard page - requires authentication"""
+    if "user_id" not in request.session:
+        return RedirectResponse(url="/auth", status_code=302)
+    user_id = request.session.get("user_id")
+    user = db.query(Users).filter(Users.id == user_id).first()
+    
+    # ===== NEW: CHECK IF PIN IS SET =====
+    if not user.transaction_pin:
+        # Redirect to PIN setup if not set
+        return RedirectResponse(url="/set-pin", status_code=302)
+    with open("templates/dashboard.html") as f:
+        return HTMLResponse(content=f.read())
+
+
+secret = os.getenv("SECRET_HASH")
+
+@app.get("/account-balance")
+def get_acct_balance(req: Request,db:Session=Depends(get_db)):
+    user_id = req.session.get("user_id")
+    if not user_id:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "unauthorized access"
+        )
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        return {
+            "status":"failed",
+            "message":"User does not exists",
+            "url":"/auth"
+        }
+    api = os.getenv("FLUTTER_SECRET_API_KEY")
+    header = {
+        "Authorization":f"Bearer {api}",
+        "Content-Type" :"application/json",
+    }
+    url = f"https://api.flutterwave.com/v3/payout-subaccounts/{user.psa_ref}/balances"
+    try:
+        res = requests.get(url,headers = header)
+        data = res.json()
+        print(data)
+        if data.get("status") == "success":
+            balance = data.get("data",{}).get("available_balance")
+            live_balance = user.wallet_balance
+            if live_balance != balance:
+                user.wallet_balance = balance
+                db.commit()
+                db.refresh(user)
+            return {"status":"success","message":"balance successfully fetched","balance":balance}
+    except Exception as e:
+        return {
+            "status":"failed",
+            "message":f"error: {str(e)}"
+        }
+
+@app.get("/get-user-data")
+def get_user_data(request: Request, db: Session = Depends(get_db)):
+    """Get current user data for dashboard"""
+    user_id = request.session.get("user_id")
+    
+    if not user_id:
+        return {
+            "status": "failed",
+            "message": "User not logged in",
+            "url": "/auth"
+        }
+    
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        return {"status": "failed", "message": "User not found", "url": "/auth"}
+        
+    set_user_id({"user_id": user_id})
+    print("acct-balance: ",user.wallet_balance)
+    print("psa_ref" ,user.psa_ref)
+    print("user: ",user)  
+    return {
+        "status": "success",
+        "user": {
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "wallet_balance": user.wallet_balance,
+            "has_wallet": user.has_wallet,
+            "account_number": user.account_number,
+            "bank_name": user.bank_name,
+            "nin": user.nin,
+            "bvn": user.bvn
+        }
+    }
+
+@app.post("/signup")
+@limiter.limit("1/minute")
+def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)):
+    ph = PasswordHasher()
+    email = details.email
+    password = details.password
+    
+    nin = details.nin
+    phone_number = details.phone_number
+    bvn = details.bvn
+    first_name = details.first_name
+    last_name = details.last_name
+    hash_password = ph.hash(password)
+    existing_user = db.query(Users).filter(Users.email == email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = "User already exists"
+        )
+    try:
+        user = Users(
+            email = email,
+            password = hash_password,
+            phone_number = phone_number,
+            bvn = bvn,
+            nin = nin,
+            first_name = first_name,
+            last_name = last_name
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return {
+            "status": "success",
+            "message": "Account created successfully"
+        }
+    except Exception as e:
+        print("walid the error is: ",str(e))
+        db.rollback()
+        raise HTTPException(
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = "failed to save data to database"
+        )
+
+@app.post("/login")
+@limiter.limit("3/minute")
+def login(details:Login, request: Request,db: Session= Depends(get_db)):
+    email = details.email
+    password = details.password
+    user = db.query(Users).filter(Users.email == email).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Invalid Email"
+        )
+    hp = PasswordHasher()
+    saved_password = user.password
+    verified = False
+    try:
+        hash_password = hp.verify(saved_password, password)
+        print("Walid this user exists and he enters his password is right ")
+        session_id = request.session.get("thread_id")
+        request.session["user_id"] = user.id
+        set_db_session(db)
+        set_user_id({"user_id":user.id,"email":email})
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            request.session["thread_id"]= session_id
+			
+        return {"status":"success","message":"login successfully" ,"url":"/dashboard"}
+    except Exception:
+        verified = False
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Invalid Password "
+        )
+
+user_code = {}
+
+@app.post("/send-otp")
+@limiter.limit("3/hour")
+def send_otp(request: Request,email: EmailRequest):
+    msg = EmailMessage()
+    secret = pyotp.random_base32()
+    
+    totp = pyotp.TOTP(secret,interval = 300)
+    otp = totp.now()
+    print('ur otp is: ',otp)
+    user_code[email.email] = {"secret":secret,"otp":otp}
+    msg["Subject"] = "OTP"
+    msg["From"] = EMAIL
+    msg["To"] = email.email
+    msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 5) as server:
+            server.login(EMAIL,PASSWORD)
+            server.send_message(msg)
+            return {"status":"success","message":"sent"}
+    except Exception as e:
+        if otp:
+            return {"status":"success","message":f"walid your culprit {str(e)}","otp":str(otp)}
+    
+@app.post("/verify-otp")
+def verify(user: EmailOTP):
+    if not user_code.get(user.email):
+        return {"Mesage":"No Secret key" }
+    otp = user.otp
+    totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
+    val = totp.verify(otp)
+    if val:
+        del user_code[user.email]
+    return {"authenticated":val}
+
+@app.post("/upload-file")
+async def upload_file(request: Request,db:Session = Depends(get_db), file:UploadFile = File(...)):
+    db_session = db
+    if "user_id" not in request.session:
+        return {
+            "status":"failed",
+            "message": "user not logged in",
+            "url": "/auth"
+        }
+    try:
+        content = await file.read()
+        file_type = None
         filename = file.filename.lower()
         if filename.endswith(".csv"):
             content = pd.read_csv(io.BytesIO(content))
@@ -261,7 +586,7 @@ async def transaction_history(request: Request, db: Session = Depends(get_db)):
 @app.post("/set-transaction-pin")
 def set_transaction_pin(request: Request, payload: PinModel, db: Session = Depends(get_db)):
     """Set or update 4-digit transaction PIN"""
-    ph = PasswordHassher()
+    
     user_id = request.session.get("user_id")
     if not user_id:
         return {"status": "error", "message": "Not logged in"}
@@ -285,7 +610,6 @@ def set_transaction_pin(request: Request, payload: PinModel, db: Session = Depen
     except Exception as e:
         db.rollback()
         return {"status": "error", "message": str(e)}
-
 
 # ===== PIN VERIFICATION ROUTE =====
 @app.post("/verify-transaction-pin")
