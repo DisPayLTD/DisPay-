@@ -551,3 +551,23 @@ function logout() {
     }
     }
 
+
+// Auto-focus PIN inputs
+document.querySelectorAll('.pin-modal-input').forEach((input, index) => {
+    input.addEventListener('input', (e) => {
+        if (e.target.value && index < 3) {
+            document.querySelectorAll('.pin-modal-input')[index + 1].focus();
+        }
+    });
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            document.querySelectorAll('.pin-modal-input')[index - 1].focus();
+        }
+    });
+});
+
+function showPinModal(paymentData) {
+    pendingPaymentData = paymentData;
+    document.getElementById('pinModal').style.display = 'flex';
+                           }
