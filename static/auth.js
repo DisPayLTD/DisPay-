@@ -22,7 +22,7 @@ function showError(message) {
     if(message.includes("per")){
         errorDiv.textContent = `Sorry try again later`;
     }else{
-        //alert("this is our error "+ message);
+        
         errorDiv.textContent = message;
     }
     errorDiv.classList.remove('hidden');
