@@ -208,17 +208,17 @@ async function executePayment(event) {
         alert('❌ Please enter a payment command');
         return;
     }
-    alert("idempotency");
+    
     const idempotency_key = `DISPAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    alert("creating data payload");
+    
     const paymentData = {
         command: command,
         idempotency_key: idempotency_key
     };
-    alert("showing pin")
+    
     // Show PIN modal (user enters PIN)
     showPinModal(paymentData);
-    alert("shown pin model") 
+    
     return;  
 }
 function showPinModal(paymentData) {
@@ -228,14 +228,14 @@ function showPinModal(paymentData) {
 async function submitPin() {
     const pinInputs = document.querySelectorAll('.pin-modal-input');
     const pin = Array.from(pinInputs).map(i => i.value).join('');
-    
+    alert("enterd pin");
     if (pin.length !== 4) {
         showPinError('Please enter a 4-digit PIN');
         return;
     }
-    
+    alert("pin is 4");
     pendingPaymentData.pin = pin;
-    
+    alert("pin dey valid")
     const resultsDiv = document.getElementById('results');
     const resultsContent = document.getElementById('resultsContent');
     const successTransfers = document.getElementById("successTransfer");
