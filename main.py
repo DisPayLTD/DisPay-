@@ -217,7 +217,7 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
         return {"status":"failed" ,"message":"Use another nin, this nin has already been used"}
     if db.query(Users).filter(Users.bvn == bvn).first():
         return {"status":"failed" ,"message":"Use another bvn, this bvn has already been used"}
-    
+    print("we entered the signup route")
     first_name = details.first_name
     last_name = details.last_name
     hash_password = ph.hash(password)
