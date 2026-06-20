@@ -235,7 +235,7 @@ async function submitPin() {
     }
     alert("pin is 4");
     pendingPaymentData.pin = pin;
-    alert("pin dey valid")
+    alert("pin dey valid: "+ JSON.stringify(pendingPaymentData))
     const resultsDiv = document.getElementById('results');
     const resultsContent = document.getElementById('resultsContent');
     const successTransfers = document.getElementById("successTransfer");
