@@ -29,12 +29,33 @@ function showError(message) {
     document.getElementById('successMessage').classList.add('hidden');
 }
 
+// ==========================================
+// 1. AUTOMATIC FONT AWESOME LOADER
+// ==========================================
+if (!document.querySelector('link[href*="font-awesome"]')) {
+    const fontAwesome = document.createElement('link');
+    fontAwesome.rel = 'stylesheet';
+    fontAwesome.href = 'https://cloudflare.com';
+    document.head.appendChild(fontAwesome);
+}
+
+// ==========================================
+//  SHOWSUCCESS FUNCTION
+// ==========================================
 function showSuccess(message) {
     const successDiv = document.getElementById('successMessage');
-    successDiv.textContent = message;
+    
+    successDiv.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 8px;"></i>${message}`;
+    
+    // Display the success message and hide the error message
     successDiv.classList.remove('hidden');
-    document.getElementById('errorMessage').classList.add('hidden');
+    
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.classList.add('hidden');
+    }
 }
+
 
 function clearMessages() {
     document.getElementById('errorMessage').classList.add('hidden');
@@ -120,8 +141,8 @@ async function handleSignup() {
                 bvn
             })
         });
-        const data = res.json();
-        alert(JSON.stringify(data));
+        const data = await res.json();
+        
         if (data.status === `success`) {
             showSuccess('✅ Account created successfully! Switching to login...');
             setTimeout(() => {
