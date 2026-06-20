@@ -17,17 +17,6 @@ function toggleForm() {
     clearMessages();
 }
 
-function showError(message) {
-    const errorDiv = document.getElementById('errorMessage');
-    if(message.includes("per")){
-        errorDiv.textContent = `Sorry try again later`;
-    }else{
-        
-        errorDiv.textContent = message;
-    }
-    errorDiv.classList.remove('hidden');
-    document.getElementById('successMessage').classList.add('hidden');
-}
 
 // ==========================================
 // 1. AUTOMATIC FONT AWESOME LOADER
@@ -35,9 +24,22 @@ function showError(message) {
 if (!document.querySelector('link[href*="font-awesome"]')) {
     const fontAwesome = document.createElement('link');
     fontAwesome.rel = 'stylesheet';
-    fontAwesome.href = 'https://cloudflare.com';
+    fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
     document.head.appendChild(fontAwesome);
 }
+
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    if(message.includes("per")){
+        errorDiv.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 8px;"></i> Sorry try again later;
+    }else{
+        
+        errorDiv.innerHTML = `<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i>${message}`;
+    }
+    errorDiv.classList.remove('hidden');
+    document.getElementById('successMessage').classList.add('hidden');
+}
+
 
 // ==========================================
 //  SHOWSUCCESS FUNCTION
@@ -67,7 +69,7 @@ async function handleLogin() {
     const password = document.getElementById('loginPassword').value;
     
     if (!email || !password) {
-        showError('❌ Please enter email and password');
+        showError('Please enter email and password');
         return;
     }
     
@@ -86,10 +88,10 @@ async function handleLogin() {
                 window.location.href = data.url || '/agent';
             }, 1000);
         } else {
-            showError('❌ ' + (data.detail || 'Invalid email or password'));
+            showError('' + (data.detail || 'Invalid email or password'));
         }
     } catch (error) {
-        showError('❌ Error: ' + error.message);
+        showError('Error: ' + error.message);
     }
 }
 
@@ -104,26 +106,26 @@ async function handleSignup() {
     
     // Validation
     if (!firstName || !lastName || !email || !password || !phone || !nin) {
-        showError('❌ Please fill all required fields');
+        showError('Please fill all required fields');
         return;
     }
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        showError('❌ Invalid email address or password');
+        showError('Invalid email address or password');
         return;
     }
     
     // Password validation (at least 6 characters)
     if (password.length < 6) {
-        showError('❌ Password must be at least 6 characters');
+        showError('Password must be at least 6 characters');
         return;
     }
     
     // Phone validation (basic)
     if (phone.length < 10) {
-        showError('❌ Invalid phone number');
+        showError('Invalid phone number');
         return;
     }
     
@@ -157,10 +159,10 @@ async function handleSignup() {
                 document.getElementById('bvn').value = '';
             }, 1500);
         } else {
-            showError('❌ ' + (data.detail || data.message || 'Signup failed'));
+            showError('' + (data.detail || data.message || 'Signup failed'));
         }
     } catch (error) {
-        showError('❌ Error: ' + error.message);
+        showError('Error: ' + error.message);
     }
 }
 
