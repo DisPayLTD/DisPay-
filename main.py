@@ -49,7 +49,7 @@ agent = SalaryAgentPayer(tools)
 class Command(BaseModel):
     command: str
     idempotency_key: str
-    pin:None
+    pin:str
 
 class EmailRequest(BaseModel):
     email: str 
@@ -415,6 +415,13 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
             "status": "failed",
             "message": "user is not logged in",
             "url": "/auth"
+        }
+    user = db.query(Users).filter(Users.id == user_id).first()
+    pin = user.transaction_pin
+    if not ph.verify(pin,command.pin):
+        return {
+            "status": "failed",
+            "message": "invalid pin",
         }
     set_db_session(db)
     set_user_id({"user_id": request.session["user_id"]})
