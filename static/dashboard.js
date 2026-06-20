@@ -3,6 +3,7 @@ let userEmail = '';
 let isAuthenticated = true;
 let pendingPaymentData = null;
 
+
 function getCsrfToken(){
     const value = `; ${document.cookie}`;
     const data = value.split("; csrftoken=")
