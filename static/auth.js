@@ -31,7 +31,7 @@ if (!document.querySelector('link[href*="font-awesome"]')) {
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
     if(message.includes("per")){
-        errorDiv.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 8px;"></i> Sorry try again later;
+        errorDiv.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 8px;"></i> Sorry try again later`;
     }else{
         
         errorDiv.innerHTML = `<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i>${message}`;
