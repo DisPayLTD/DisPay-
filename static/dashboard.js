@@ -275,6 +275,9 @@ function closePinModal() {
     document.getElementById('pinError').style.display = 'none';
     pendingPaymentData = null;
 }
+function cancelPin() {
+    closePinModal();
+}
 // ============================================
 // FILE UPLOAD FUNCTIONALITY
 // ============================================
