@@ -206,16 +206,17 @@ async function executePayment(event) {
         alert('❌ Please enter a payment command');
         return;
     }
-    
+    alert("idempotency");
     const idempotency_key = `DISPAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+    alert("creating data payload");
     const paymentData = {
         command: command,
         idempotency_key: idempotency_key
     };
-    
+    alert("showing pin")
     // Show PIN modal (user enters PIN)
     showPinModal(paymentData);
+    alert("shown pin model") 
     return;  
 }
 
