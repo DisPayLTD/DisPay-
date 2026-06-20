@@ -81,7 +81,7 @@ async function handleLogin() {
         const data = await res.json();
         
         if (res.ok) {
-            showSuccess('✅ Login successful! Redirecting...');
+            showSuccess('Login successful! Redirecting...');
             setTimeout(() => {
                 window.location.href = data.url || '/agent';
             }, 1000);
@@ -144,7 +144,7 @@ async function handleSignup() {
         const data = await res.json();
         
         if (data.status === `success`) {
-            showSuccess('✅ Account created successfully! Switching to login...');
+            showSuccess('Account created successfully! Switching to login...');
             setTimeout(() => {
                 toggleForm();
                 // Clear signup form
