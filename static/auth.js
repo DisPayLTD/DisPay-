@@ -20,10 +20,9 @@ function toggleForm() {
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
     if(message.includes("per")){
-        words = message.split(" ")
-        errorDiv.textContent = `Sorry only ${words[0]} attempts are allowed<br>try again after ${words[2]}`;
+        errorDiv.textContent = `Sorry try again later`;
     }else{
-        alert("this is our error "+ message);
+        //alert("this is our error "+ message);
         errorDiv.textContent = message;
     }
     errorDiv.classList.remove('hidden');
@@ -122,6 +121,7 @@ async function handleSignup() {
             })
         });
         const data = res.json();
+        alert(JSON.stringify(data));
         if (data.status === `success`) {
             showSuccess('✅ Account created successfully! Switching to login...');
             setTimeout(() => {
