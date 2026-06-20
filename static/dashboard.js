@@ -1,6 +1,7 @@
 const API = '';
 let userEmail = '';
 let isAuthenticated = true;
+let pendingPaymentData = null;
 
 function getCsrfToken(){
     const value = `; ${document.cookie}`;
@@ -219,7 +220,10 @@ async function executePayment(event) {
     alert("shown pin model") 
     return;  
 }
-
+function showPinModal(paymentData) {
+    pendingPaymentData = paymentData;
+    document.getElementById('pinModal').style.display = 'flex';
+    }
 async function submitPin() {
     const pinInputs = document.querySelectorAll('.pin-modal-input');
     const pin = Array.from(pinInputs).map(i => i.value).join('');
