@@ -228,14 +228,13 @@ function showPinModal(paymentData) {
 async function submitPin() {
     const pinInputs = document.querySelectorAll('.pin-modal-input');
     const pin = Array.from(pinInputs).map(i => i.value).join('');
-    alert("enterd pin");
+    
     if (pin.length !== 4) {
         showPinError('Please enter a 4-digit PIN');
         return;
     }
-    alert("pin is 4");
     pendingPaymentData.pin = pin;
-    alert("pin dey valid: "+ JSON.stringify(pendingPaymentData))
+    
     const resultsDiv = document.getElementById('results');
     const resultsContent = document.getElementById('resultsContent');
     const successTransfers = document.getElementById("successTransfer");
