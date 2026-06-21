@@ -368,7 +368,7 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
         }
     
     set_db_session(db_session)
-    print("session exists " if db_session else "session_does not exists")
+    #print("session exists " if db_session else "session_does not exists")
     set_user_id({"user_id": request.session["user_id"]})
     res = agent.command(data, uuid = session_id)
     output = res.get("messages",[])
@@ -418,10 +418,12 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
         }
     user = db.query(Users).filter(Users.id == user_id).first()
     pin = user.transaction_pin
-    if not ph.verify(pin,command.pin):
+    try:
+        ph.verify(pin,command.pin)
+    except:
         return {
             "status": "failed",
-            "message": "invalid pin",
+            "message": "Invalid pin"
         }
     set_db_session(db)
     set_user_id({"user_id": request.session["user_id"]})
