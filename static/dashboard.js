@@ -83,7 +83,9 @@ function populateDashboard(user) {
     document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
     document.getElementById('userEmail').textContent = user.email;
     //document.getElementById('walletBalance').textContent = (user.wallet_balance || 0).toFixed(2);
-    fetchBalance();
+    if (user.has_wallet){
+        fetchBalance();
+    }
     
     // Account number section
     const accountNumberDiv = document.getElementById('accountNumberDiv');
