@@ -71,11 +71,12 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   account_balance = user.wallet_balance
   clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
     
-  no_of_transfer = 0
+  percentage = 0.02
   no_of_transfer = len(list(zip(name, account_number,bank_name,amount, narration)))
   total_amount = 0
   total = sum(int(amount))
-  if ((total * 0.02) + total) < account_balance:
+  principal = (percentage * total) + total
+  if principal < account_balance:
       return "Insufficient balance"
     
   for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
@@ -127,12 +128,17 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   if no_of_transfer >= 2:
       percentage = 0.02
       commission = total_amount * percentage
-      tx_ref = f"DisPay-TR-{uuid.uuid4().hex[:14]}"
+      
+      my_acct_number = os.getenv("MY_ACCOUNT_NUMBER")
+      my_bank_code = os.getenv("BANK_CODE")
+      
+      tx_ref = f"DisPay-CP-COMMSISION-PAYED-{uuid.uuid4().hex[:14]}"
+      
       payload = {
-          "account_number":acc,
-          "account_bank": bank_code,
-          "amount": amt,
-          "narration": f"DisPay-payment to {nam} from {user.first_name} {user.last_name}",
+          "account_number":my_acc_number,
+          "account_bank": my_bank_code,
+          "amount": commission,
+          "narration": f"DisPay-CP-COMMISION-PAYED-FROM {user.first_name} {user.last_name}",
           "currency": "NGN",
           "reference":tx_ref,
           "debit_subaccount": user.psa_ref 
