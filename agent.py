@@ -76,7 +76,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   total_amount = 0
   total = sum(int(amount))
   principal = (percentage * total) + total
-  if principal < account_balance:
+  if principal > account_balance:
       return "Insufficient balance"
     
   for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
@@ -135,7 +135,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       tx_ref = f"DisPay-CP-COMMSISION-PAYED-{uuid.uuid4().hex[:14]}"
       
       payload = {
-          "account_number":my_acc_number,
+          "account_number":my_acct_number,
           "account_bank": my_bank_code,
           "amount": commission,
           "narration": f"DisPay-CP-COMMISION-PAYED-FROM {user.first_name} {user.last_name}",
@@ -148,6 +148,10 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       headers = headers,
       json = payload
       )
+      res_json = response.json()
+      if res_json.get("status") == "success":
+        user.wallet_balance -= commission 
+        db.commit() 
       
   return data_creation(
     responses = responses, 
