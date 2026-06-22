@@ -70,7 +70,16 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       return "User does not have an account please open the side bar and press generate account number"
   account_balance = user.wallet_balance
   clean_matrix = {k.lower(): v for k, v in nigerian_bank_codes.items()}
+    
+  no_of_transfer = 0
+  no_of_transfer = len(list(zip(name, account_number,bank_name,amount, narration)))
+  total_amount = 0
+  total = sum(int(amount))
+  if ((total * 0.02) + total) < account_balance:
+      return "Insufficient balance"
+    
   for nam,acc,bank,amt,narr in zip(name,account_number,bank_name, amount, narration):
+    
     if amt > account_balance:
       return data_creation(
         responses = responses, 
@@ -103,17 +112,37 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       headers = headers,
       json = payload
       )
-      #print(response)
+      
       res_json = response.json()
       print("FLUTTERWAVE ERROR BODY:", response.json())
       if res_json.get("status") == "success":
         account_balance -= amt
+        total_amount += amt
         table_rows_success.append([nam,bank, acc, amt, tx_ref,narr])
       else:
         table_rows_failed.append([nam,bank, acc, amt,tx_ref, narr])
       responses.append(response.json())
     except requests.exceptions.RequestException as e:
       errors.append(f"error {e} has occured")
+  if no_of_transfer >= 2:
+      percentage = 0.02
+      commission = total_amount * percentage
+      tx_ref = f"DisPay-TR-{uuid.uuid4().hex[:14]}"
+      payload = {
+          "account_number":acc,
+          "account_bank": bank_code,
+          "amount": amt,
+          "narration": f"DisPay-payment to {nam} from {user.first_name} {user.last_name}",
+          "currency": "NGN",
+          "reference":tx_ref,
+          "debit_subaccount": user.psa_ref 
+      }
+      response = requests.post(
+      f"{url}/transfers",
+      headers = headers,
+      json = payload
+      )
+      
   return data_creation(
     responses = responses, 
     account_number = account_number,
