@@ -74,7 +74,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
   percentage = 0.02
   no_of_transfer = len(list(zip(name, account_number,bank_name,amount, narration)))
   total_amount = 0
-  total = sum(int(amount))
+  total = sum(amount)
   principal = (percentage * total) + total
   if principal > account_balance:
       return "Insufficient balance"
@@ -150,7 +150,8 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       )
       res_json = response.json()
       if res_json.get("status") == "success":
-        user.wallet_balance -= commission 
+        user.wallet_balance -= commission
+        account_balance -= commission 
         db.commit() 
       
   return data_creation(
