@@ -519,6 +519,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     last_name = user.last_name
     
     existing_acct = retrieve_existing_account(email)
+    print("existing acct: ",existing_acct)
     if existing_acct:
         account_number,bank_name,psa_ref = existing_acct
         user.account_number = account_number
