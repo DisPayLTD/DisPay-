@@ -23,6 +23,7 @@ import io
 import requests
 from context import set_db_session,set_user_id
 from asgi_csrf import asgi_csrf
+import pandas as pd
 
 
 
@@ -479,6 +480,11 @@ def retrieve_existing_account(eml):
                 bank_name = user["bank_name"].values[0]
                 return account_num,bank_name,psa_ref
         return None
+    except Exception as e:
+        return {
+            "status":"failed",
+            "message":f"error: {e}"
+        }
                 
             
     
