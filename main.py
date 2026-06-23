@@ -457,6 +457,32 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
     
 tx_ref = f"REMITRON-VA-{str(uuid.uuid4().hex[:16])}"
 
+def retrieve_existing_account(eml):
+    url = "https://api.flutterwave.com/v3/payout-subaccounts"
+    headers = {
+        "Authorization":f"Bearer {os.getenv("FLUTTER_SECRET_API_KEY")}",
+        "Content-Type":"application/json"
+    }
+    try:
+        response= requests.get(
+        url ,
+        headers = headers
+        )
+        payload = response.json()
+        if payload.get("status") == "success":
+            data = payload.get("data")
+            df = pd.DataFrame(data)
+            user = df[df["email"] == eml]
+            if user:
+                account_num = user["nuban"].values[0]
+                psa_ref = user["account_reference"].values[0]
+                bank_name = user["bank_name"].values[0]
+                return account_num,bank_name,psa_ref
+        return None
+                
+            
+    
+
 @app.get("/generate-account-number")
 def generate_account_number(req: Request, db: Session = Depends(get_db)):
      
@@ -485,6 +511,22 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     phone = user.phone_number
     first_name = user.first_name
     last_name = user.last_name
+    
+    existing_acct = retrieve_existing_account(email)
+    if existing_acct:
+        account_number,bank_name,psa_ref = existing_acct
+        user.account_number = account_number
+        user.bank_name = bank_name
+        user.psa_ref = psa_ref
+        user.has_wallet = True
+        
+        db.commit()
+        db.refresh(user)
+        return {
+            "status": "success",
+            "message": "Retrieved successfully,Email was already linked to an existing account! ",
+            "url": "/dashboard"
+        }
     
     api = os.getenv("FLUTTER_SECRET_API_KEY")
     header = {
