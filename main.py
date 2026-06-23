@@ -474,7 +474,7 @@ def retrieve_existing_account(eml):
             data = payload.get("data")
             df = pd.DataFrame(data)
             user = df[df["email"] == eml]
-            if user:
+            if any(user):
                 account_num = user["nuban"].values[0]
                 psa_ref = user["account_reference"].values[0]
                 bank_name = user["bank_name"].values[0]
@@ -519,7 +519,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     last_name = user.last_name
     
     existing_acct = retrieve_existing_account(email)
-    print("existing acct: ",existing_acct)
+    #print("existing acct: ",existing_acct)
     if existing_acct:
         account_number,bank_name,psa_ref = existing_acct
         user.account_number = account_number
