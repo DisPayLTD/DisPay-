@@ -115,7 +115,7 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
       )
       
       res_json = response.json()
-      print("FLUTTERWAVE ERROR BODY:", response.json())
+      #print("FLUTTERWAVE ERROR BODY:", response.json())
       if res_json.get("status") == "success":
         account_balance -= amt
         total_amount += amt
@@ -189,8 +189,8 @@ def data_creation(
   transfer = Transfers(
     user_id=user_id,
     time_of_transfer=datetime.now(timezone.utc),
-    success_transfers_tables=table_rows_success,
-    failed_transfers_tables= table_rows_failed
+    success_transfers_tables=obj_success,
+    failed_transfers_tables= obj_failed
   )
   db.add(transfer)
   user.transactions = responses
