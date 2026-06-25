@@ -481,10 +481,7 @@ def retrieve_existing_account(eml):
                 return account_num,bank_name,psa_ref
         return None
     except Exception as e:
-        return {
-            "status":"failed",
-            "message":f"error: {e}"
-        }
+        return None
                 
             
     
