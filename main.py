@@ -15,7 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 import uuid
 import re
-from database import get_db, init_db,Users,Transfers, Idempotency
+from database import get_db, init_db,Users,Transfers, Idempotency, Logging 
 from sqlalchemy.orm import Session
 from argon2 import PasswordHasher
 import pandas as pd
@@ -262,41 +262,57 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
 @app.post("/login")
 @limiter.limit("3/minute")
 def login(details:Login, request: Request,db: Session= Depends(get_db)):
-    email = details.email
-    password = details.password
+    
+    logging = db.query(Logging).filter(Logging.id == user.id).first()
     user = db.query(Users).filter(Users.email == email).first()
     
+    email = details.email
+    password = details.password
+        
     if not user:
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "Invalid Email"
+            detail = "Invalid Email or Password"
         )
     hp = PasswordHasher()
     saved_password = user.password
-    verified = False
+    
     try:
         hash_password = hp.verify(saved_password, password)
-        print("Walid this user exists and he enters his password is right ")
+        
         session_id = request.session.get("thread_id")
         request.session["user_id"] = user.id
+        
         set_db_session(db)
         set_user_id({"user_id":user.id,"email":email})
+        
         if not session_id:
             session_id = str(uuid.uuid4())
             request.session["thread_id"]= session_id
-			
+        
+               
+        logging.user_id = user.id
+        logging.status = "Success"
+        
+        db.commit()
+        db.refresh(logging)
         return {"status":"success","message":"login successfully" ,"url":"/dashboard"}
     except Exception:
-        verified = False
+        
+        logging.status = "Failed"
+        
+        db.commit()
+        db.refresh(logging)
+        
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
-            detail = "Invalid Password "
+            detail = "Invalid Email or Password"
         )
 
 user_code = {}
 
 @app.post("/send-otp")
-@limiter.limit("3/hour")
+@limiter.limit("5/hour")
 def send_otp(request: Request,email: EmailRequest):
     msg = EmailMessage()
     secret = pyotp.random_base32()
