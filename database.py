@@ -50,6 +50,25 @@ class Idempotency(Base):
     created_at = Column(DateTime(timezone=True),server_default = func.now())
 
 
+class Logging(Base):
+    __tablename__ = "logging"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    
+    #Postgres to take the current timestamp and transform it to West Africa Time (+1)
+    login_time = Column(
+        DateTime, 
+        server_default=text("TIMEZONE('Africa/Lagos', NOW())")
+    )
+    
+    logout_time = Column(DateTime, nullable=True)
+    duration = Column(String, nullable=True)
+    login_attempts = Column(Integer, default=1)
+    status = Column(String, default="success")  
+    ip_address = Column(String, nullable=True)
+
+
 engine = create_engine(SQL_URL)
 sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
