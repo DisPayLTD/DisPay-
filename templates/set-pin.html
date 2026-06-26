@@ -202,9 +202,9 @@ async function setPin() {
             },
             body: JSON.stringify({ pin })
         });
-        alert("the function is called ");
+        
         const data = await res.json();
-        alert(JSON.stringify(data));
+        
         if (data.status === 'success') {
             showMessage('✅ PIN set successfully!', 'success');
             setTimeout(() => goToDashboard(), 1500);
