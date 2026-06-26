@@ -303,11 +303,11 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
 @limiter.limit("3/minute")
 def login(details:Login, request: Request,db: Session= Depends(get_db)):
     
-    user = db.query(Users).filter(Users.email == email).first()
-    
     email = details.email
     password = details.password
-        
+    
+    user = db.query(Users).filter(Users.email == email).first()
+    
     if not user:
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
@@ -332,8 +332,7 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
             session_id = str(uuid.uuid4())
             request.session["thread_id"]= session_id
         
-               
-        logging.user_id = user.id
+        
         logging.status = "Success"
         
         db.commit()
