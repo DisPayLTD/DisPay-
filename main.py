@@ -272,6 +272,18 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
         db.add(user)
         db.commit()
         db.refresh(user)
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            ip = forwarded.split(",")[-1].strip()
+        else:
+            ip = request.client.host if request.client else "Unknown"
+        logging = Logging(
+            user_id = user.id,
+            ip = ip_address
+        )
+        db.add(logging)
+        db.commit()
+        db.refresh(logging)
         
         return {
             "status": "success",
@@ -291,7 +303,6 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
 @limiter.limit("3/minute")
 def login(details:Login, request: Request,db: Session= Depends(get_db)):
     
-    logging = db.query(Logging).filter(Logging.id == user.id).first()
     user = db.query(Users).filter(Users.email == email).first()
     
     email = details.email
@@ -304,6 +315,8 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
         )
     hp = PasswordHasher()
     saved_password = user.password
+    
+    logging = db.query(Logging).filter(Logging.user_id == user.id).first()
     
     try:
         hash_password = hp.verify(saved_password, password)
