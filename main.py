@@ -279,7 +279,7 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
             ip = request.client.host if request.client else "Unknown"
         logging = Logging(
             user_id = user.id,
-            ip = ip_address
+            ip_address = ip
         )
         db.add(logging)
         db.commit()
