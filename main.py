@@ -17,6 +17,7 @@ import uuid
 import re
 from database import get_db, init_db,Users,Transfers, Idempotency, Logging 
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from argon2 import PasswordHasher
 import pandas as pd
 import io
@@ -29,11 +30,17 @@ import pandas as pd
 
 
 app = FastAPI()
+
 limiter = Limiter(key_func = get_remote_address)
+
 app.state.limiter = limiter
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 my_secret_key = os.getenv("MY_SECRET_KEY")
+
 app.add_middleware(SessionMiddleware, secret_key = my_secret_key, max_age = 600, https_only = True)
+
 app.add_middleware(
     asgi_csrf,
     signing_secret = os.getenv("MY_SECRET_KEY"),
@@ -43,8 +50,11 @@ app.add_middleware(
 )
 
 EMAIL = os.getenv("EMAIL")
+
 PASSWORD = os.getenv("PASSWORD")
+
 ph = PasswordHasher()
+
 agent = SalaryAgentPayer(tools)
 
 class Command(BaseModel):
@@ -90,6 +100,7 @@ def csrf_token(request: Request):
     except Exception as e:
         print(str(e))
         return {"message":str(e)}
+@app.
 
 @app.get("/")
 def index(request: Request):
@@ -99,11 +110,28 @@ def index(request: Request):
         return RedirectResponse(url="/dashboard", status_code=302)
     return RedirectResponse(url="/auth", status_code=302)
 
+
 @app.get("/auth")
 def auth_page():
     """Serve authentication page"""
     with open("templates/auth.html") as f:
         return HTMLResponse(content=f.read())
+
+get("heart-beat")
+def heart_beat(request: Request,db:Session=Depends(get_db)):
+    user_id = request.session.get("user_id")
+    log_id = request.session.get("log_id")
+    if not user_id or not log_id:
+        return {"status":"failed","message":"user is not logged"}
+    logging = db.query(Logging).filter(Logging.id == log_id).first()
+    if not logging:
+        return {"status":"failed","message":"no logging yet"}
+    logging.last_activity = db.scalar(text("TIMEZONE('Africa/Lagos',NOW())"))
+    
+    db.commit()
+    return {"status":"Live"}
+    
+
 
 @app.get("/dashboard")
 def dashboard(request: Request,db: Session=Depends(get_db)):
@@ -282,6 +310,7 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
         
         session_id = request.session.get("thread_id")
         request.session["user_id"] = user.id
+        request.session["log_id"] = logging.id
         
         set_db_session(db)
         set_user_id({"user_id":user.id,"email":email})
