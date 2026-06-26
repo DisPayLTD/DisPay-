@@ -274,7 +274,7 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
         db.refresh(user)
         forwarded_for = request.headers.get("X-Forwarded-For")
         if forwarded_for:
-            ip = forwarded.split(",")[-1].strip()
+            ip = forwarded_for.split(",")[-1].strip()
         else:
             ip = request.client.host if request.client else "Unknown"
         logging = Logging(
