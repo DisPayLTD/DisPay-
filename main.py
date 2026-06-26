@@ -100,7 +100,7 @@ def csrf_token(request: Request):
     except Exception as e:
         print(str(e))
         return {"message":str(e)}
-@app.
+
 
 @app.get("/")
 def index(request: Request):
@@ -117,7 +117,7 @@ def auth_page():
     with open("templates/auth.html") as f:
         return HTMLResponse(content=f.read())
 
-get("heart-beat")
+@app.get("heart-beat")
 def heart_beat(request: Request,db:Session=Depends(get_db)):
     user_id = request.session.get("user_id")
     log_id = request.session.get("log_id")
