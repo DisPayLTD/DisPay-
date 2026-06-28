@@ -137,9 +137,10 @@ def heart_beat(request: Request,db:Session=Depends(get_db)):
 def dashboard(request: Request,db: Session=Depends(get_db)):
     """Serve dashboard page - requires authentication"""
     my_users = db.query(Users).all()
-    print("Total uses" ,len(my_users))
+    print("Total users" ,len(my_users))
     for user in my_users:
-        print("My user: ",user.email)
+        print("My user email: ",user.email)
+        print(f"user name: {user.first_name} {user.last_name}")
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
     user_id = request.session.get("user_id")
