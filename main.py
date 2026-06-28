@@ -136,6 +136,10 @@ def heart_beat(request: Request,db:Session=Depends(get_db)):
 @app.get("/dashboard")
 def dashboard(request: Request,db: Session=Depends(get_db)):
     """Serve dashboard page - requires authentication"""
+    my_users = db.query(Users).all()
+    print("Total uses" ,len(my_users))
+    for user in my_users:
+        print("My user: ",user.email)
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
     user_id = request.session.get("user_id")
@@ -175,7 +179,6 @@ def get_acct_balance(req: Request,db:Session=Depends(get_db)):
     try:
         res = requests.get(url,headers = header)
         data = res.json()
-        print(data)
         if data.get("status") == "success":
             balance = data.get("data",{}).get("available_balance")
             live_balance = user.wallet_balance
