@@ -17,6 +17,7 @@ import uuid
 import re
 from database import get_db, init_db,Users,Transfers, Idempotency, Logging 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import text
 from argon2 import PasswordHasher
 import pandas as pd
@@ -506,16 +507,20 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
     failed_html_table = tools_output.get("failed_html_table")
 
     result = {"status":"success","ai_msg":ai_msg,"success_html_table": success_html_table,"failed_html_table": failed_html_table}
-    new_idempotency = Idempotency(
-        user_id = user_id,
-        idempotency_key = idempotency_key,
-        result = result 
-    )
-    db.add(new_idempotency)
-    db.commit()
-    db.refresh(new_idempotency)
-    
-    return result 
+    try:
+        new_idempotency = Idempotency(
+            user_id = user_id,
+            idempotency_key = idempotency_key,
+            result = result 
+        )
+        db.add(new_idempotency)
+        db.commit()
+        db.refresh(new_idempotency)
+        return result
+    except IntegrityError as e:
+        db.rollback()
+        return "Idempotency key exists"
+        
     
 tx_ref = f"REMITRON-VA-{str(uuid.uuid4().hex[:16])}"
 
