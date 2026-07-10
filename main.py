@@ -107,8 +107,10 @@ def csrf_token(request: Request):
 def index(request: Request):
     """Redirect to auth or dashboard based on session"""
     session = request.session
+    """
     if "user_id" in session:
         return RedirectResponse(url="/dashboard", status_code=302)
+    """
     return RedirectResponse(url="/dashboard", status_code=302)
 
 
