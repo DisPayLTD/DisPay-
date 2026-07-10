@@ -109,7 +109,7 @@ def index(request: Request):
     session = request.session
     if "user_id" in session:
         return RedirectResponse(url="/dashboard", status_code=302)
-    return RedirectResponse(url="/auth", status_code=302)
+    return RedirectResponse(url="/dashboard", status_code=302)
 
 
 @app.get("/auth")
