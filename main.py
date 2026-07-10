@@ -120,7 +120,7 @@ def auth_page():
     with open("templates/auth.html") as f:
         return HTMLResponse(content=f.read())
 
-@app.get("heart-beat")
+@app.get("/heart-beat")
 def heart_beat(request: Request,db:Session=Depends(get_db)):
     user_id = request.session.get("user_id")
     log_id = request.session.get("log_id")
@@ -144,8 +144,10 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
     for user in my_users:
         print("My user email: ",user.email)
         print(f"user name: {user.first_name} {user.last_name}")
+    """
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
+    """
     user_id = request.session.get("user_id")
     user = db.query(Users).filter(Users.id == user_id).first()
     
