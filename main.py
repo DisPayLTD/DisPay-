@@ -143,8 +143,17 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
     """Serve dashboard page - requires authentication"""
     my_users = db.query(Users).all()
     print("Total users" ,len(my_users))
+    
+    try:
+        daniel = db.query(Users).filter(Users.email == "danieljonah014@gmail.com").first()
+        db.delete(daniel)
+        db.commit()
+    except:
+        db.rollback()
+        
     for user in my_users:
         print("My user email: ",user.email)
+        
         print(f"user name: {user.first_name} {user.last_name}")
     
     if "user_id" not in request.session:
