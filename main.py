@@ -112,7 +112,7 @@ def index(request: Request):
         return RedirectResponse(url="/dashboard", status_code=302)
     return RedirectResponse(url="/auth", status_code=302)
     """"
-    with open(templates/index.html) as file:
+    with open("templates/index.html") as file:
         return HTMLRESPONSE(content = file.read())
 
 
