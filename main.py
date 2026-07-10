@@ -144,12 +144,6 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
     my_users = db.query(Users).all()
     print("Total users" ,len(my_users))
     
-    try:
-        daniel = db.query(Users).filter(Users.email == "danieljonah014@gmail.com").first()
-        db.delete(daniel)
-        db.commit()
-    except:
-        db.rollback()
         
     for user in my_users:
         print("My user email: ",user.email)
