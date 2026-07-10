@@ -111,7 +111,7 @@ def index(request: Request):
     if "user_id" in session:
         return RedirectResponse(url="/dashboard", status_code=302)
     return RedirectResponse(url="/auth", status_code=302)
-    """"
+    """
     with open("templates/index.html") as file:
         return HTMLResponse(content = file.read())
 
