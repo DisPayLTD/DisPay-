@@ -149,7 +149,6 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
         print("My user email: ",user.email)
         
         print(f"user name: {user.first_name} {user.last_name}")
-    """
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
     
@@ -160,7 +159,6 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
     if not user.transaction_pin:
         # Redirect to PIN setup if not set
         return RedirectResponse(url="/set-pin", status_code=302)
-    """
     with open("templates/dashboard.html") as f:
         return HTMLResponse(content=f.read())
 
@@ -220,11 +218,12 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         return {"status": "failed", "message": "User not found", "url": "/auth"}
-        
     set_user_id({"user_id": user_id})
+    """
     print("acct-balance: ",user.wallet_balance)
     print("psa_ref" ,user.psa_ref)
-    print("user: ",user)  
+    print("user: ",user) 
+    """
     return {
         "status": "success",
         "user": {
@@ -433,7 +432,7 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
     df.columns = df.columns.str.lower()
     data = [f"{idx + 1}. pay \"{row.name}\" \"{row.get('amount')} \" (NGN)  to  account number \"{row.get('account_number')}\"  \"{row.get('bank_name')}\" bank\n" for idx,row in df.iterrows()]
     data = "".join(data)
-    print(data)
+    #print(data)
     session_id = request.session.get("thread_id")
     if not session_id or "user_id" not in request.session:
         return {
