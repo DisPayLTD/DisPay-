@@ -149,9 +149,10 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
         print("My user email: ",user.email)
         
         print(f"user name: {user.first_name} {user.last_name}")
-    
+    """
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
+    
     user_id = request.session.get("user_id")
     user = db.query(Users).filter(Users.id == user_id).first()
     
@@ -159,6 +160,7 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
     if not user.transaction_pin:
         # Redirect to PIN setup if not set
         return RedirectResponse(url="/set-pin", status_code=302)
+    """
     with open("templates/dashboard.html") as f:
         return HTMLResponse(content=f.read())
 
