@@ -1,24 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
+
+	
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DisPay - Authentication</title>
-    <link rel="stylesheet" href="/static/auth.css">
+    <link rel="stylesheet" href="/storage/emulated/0/Android/data/com.teejay.trebedit/files/TrebEdit user files/roomMe/stylesheet.css">
 </head>
 <body>
     <div class="container">
         <div class="auth-box">
-            <div class="logo">💳 DisPay</div>
+            <div class="logo">
+                <img src="file:///storage/emulated/0/Pictures/1783686488495.png" alt=""width="150px">
+            </div>
             
             <!-- LOGIN FORM -->
-            <div id="loginForm" class="form-section">
-                <h2>Login</h2>
+            <div id="loginForm" class="form-section hidden">
+                 <h2>Login</h2>
                 <input type="email" id="loginEmail" placeholder="Email" required>
                 
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button onclick="handleLogin()" class="btn btn-primary">Login</button>
                 <p class="toggle-text">Don't have an account? <a onclick="toggleForm()">Sign Up</a></p>
+                <p>Forgot password? <a onclick="toggleForm()"></a></p>
             </div>
 
             <!-- SIGNUP FORM -->
@@ -30,16 +36,48 @@
                 <input type="password" id="signupPassword" placeholder="Password" minlength="6"required>
                 <input type="tel" id="phone" placeholder="Phone Number"  minlength="11" maxlength="11" required>
                 <input type="text" id="nin" placeholder="NIN (National ID)" required>
-                <input type="text" id="bvn" placeholder="BVN (Optional)" minlength="11" maxlength="11" required>
+                <input type="text" id="bvn" placeholder="BVN" minlength="11" maxlength="11" required>
                 <button onclick="handleSignup()" class="btn btn-success">Sign Up</button>
                 <p class="toggle-text">Already have an account? <a onclick="toggleForm()">Login</a></p>
             </div>
+            
+            <!-- Method of Verification-->
+            <div class="form-section hidden">
+                <h2>Method Of Verification</h2>
+                <input type="email" id="email" placeholder="Enter Email" required>
+                <button onclick="handleLogin()" class="btn btn-primary">Send OTP</button>
+            </div>
+            
+     <!-- OTP verification-->
+               
+		<div class="otp-box">
+		<h2>Enter OTP</h2>
+		<br>
+	<!--Container for otp message-->
+		<div class="input-container">
+		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
 
+		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+
+		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+
+		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+
+		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+
+		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+		</div>
+		<br><br>
+		<button class="btn btn-primary" id="verify-btn">Verify</button>
+		
+            </div>
+            
             <div id="errorMessage" class="error-message hidden"></div>
             <div id="successMessage" class="success-message hidden"></div>
         </div>
     </div>
 
+	
     <script src="/static/auth.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -53,6 +91,11 @@
             touchSupport: true    // Ensures it works smoothly on mobile/tablet screens
         });
     });
+    
+    const verifyBtn = document.getElementById("verify-btn");
+    verifyBtn.addEventListener("click",()=>{
+        verifyBtn.innerText = `Verifying...`
+    })
     </script>
 </body>
 </html>
