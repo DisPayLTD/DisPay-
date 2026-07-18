@@ -209,7 +209,7 @@ async function sendOtp(){
         });
         const text = await res.text();
         alert("tetx:",text);
-        alert(res.headers)
+        alert(Object.fromEntries(res.headers.entries()))
         const data = await res.json();
         if(data.status === `success`){
             showSuccess(data.message);
