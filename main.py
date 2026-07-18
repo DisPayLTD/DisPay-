@@ -788,3 +788,81 @@ def set_pin_page(request: Request):
     
     with open("templates/set-pin.html") as f:
         return HTMLResponse(content=f.read())
+
+#A function that generate otp
+
+def generate(secret):
+    totp = pyotp.TOTP(secret,interval = 180)
+    return {"otp":totp.now(),"created_at":time.time()}
+
+@app.post("/verify-otp")
+def verify_otp(secret,param:dict, request: Requests):
+    if "user_id" not in requet:
+        return {"status":"failed","message":"Unauthorized access","url":"/auth"}
+        
+    created_at = param.get("created_at")
+    otp = param.get("otp")
+    if not param or not otp:
+        return {"message":"otp or time missing","status":"failed"}
+    time_diff = time.time()- created_at
+    if time_diff > 180:
+        return {
+            "message":"Otp expired",
+            "status":"failed"
+        }
+    try:
+        totp = pyotp.TOTP(secret,interval = 180)
+        if totp.verify(otp):
+            return {"status":"success","message":"OTP has been verified","update_password":True}
+        else:
+            return {"status":"failed","message":"Invalid OTP"}
+    except Exception as e:
+        return {"status":"failed","message":str(e)}
+        
+ def send_email(user_email,otp_code):
+     url = "https://api.emailjs.com/api/v1.0/email/send"
+     
+     template_id = os.getenv("TEMPLATE_ID")
+     service_id = os.getenv("SERVICE_ID")
+     public_key = os.getenv("PUBLIC_KEY")
+     access_token = os.getenv("ACCESS_TOKEN")
+     
+     payload = {
+        "service_id": service_id,      
+        "template_id": template_id,    
+        "user_id": public_key,          
+        "accessToken": access_token,    
+        "template_params": {
+            "email": user_email,                   
+            "passcode": otp_code                      
+        }
+    }
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return {"status_code":response.status_code == 200,"status":"success"}
+    except Exception as e:
+        return {"status":"failed","message":f"error: {str(e)}"}
+        
+@app.get("/send-otp")
+def send_otp(request: Request,db: Session = Depends(get_db)):
+    user_id = request.get("user_id")
+    if not user_id:
+        return {"status":"failed","url":"/auth","message":"Unauthorized access please login" }
+    user = db.query(Users).filter(Users.id = user_id).first()
+    if not user:
+        return {"status":"failed","message":"user does not exists","url":"/auth"}
+    
+    user_email = str(user.email)
+    
+    secret = pyotp.random_base32()
+    param = generate_otp(secret)
+    
+    status = send_email(user_email,param.get("otp")).get("status")
+    if status == "success":
+        masked_email = f"{user_email[:3]}{'*'*(len(n)-9)}ail.com"
+        return {"status":"success","message":f"OTP has been successfully sent to your email {masked_email} and expires in 3 minute","secret":secret,"created_at":time.time()}
+    return {"message":"OTP not sent try again","status":"failed"}
