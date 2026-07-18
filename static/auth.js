@@ -14,7 +14,6 @@ function getCsrfToken(){
 function toggleForm() {
     document.getElementById('loginForm').classList.toggle('hidden');
     document.getElementById('signupForm').classList.toggle('hidden');
-    document.getElementById('forgotPass').classList.toggle('hidden')
     clearMessages();
 }
 
@@ -182,45 +181,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
 //otp section
 
-let time_otp_sent = ""
-const enterOtpBox = document.getElementByClassName("otp-box")[0];
+let time_otp_sent = "";
+const enterOtpBox = document.getElementsByClassName("otp-box")[0];
 const sendOtpBtn = document.getElementById("send-otp-btn");
 
-const forgotPass = document.getElementById(forgotPass).addEventListener("click",()=>{
-    login
-})
-function sendOtp(){
-    const res = fetch("/send_otp");
-    data = res.json();
-    if(data.status === `success`){
-        setTimeout(showSuccess,5000,data.message);
-        sendOtpBtn.classList.add("hidden");
-        time_otp_sent = data.created_at
-        enterOtpBox.classList.remove("hidden");
+// Forgot Password Handler
+document.getElementById("forgotPass").addEventListener("click", ()=>{
+    document.getElementById('loginForm').classList.add('hidden');
+    document.querySelector('.form-section.hidden:nth-of-type(2)').classList.remove('hidden');
+});
+
+async function sendOtp(){
+    try {
+        const res = await fetch("/send_otp");
+        const data = await res.json();
+        if(data.status === `success`){
+            showSuccess(data.message);
+            sendOtpBtn.classList.add("hidden");
+            time_otp_sent = data.created_at;
+            enterOtpBox.classList.remove("hidden");
+        }
+    } catch (error) {
+        showError('Error sending OTP: ' + error.message);
     }
 }
 
-function verifyOtp(){
-    const elements = document.getElementByClassName("code-box");
-    otp = Array.from(elements,el => el.value.trim()).join(",");
-    payload = {otp:otp,created_at:time_otp_sent}
-    
-    const res = fetch("/verify-otp",{
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        json = JSON.stringify(payload);
-    });
-    const data = res.json()
-    if(data.status === `succcess`){
-        enterOtpBox.classList.add("hidden");
-        changePassword.classList.remove("hidden");
-    }else{
-        if("Invalid" in data.message){
-            alert(data.message);
-            return;
+async function verifyOtp(){
+    try {
+        const elements = document.getElementsByClassName("code-box");
+        const otp = Array.from(elements, el => el.value.trim()).join("");
+        const payload = {otp: otp, created_at: time_otp_sent};
+        
+        const res = await fetch("/verify-otp", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if(data.status === `success`){
+            enterOtpBox.classList.add("hidden");
+            if(document.getElementById('changePassword')){
+                document.getElementById('changePassword').classList.remove("hidden");
+            }
+        } else {
+            if(data.message && data.message.includes("Invalid")){
+                showError(data.message);
+                return;
+            }
+            if(document.getElementById('changePassword')){
+                document.getElementById('changePassword').classList.add("hidden");
+            }
+            showError(data.message || 'Verification failed');
+            sendOtpBtn.classList.remove("hidden");
+            enterOtpBox.classList.add("hidden");
         }
-        changePassword.classList.add("hidden");
-        alert(data.message)
-        sentOtpBox.classList.remove("hidden");
+    } catch (error) {
+        showError('Error verifying OTP: ' + error.message);
     }
 }
