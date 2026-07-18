@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
-
 	
 <head>
     <meta charset="UTF-8">
@@ -45,12 +43,12 @@
             <div class="form-section hidden">
                 <h2>Method Of Verification</h2>
                 <input type="email" id="email" placeholder="Enter Email" required>
-                <button onclick="handleLogin()" class="btn btn-primary">Send OTP</button>
+                <button onclick="sendOtp()" class="btn btn-primary" id="send-otp-btn">Send OTP</button>
             </div>
             
      <!-- OTP verification-->
                
-		<div class="otp-box hidden">
+		<div class="otp-box hidden" >
 		<h2>Enter Your OTP</h2>
         <br>
         <i>we have sent you an email with your otp in <span id="user-email"></span></i>
