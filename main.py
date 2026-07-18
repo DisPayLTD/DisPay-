@@ -89,7 +89,7 @@ class SignupRequest(BaseModel):
     bvn: str
 
 
-class OTPVerication(BaseModel):
+class OTPVerification(BaseModel):
     user_email :EmailStr
 
     
@@ -854,7 +854,7 @@ def send_email(user_email, otp_code):
 
 @app.post("/send_otp")
 def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_db)):
-    user_email = param.get("user_email")
+    user_email = param.user_email
     
     user = db.query(Users).filter(Users.email == user_email).first()
     if not user:
