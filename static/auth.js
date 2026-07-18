@@ -14,6 +14,7 @@ function getCsrfToken(){
 function toggleForm() {
     document.getElementById('loginForm').classList.toggle('hidden');
     document.getElementById('signupForm').classList.toggle('hidden');
+    document.getElementById('forgotPass').classList.toggle('hidden')
     clearMessages();
 }
 
@@ -185,6 +186,9 @@ let time_otp_sent = ""
 const enterOtpBox = document.getElementByClassName("otp-box")[0];
 const sendOtpBtn = document.getElementById("send-otp-btn");
 
+const forgotPass = document.getElementById(forgotPass).addEventListener("click",()=>{
+    login
+})
 function sendOtp(){
     const res = fetch("/send_otp");
     data = res.json();
