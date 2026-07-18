@@ -204,12 +204,12 @@ async function sendOtp(){
         const payload = {user_email:email}
         const res = await fetch("/send_otp",{
             method:"POST",
-            headers: {"Content-Type":"application/json"},
+            headers: {"Content-Type":"application/json",'X-CSRFToken': getCsrfToken()},
             body:JSON.stringify(payload)
         });
         const text = await res.text();
-        alert("tetx:",text);
-        alert(res.headers.get("content-type"))
+        //alert("tetx:",text);
+        //alert(res.headers.get("content-type"))
         const data = await res.json();
         if(data.status === `success`){
             showSuccess(data.message);
@@ -230,7 +230,7 @@ async function verifyOtp(){
         
         const res = await fetch("/verify-otp",{
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {"Content-Type": "application/json", 'X-CSRFToken': getCsrfToken()},
             body: JSON.stringify(payload)
         });
         const data = await res.json();
