@@ -196,9 +196,13 @@ const forgotPass = document.getElementById("forgotPass").addEventListener("click
 
 async function sendOtp(){
     try {
-        const email = document.getElementById("userEmail").value();
+        const email = document.getElementById("userEmail").value;
+        if(!email){
+            alert("Please enter email");
+            return;
+        }
         const payload = {user_email:email}
-        const res = await fetch("/send_otp",() =>{
+        const res = await fetch("/send_otp",{
             method:"POST",
             headers: {"Content-Type":"application/json"},
             body:JSON.stringify(payload)
@@ -221,7 +225,7 @@ async function verifyOtp(){
         const otp = Array.from(elements, el => el.value.trim()).join("");
         const payload = {otp: otp, created_at: time_otp_sent};
         
-        const res = await fetch("/verify-otp", {
+        const res = await fetch("/verify-otp",{
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(payload)
