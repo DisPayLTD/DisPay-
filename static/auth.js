@@ -187,8 +187,8 @@ const sendOtpBtn = document.getElementById("send-otp-btn");
 
 // Forgot Password Handler
 const forgotPass = document.getElementById("forgotPass").addEventListener("click", ()=>{
-    document.getElementById('loginForm).classList.add('hidden');
-    document.getElementById('signupForm').classList.add('hidden')
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('signupForm').classList.add('hidden');
     const methodOfVerification = document.getElementById("methodOfVerification");
     methodOfVerification.classList.remove("hidden");
 });
