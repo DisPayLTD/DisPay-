@@ -178,3 +178,31 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') handleSignup();
     });
 });
+
+//otp section 
+let time_otp_sent = ""
+
+function sendOtp(){
+    const sendOtpBtn = document.getElementById("send-otp-btn");
+    const res = fetch("/send_otp");
+    data = res.json();
+    if(data.status == `success`){
+        setTimeout(showSuccess,5000,data.message);
+        sendOtpBtn.classList.add("hidden");
+        const enterOtpBox = document.getElementByClassName("otp-box")[0];
+        time_otp_sent = data.created_at
+        enterOtpBox.classList.remove("hidden");
+    }
+}
+
+function verifyOtp(){
+    const elements = document.getElementByClassName("code-box");
+    otp = Array.from(elements,el => el.value.trim()).join(",");
+    payload = {otp:otp,created_at:time_otp_sent}
+    
+    const res = fetch("/verify-otp",{
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        json = JSON.stringify(payload)
+    })
+}
