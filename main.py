@@ -89,6 +89,10 @@ class SignupRequest(BaseModel):
     bvn: str
 
 
+class OTPVerication(BaseModel):
+    user_email :EmailStr
+
+    
 @app.on_event("startup")
 def startup():
     init_db()
@@ -848,21 +852,19 @@ def send_email(user_email, otp_code):
     except Exception as e:
         return {"status":"failed","message":f"error: {str(e)}"}
 
-@app.get("/send_otp")
-def send_otp(request: Request, db: Session = Depends(get_db)):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return {"status":"failed","url":"/auth","message":"Unauthorized access please login" }
-    user = db.query(Users).filter(Users.id == user_id).first()
+@app.post("/send_otp")
+def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_db)):
+    user_email = param.get("user_email")
+    
+    user = db.query(Users).filter(Users.email == user_email).first()
     if not user:
         return {"status":"failed","message":"user does not exists","url":"/auth"}
-    
-    user_email = str(user.email)
+
     
     secret = pyotp.random_base32()
-    param = generate(secret)
+    otp = generate(secret).get("otp")
     
-    status = send_email(user_email, param.get("otp")).get("status")
+    status = send_email(user_email, otp).get("status")
     if status == "success":
         masked_email = f"{user_email[:3]}{'*'*(len(user_email)-9)}ail.com"
         return {"status":"success","message":f"OTP has been successfully sent to your email {masked_email} and expires in 3 minute","secret":secret,"created_at":time.time()}
