@@ -193,9 +193,16 @@ const forgotPass = document.getElementById("forgotPass").addEventListener("click
     methodOfVerification.classList.remove("hidden");
 });
 
+
 async function sendOtp(){
     try {
-        const res = await fetch("/send_otp");
+        const email = document.getElementById("userEmail").value();
+        const payload = {user_email:email}
+        const res = await fetch("/send_otp",() =>{
+            method:"POST",
+            headers: {"Content-Type":"application/json"},
+            body:JSON.stringify(payload)
+        });
         const data = await res.json();
         if(data.status === `success`){
             showSuccess(data.message);
