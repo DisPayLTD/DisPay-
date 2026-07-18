@@ -179,17 +179,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-//otp section 
+//otp section
+
 let time_otp_sent = ""
+const enterOtpBox = document.getElementByClassName("otp-box")[0];
+const sendOtpBtn = document.getElementById("send-otp-btn");
 
 function sendOtp(){
-    const sendOtpBtn = document.getElementById("send-otp-btn");
     const res = fetch("/send_otp");
     data = res.json();
-    if(data.status == `success`){
+    if(data.status === `success`){
         setTimeout(showSuccess,5000,data.message);
         sendOtpBtn.classList.add("hidden");
-        const enterOtpBox = document.getElementByClassName("otp-box")[0];
         time_otp_sent = data.created_at
         enterOtpBox.classList.remove("hidden");
     }
@@ -203,6 +204,19 @@ function verifyOtp(){
     const res = fetch("/verify-otp",{
         method:"POST",
         headers: {"Content-Type":"application/json"},
-        json = JSON.stringify(payload)
-    })
+        json = JSON.stringify(payload);
+    });
+    const data = res.json()
+    if(data.status === `succcess`){
+        enterOtpBox.classList.add("hidden");
+        changePassword.classList.remove("hidden");
+    }else{
+        if("Invalid" in data.message){
+            alert(data.message);
+            return;
+        }
+        changePassword.classList.add("hidden");
+        alert(data.message)
+        sentOtpBox.classList.remove("hidden");
+    }
 }
