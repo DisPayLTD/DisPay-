@@ -207,6 +207,9 @@ async function sendOtp(){
             headers: {"Content-Type":"application/json"},
             body:JSON.stringify(payload)
         });
+        const text = await res.text();
+        alert("tetx:",text);
+        alert(res.headers)
         const data = await res.json();
         if(data.status === `success`){
             showSuccess(data.message);
