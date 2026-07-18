@@ -29,8 +29,6 @@ import pandas as pd
 import time
 
 
-
-
 app = FastAPI()
 
 limiter = Limiter(key_func = get_remote_address)
@@ -373,39 +371,6 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
 
 user_code = {}
 
-@app.post("/send-otp")
-@limiter.limit("5/hour")
-def send_otp(request: Request,email: EmailRequest):
-    msg = EmailMessage()
-    secret = pyotp.random_base32()
-    
-    totp = pyotp.TOTP(secret,interval = 300)
-    otp = totp.now()
-    print('ur otp is: ',otp)
-    user_code[email.email] = {"secret":secret,"otp":otp}
-    msg["Subject"] = "OTP"
-    msg["From"] = EMAIL
-    msg["To"] = email.email
-    msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 5) as server:
-            server.login(EMAIL,PASSWORD)
-            server.send_message(msg)
-            return {"status":"success","message":"sent"}
-    except Exception as e:
-        if otp:
-            return {"status":"success","message":f"walid your culprit {str(e)}","otp":str(otp)}
-    
-@app.post("/verify-otp")
-def verify(user: EmailOTP):
-    if not user_code.get(user.email):
-        return {"Mesage":"No Secret key" }
-    otp = user.otp
-    totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
-    val = totp.verify(otp)
-    if val:
-        del user_code[user.email]
-    return {"authenticated":val}
 
 @app.post("/upload-file")
 async def upload_file(request: Request,db:Session = Depends(get_db), file:UploadFile = File(...)):
