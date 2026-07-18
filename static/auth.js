@@ -207,7 +207,6 @@ async function sendOtp(){
             headers: {"Content-Type":"application/json",'X-CSRFToken': getCsrfToken()},
             body:JSON.stringify(payload)
         });
-        const text = await res.text();
         
         const data = await res.json();
         if(data.status === `success`){
