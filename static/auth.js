@@ -186,9 +186,11 @@ const enterOtpBox = document.getElementsByClassName("otp-box")[0];
 const sendOtpBtn = document.getElementById("send-otp-btn");
 
 // Forgot Password Handler
-document.getElementById("forgotPass").addEventListener("click", ()=>{
-    document.getElementById('loginForm').classList.add('hidden');
-    document.querySelector('.form-section.hidden:nth-of-type(2)').classList.remove('hidden');
+const forgotPass = document.getElementById("forgotPass").addEventListener("click", ()=>{
+    const login = document.getElementById('loginForm');
+    login.classList.add('hidden');
+    const methodOfVerification = document.getElementById("methodOfVerification");
+    methodOfVerification.classList.remove("hidden");
 });
 
 async function sendOtp(){
