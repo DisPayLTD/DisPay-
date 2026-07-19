@@ -246,6 +246,8 @@ async function verifyOtp(){
             body: JSON.stringify(payload)
         });
         const data = await res.json();
+
+        alert(data);
         
         if(data.status === `success`){
             enterOtpBox.classList.add("hidden");
