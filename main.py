@@ -856,5 +856,5 @@ def change_password(new_details:NewDetails, email:OTPVerification ,db:Session = 
         return {"status":"success","message":"New Password is Saved Successfully","url":"/auth"}
     except:
         db.rollback()
-        return {"status":"failed","message":"error commiting to db we have rollback new password is not added","url","/auth"}
+        return {"status":"failed","message":"error commiting to db we have rollback new password is not added","url":"/auth"}
     
