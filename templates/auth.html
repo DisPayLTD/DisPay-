@@ -58,15 +58,15 @@
 		<div class="input-container">
 		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
 
-		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
 
-		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
 
-		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
 
-		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
 
-		<input type="text" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
+		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
 		</div>
 		<br><br>
 		<button class="btn btn-primary" id="verify-btn" onclick="verifyOtp">Verify</button>
@@ -93,10 +93,6 @@
         });
     });
     
-    const verifyBtn = document.getElementById("verify-btn");
-    verifyBtn.addEventListener("click",()=>{
-        verifyBtn.innerText = `Verifying...`
-    })
     </script>
 </body>
 </html>
