@@ -22,7 +22,7 @@
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button onclick="handleLogin()" class="btn btn-primary">Login</button>
                 <p class="toggle-text">Don't have an account? <a onclick="toggleForm()">Sign Up</a></p>
-                <p><a onclick="toggleForm()" id="forgotPass">Forgot password?</a></p>
+                <p><a id="forgotPass" style="color:blue">Forgot password?</a></p>
             </div>
 
             <!-- SIGNUP FORM -->
@@ -44,6 +44,7 @@
                 <h2>Method Of Verification</h2>
                 <input type="email" id="userEmail" placeholder="Enter Email" required>
                 <button onclick="sendOtp()" class="btn btn-primary" id="send-otp-btn">Send OTP</button>
+                <p class="toggle-text">Already have an account? <a onclick="toggleForm()">Login</a></p>
             </div>
             
      <!-- OTP verification-->
