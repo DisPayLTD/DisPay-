@@ -66,7 +66,7 @@ class EmailRequest(BaseModel):
     email: EmailStr 
 
 class VerifyOTP(BaseModel):
-    created_at: time  
+    created_at: float
     otp: str
     secret : str
 
