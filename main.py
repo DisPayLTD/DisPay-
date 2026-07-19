@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from agent import SalaryAgentPayer
 from agent import tools
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel,EmailStr, SecretStr
 from email.message import EmailMessage
 import pyotp
 import smtplib
@@ -63,11 +63,12 @@ class Command(BaseModel):
     pin:str
 
 class EmailRequest(BaseModel):
-    email: str 
+    email: EmailStr 
 
-class EmailOTP(BaseModel):
-    email: str  
+class VerifyOTP(BaseModel):
+    created_at: time  
     otp: str
+    secret : str
 
 class Login(BaseModel):
     email: EmailStr
@@ -86,7 +87,7 @@ class SignupRequest(BaseModel):
     phone_number: str
     bvn: str
 
-
+#this class is for method of verification email
 class OTPVerification(BaseModel):
     user_email :EmailStr
 
@@ -766,14 +767,13 @@ def generate(secret):
     return {"otp":totp.now(),"created_at":time.time()}
 
 @app.post("/verify-otp")
-def verify_otp(secret, param:dict, request: Request):
-    if "user_id" not in request.session:
-        return {"status":"failed","message":"Unauthorized access","url":"/auth"}
+def verify_otp(verify:VerifyOTP, request: Request):
+    
         
-    created_at = param.get("created_at")
-    otp = param.get("otp")
-    if not param or not otp:
-        return {"message":"otp or time missing","status":"failed"}
+    created_at = verify.created_at
+    otp = verify.otp
+    secret = verify.secret
+    
     time_diff = time.time()- created_at
     if time_diff > 180:
         return {
@@ -836,3 +836,25 @@ def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_d
         masked_email = f"{user_email[:3]}{'*'*(len(user_email)-9)}ail.com"
         return {"status":"success","message":f"OTP has been successfully sent to your email {masked_email} and expires in 3 minute","secret":secret,"created_at":time.time()}
     return {"message":"OTP not sent try again","status":"failed"}
+
+
+@app.post("/change-password")
+def change_password(new_details:NewDetails, email:OTPVerification ,db:Session = Depends(get_db)):
+    password= new_details.new_password
+    email = email.user_email
+    user = db.query(Users).filter(Users.email == email).first()
+    if not user:
+        raise HTTPException(
+            status_code = 403,
+            detail = "Unauthorized access"
+        )
+    try:
+        hashed_password = ph.hash(new_password)
+        user.password = hashed_password
+        db.commit()
+        db.refresh(user)
+        return {"status":"success","message":"New Password is Saved Successfully","url":"/auth"}
+    except:
+        db.rollback()
+        return {"status":"failed","message":"error commiting to db we have rollback new password is not added","url","/auth"}
+    
