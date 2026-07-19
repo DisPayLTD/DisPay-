@@ -220,7 +220,20 @@ async function sendOtp(){
         showError('Error sending OTP: ' + error.message);
     }
 }
-
+const verifyBtn = document.getElementById("verify-btn");
+verifyBtn.addEventListener("click",async ()=>{
+        try{
+            verifyBtn.disabled = true
+            verifyBtn.innerText = `Verifying...`;
+            await verifyOtp()
+            
+        }catch(error) {
+            alert(`error: ${String(error)}`);
+        }finally{
+            verifyBtn.disabled = false
+            verifyBtn.innerText = `Verify`
+        }
+    })
 async function verifyOtp(){
     try {
         const elements = document.getElementsByClassName("code-box");
