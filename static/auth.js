@@ -184,12 +184,12 @@ document.addEventListener('DOMContentLoaded', function() {
 let time_otp_sent = "";
 const enterOtpBox = document.getElementsByClassName("otp-box")[0];
 const sendOtpBtn = document.getElementById("send-otp-btn");
+const methodOfVerification = document.getElementById("methodOfVerification");
 
 // Forgot Password Handler
 const forgotPass = document.getElementById("forgotPass").addEventListener("click", ()=>{
     document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('signupForm').classList.add('hidden');
-    const methodOfVerification = document.getElementById("methodOfVerification");
     methodOfVerification.classList.remove("hidden");
 });
 
@@ -212,6 +212,7 @@ async function sendOtp(){
         if(data.status === `success`){
             showSuccess(data.message);
             sendOtpBtn.classList.add("hidden");
+            methodOfVerification.classList.add("hidden");
             time_otp_sent = data.created_at;
             enterOtpBox.classList.remove("hidden");
         }
