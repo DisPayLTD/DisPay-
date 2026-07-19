@@ -1,5 +1,5 @@
 const API = '';
-
+let secret = '';
 function getCsrfToken(){
     const value = `; ${document.cookie}`;
     const data = value.split("; csrftoken=");
@@ -210,7 +210,10 @@ async function sendOtp(){
         
         const data = await res.json();
         if(data.status === `success`){
+            
             showSuccess(data.message);
+            secret = data.secret
+            
             sendOtpBtn.classList.add("hidden");
             methodOfVerification.classList.add("hidden");
             time_otp_sent = data.created_at;
@@ -239,7 +242,7 @@ async function verifyOtp(){
         const elements = document.getElementsByClassName("code-box");
         const otp = Array.from(elements, el => el.value.trim()).join("");
         const email = document.getElementById("userEmail").value;
-        const payload = {otp: otp, email: email};
+        const payload = {otp: otp, email: email,secret:secret};
         
         const res = await fetch("/verify-otp",{
             method: "POST",
