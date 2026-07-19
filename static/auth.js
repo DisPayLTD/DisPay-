@@ -201,8 +201,8 @@ async function sendOtp(){
             alert("Please enter email");
             return;
         }
-        const payload = {user_email:email}
-        const res = await fetch("/send_otp",{
+        const payload = {email:email}
+        const res = await fetch("/send-otp",{
             method:"POST",
             headers: {"Content-Type":"application/json",'X-CSRFToken': getCsrfToken()},
             body:JSON.stringify(payload)
@@ -238,7 +238,8 @@ async function verifyOtp(){
     try {
         const elements = document.getElementsByClassName("code-box");
         const otp = Array.from(elements, el => el.value.trim()).join("");
-        const payload = {otp: otp, created_at: time_otp_sent};
+        const email = document.getElementById("userEmail").value;
+        const payload = {otp: otp, email: email};
         
         const res = await fetch("/verify-otp",{
             method: "POST",
@@ -246,10 +247,9 @@ async function verifyOtp(){
             body: JSON.stringify(payload)
         });
         const data = await res.json();
-
-        alert("data:",data);
         
         if(data.status === `success`){
+            showSuccess('OTP verified successfully!');
             enterOtpBox.classList.add("hidden");
             if(document.getElementById('changePassword')){
                 document.getElementById('changePassword').classList.remove("hidden");
