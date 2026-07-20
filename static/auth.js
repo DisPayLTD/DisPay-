@@ -201,7 +201,7 @@ async function sendOtp(){
             alert("Please enter email");
             return;
         }
-        const payload = {email:email}
+        const payload = {user_email:email}
         const res = await fetch("/send-otp",{
             method:"POST",
             headers: {"Content-Type":"application/json",'X-CSRFToken': getCsrfToken()},
