@@ -817,7 +817,7 @@ def send_email(user_email, otp_code):
     except Exception as e:
         return {"status":"failed","message":f"error: {str(e)}"}
 
-@app.post("/send_otp")
+@app.post("/send-otp")
 def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_db)):
     user_email = param.user_email
     
