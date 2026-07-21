@@ -256,6 +256,7 @@ async function verifyOtp(){
             enterOtpBox.classList.add("hidden");
             if(document.getElementById('changePassword')){
                 document.getElementById('changePassword').classList.remove("hidden");
+                alert("verified successfully");
             }
         } else {
             if(data.message && data.message.includes("Invalid")){
