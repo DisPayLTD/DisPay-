@@ -69,6 +69,7 @@ class VerifyOTP(BaseModel):
     created_at: float
     otp: str
     secret : str
+    email: EmailStr
 
 class Login(BaseModel):
     email: EmailStr
