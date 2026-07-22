@@ -203,6 +203,7 @@ async function sendOtp(){
             alert("Please enter email");
             return;
         }
+        alert("new commit")
         const payload = {user_email:email}
         const res = await fetch("/send-otp",{
             method:"POST",
