@@ -242,7 +242,7 @@ async function verifyOtp(){
         const elements = document.getElementsByClassName("code-box");
         const otp = Array.from(elements, el => el.value.trim()).join("");
         const email = document.getElementById("userEmail").value;
-        const payload = {otp: otp, email: email,secret:secret};
+        const payload = {otp: otp, email: email,secret:secret, created_at:time_otp_sent};
 
         alert("about to fetch successfully");
         const res = await fetch("/verify-otp",{
