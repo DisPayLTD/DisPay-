@@ -1,5 +1,7 @@
 const API = '';
 let secret = '';
+let userEmail = '';
+
 function getCsrfToken(){
     const value = `; ${document.cookie}`;
     const data = value.split("; csrftoken=");
@@ -244,23 +246,20 @@ async function verifyOtp(){
         const email = document.getElementById("userEmail").value;
         const payload = {otp: otp, email: email,secret:secret, created_at:time_otp_sent};
 
-        alert("about to fetch successfully");
         const res = await fetch("/verify-otp",{
             method: "POST",
             headers: {"Content-Type": "application/json", 'X-CSRFToken': getCsrfToken()},
             body: JSON.stringify(payload)
         });
-        alert("fetch successfully");
+        
         const data = await res.json();
-        alert("data: ",data);
+        
         if(data.status === `success`){
             showSuccess('OTP verified successfully!');
             enterOtpBox.classList.add("hidden");
-            if(document.getElementById('changePassword')){
-                document.getElementById('changePassword').classList.remove("hidden");
-                alert("verified successfully");
-                alert("returning...");
-                return;
+            if(document.getElementById('changePasswordBox')){
+                document.getElementById('changePasswordBox').classList.remove("hidden");
+                userEmail = email
             }
         } else {
             alert("password isnt verified");
@@ -277,5 +276,23 @@ async function verifyOtp(){
         }
     } catch (error) {
         showError('Error verifying OTP: ' + error.message);
+    }
+}
+function changePassword(){
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    if(newPassword != confirmPassword){
+        alert("Passwords do not match");
+        return;
+    }
+    payload = {user_email = userEmail,new_password = new_password}
+    const res = fetch("/change-password",{
+        method:"POST",
+        body:payload
+    })
+    const data = res.json()
+    if(data.status === `success`){
+        alert("password change successfully");
+        window.location.href = "/auth"
     }
 }
