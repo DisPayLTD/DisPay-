@@ -78,9 +78,9 @@ class Login(BaseModel):
 class PinModel(BaseModel):
     pin : str
 
-class newDetails(BaseModel):
+class NewDetails(BaseModel):
     new_password:str
-    email:EmailStr
+    user_email:EmailStr
 
 class SignupRequest(BaseModel):
     first_name: str
@@ -849,9 +849,9 @@ def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_d
 
 
 @app.post("/change-password")
-def change_password(new_details:NewDetails, email:OTPVerification ,db:Session = Depends(get_db)):
+def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
     password= new_details.new_password
-    email = email.user_email
+    email = new_details.user_email
     user = db.query(Users).filter(Users.email == email).first()
     if not user:
         raise HTTPException(
