@@ -769,24 +769,30 @@ def generate(secret):
 @app.post("/verify-otp")
 def verify_otp(verify:VerifyOTP, request: Request):
     
-        
+    print("we have entered the verify otp route")
+    
     created_at = verify.created_at
     otp = verify.otp
     secret = verify.secret
     
     time_diff = time.time()- created_at
     if time_diff > 180:
+        print("time out cant verify")
         return {
             "message":"Otp expired",
             "status":"failed"
         }
     try:
+        print("we are in try block")
         totp = pyotp.TOTP(secret,interval = 180)
         if totp.verify(otp):
+            print("security correct")
             return {"status":"success","message":"OTP has been verified","update_password":True}
         else:
+            print("security wrong")
             return {"status":"failed","message":"Invalid OTP"}
     except Exception as e:
+        print("exception has happened")
         return {"status":"failed","message":str(e)}
 
 def send_email(user_email, otp_code):
