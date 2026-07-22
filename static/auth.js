@@ -278,19 +278,20 @@ async function verifyOtp(){
         showError('Error verifying OTP: ' + error.message);
     }
 }
-function changePassword(){
+async function changePassword(){
     const newPassword = document.getElementById("newPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
     if(newPassword != confirmPassword){
         alert("Passwords do not match");
         return;
     }
-    payload = {user_email = userEmail,new_password = new_password}
-    const res = fetch("/change-password",{
+    payload = {user_email:userEmail,new_password:newPassword}
+    const res = await fetch("/change-password",{
+        headers :{"Content-Type":"application/json","X-CSRFToken": getCsrfToken()},
         method:"POST",
-        body:payload
+        body:JSON.stringify(payload)
     })
-    const data = res.json()
+    const data = await res.json()
     if(data.status === `success`){
         alert("password change successfully");
         window.location.href = "/auth"
