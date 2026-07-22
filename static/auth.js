@@ -258,8 +258,8 @@ async function verifyOtp(){
         if(data.status === `success`){
             showSuccess('OTP verified successfully!');
             enterOtpBox.classList.add("hidden");
-            if(document.getElementByClassName('changePasswordBox')[0]){
-                document.getElementByClassName('changePasswordBox')[0].classList.remove("hidden");
+            if(document.getElementsByClassName('changePasswordBox')[0]){
+                document.getElementsByClassName('changePasswordBox')[0].classList.remove("hidden");
                 userEmail = email
             }
         } else {
