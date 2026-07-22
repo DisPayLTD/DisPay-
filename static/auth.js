@@ -259,8 +259,11 @@ async function verifyOtp(){
             if(document.getElementById('changePassword')){
                 document.getElementById('changePassword').classList.remove("hidden");
                 alert("verified successfully");
+                alert("returning...");
+                return;
             }
         } else {
+            alert("password isnt verified");
             if(data.message && data.message.includes("Invalid")){
                 showError(data.message);
                 return;
