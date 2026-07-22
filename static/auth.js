@@ -243,12 +243,14 @@ async function verifyOtp(){
         const otp = Array.from(elements, el => el.value.trim()).join("");
         const email = document.getElementById("userEmail").value;
         const payload = {otp: otp, email: email,secret:secret};
-        
+
+        alert("about to fetch successfully");
         const res = await fetch("/verify-otp",{
             method: "POST",
             headers: {"Content-Type": "application/json", 'X-CSRFToken': getCsrfToken()},
             body: JSON.stringify(payload)
         });
+        alert("fetch successfully");
         const data = await res.json();
         
         if(data.status === `success`){
