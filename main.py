@@ -78,6 +78,9 @@ class Login(BaseModel):
 class PinModel(BaseModel):
     pin : str
 
+class newDetails(BaseModel):
+    new_password:str,
+    email:EmailStr
 
 class SignupRequest(BaseModel):
     first_name: str
