@@ -252,7 +252,7 @@ async function verifyOtp(){
         });
         alert("fetch successfully");
         const data = await res.json();
-        
+        alert("data: ",data);
         if(data.status === `success`){
             showSuccess('OTP verified successfully!');
             enterOtpBox.classList.add("hidden");
