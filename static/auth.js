@@ -274,7 +274,7 @@ async function verifyOtp(){
             alert("password isnt verified");
             if(data.message && data.message.includes("Invalid")){
                 showError(data.message);
-                setTimeOut(clearMessages,400);
+                setTimeout(clearMessages,4000);
                 return;
             }
             
