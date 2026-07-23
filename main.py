@@ -869,7 +869,8 @@ def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
         return {"status":"success","message":"New Password is Saved Successfully","url":"/auth"}
-    except:
+    except Exception as e:
         db.rollback()
-        return {"status":"failed","message":"error commiting to db we have rollback new password is not added","url":"/auth"}
+        print("error saving new password:",str(e))
+        return {"status":"failed","message":f"error commiting to db we have rollback new password is not added error:{str(e)}","url":"/auth"}
     
