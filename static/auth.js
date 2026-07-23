@@ -217,8 +217,9 @@ async function sendOtp(){
         if(data.status === `success`){
             
             showSuccess(data.message);
+            setTimeout(clearMessages,3000);
             toggleForm("otp-box");
-            setTimeout(clearMessages,400);
+            
             
             secret = data.secret
             time_otp_sent = data.created_at;
@@ -266,7 +267,7 @@ async function verifyOtp(){
             
             userEmail = email;
             alert(userEmail);
-            setTimeout(clearMessages,400);
+            setTimeout(clearMessages,4000);
             toggleForm("changePasswordBox");
             
         } else {
@@ -285,6 +286,7 @@ async function verifyOtp(){
         showError('Error verifying OTP: ' + error.message);
     }
 }
+
 async function changePassword(){
     alert("newly commit")
     const newPassword = document.getElementById("newPassword").value;
