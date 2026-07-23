@@ -233,6 +233,23 @@ async function sendOtp(){
     }
 }
 
+const inputs = document.querySelectorAll(".code-box");
+    inputs.forEach((file,index) =>{
+        file.addEventListener("input",(e)=>{
+            const value = e.target.value;
+            if(value.length > 0 && index < inputs.length -1){
+            inputs[index +1].focus()
+            }
+            
+        });
+        
+        file.addEventListener("keydown",(e)=>{
+              
+               if(e.key==="Backspace" && file.value === "" && index >0){
+                   inputs[index - 1].focus();
+               } 
+            });
+    });
 const verifyBtn = document.getElementById("verify-btn");
 
 verifyBtn.addEventListener("click",async ()=>{
