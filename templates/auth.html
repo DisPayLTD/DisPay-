@@ -21,8 +21,8 @@
                 
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button onclick="handleLogin()" class="btn btn-primary">Login</button>
-                <p class="toggle-text">Don't have an account? <a onclick="toggleForm()">Sign Up</a></p>
-                <p><a id="forgotPass" style="color:blue">Forgot password?</a></p>
+                <p class="toggle-text">Don't have an account? <a onclick="toggleForm('signup')">Sign Up</a></p>
+                <p><a id="forgotPass" style="color:blue" onclick="toggleForm('methodOfVerification');">Forgot password?</a></p>
             </div>
 
             <!-- SIGNUP FORM -->
@@ -36,7 +36,7 @@
                 <input type="text" id="nin" placeholder="NIN (National ID)" required>
                 <input type="text" id="bvn" placeholder="BVN" minlength="11" maxlength="11" required>
                 <button onclick="handleSignup()" class="btn btn-success">Sign Up</button>
-                <p class="toggle-text">Already have an account? <a onclick="toggleForm()">Login</a></p>
+                <p class="toggle-text">Already have an account? <a onclick="toggleForm('login')">Login</a></p>
             </div>
             
             <!-- Method of Verification-->
@@ -44,16 +44,16 @@
                 <h2>Method Of Verification</h2>
                 <input type="email" id="userEmail" placeholder="Enter Email" required>
                 <button onclick="sendOtp()" class="btn btn-primary" id="send-otp-btn">Send OTP</button>
-                <p class="toggle-text">Already have an account? <a onclick="toggleForm()">Login</a></p>
+                <p class="toggle-text">Already have an account? <a onclick="toggleForm('login')">Login</a></p>
             </div>
             
      <!-- OTP verification-->
                
-		<div class="otp-box hidden" >
+		<div id="otp-box" class="otp-box hidden" >
 		<h2>Enter Your OTP</h2>
         <br>
-        <i>we have sent you an email with your otp in <span id="user-email"></span></i>
-		<br>
+        <i>we have sent you an email with your otp 
+		<br><br>
 	<!--Container for otp message-->
 		<div class="input-container">
 		<input type="text" inputmode="numeric" oninput = "this.value = this.value.replace(/\D/g, '')" maxlength = "1" placeholder="·" class="code-box">
@@ -71,7 +71,9 @@
 		<br><br>
 		<button class="btn btn-primary" id="verify-btn" onclick="verifyOtp">Verify</button>
 	</div>
-            <div class="form-section changePasswordBox hidden">
+            <!--New password entrance block-->
+            
+            <div id="changePasswordBox" class="form-section hidden">
                 <input type="text" id="newPassword" placeholder="New Password" required>
                 <input type="text" id="confirmPassword" placeholder="Last Name" required>
                 <button class="btn btn-primary" id="confirmChangePasswordBtn" onclick="changePassword()">Confirm</button>
