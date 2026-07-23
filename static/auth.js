@@ -203,7 +203,7 @@ async function sendOtp(){
             alert("Please enter email");
             return;
         }
-        alert("new commit")
+        
         const payload = {user_email:email}
         const res = await fetch("/send-otp",{
             method:"POST",
@@ -215,8 +215,9 @@ async function sendOtp(){
         if(data.status === `success`){
             
             showSuccess(data.message);
-            secret = data.secret
+            setTimeOut(clearMessages,400);
             
+            secret = data.secret
             sendOtpBtn.classList.add("hidden");
             methodOfVerification.classList.add("hidden");
             time_otp_sent = data.created_at;
@@ -261,16 +262,17 @@ async function verifyOtp(){
             if(document.getElementsByClassName('changePasswordBox')[0]){
                 document.getElementsByClassName('changePasswordBox')[0].classList.remove("hidden");
                 userEmail = email
+                alert(userEmail); 
+                setTimeOut(clearMessages,400);
             }
         } else {
             alert("password isnt verified");
             if(data.message && data.message.includes("Invalid")){
                 showError(data.message);
+                setTimeOut(clearMessages,400);
                 return;
             }
-            if(document.getElementById('changePassword')){
-                document.getElementById('changePassword').classList.add("hidden");
-            }
+            
             showError(data.message || 'Verification failed');
             sendOtpBtn.classList.remove("hidden");
             enterOtpBox.classList.add("hidden");
