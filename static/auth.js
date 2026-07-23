@@ -213,7 +213,7 @@ async function sendOtp(){
         });
         
         const data = await res.json();
-        
+        alert("hey")
         if(data.status === `success`){
             
             showSuccess(data.message);
