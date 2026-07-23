@@ -305,7 +305,7 @@ async function changePassword(){
         body:JSON.stringify(payload)
     })
     const data = await res.json()
-    alert(data);
+    alert(JSON.stringify(data));
     if(data.status === `success`){
         alert("password change successfully");
         toggleForm("loginForm");
