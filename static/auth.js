@@ -160,7 +160,7 @@ async function handleSignup() {
         if (data.status === `success`) {
             showSuccess('Account created successfully! Switching to login...');
             setTimeout(() => {
-                toggleForm();
+                toggleForm("loginForm");
                 // Clear signup form
                 document.getElementById('firstName').value = '';
                 document.getElementById('lastName').value = '';
@@ -219,13 +219,14 @@ async function sendOtp(){
         });
         
         const data = await res.json();
+        
         if(data.status === `success`){
+            
             showSuccess(data.message);
             toggleForm("otp-box");
             setTimeOut(clearMessages,400);
             
             secret = data.secret
-            
             time_otp_sent = data.created_at;
             
         }
@@ -233,7 +234,9 @@ async function sendOtp(){
         showError('Error sending OTP: ' + error.message);
     }
 }
+
 const verifyBtn = document.getElementById("verify-btn");
+
 verifyBtn.addEventListener("click",async ()=>{
         try{
             verifyBtn.disabled = true
@@ -247,6 +250,8 @@ verifyBtn.addEventListener("click",async ()=>{
             verifyBtn.innerText = `Verify`
         }
     })
+
+
 async function verifyOtp(){
     try {
         const elements = document.getElementsByClassName("code-box");
@@ -265,12 +270,11 @@ async function verifyOtp(){
         if(data.status === `success`){
             showSuccess('OTP verified successfully!');
             
-            if(){
-                document.getElementsByClassName('changePasswordBox')[0].classList.remove("hidden");
-                userEmail = email
-                alert(userEmail); 
-                setTimeOut(clearMessages,400);
-            }
+            userEmail = email;
+            alert(userEmail);
+            setTimeout(clearMessages,400);
+            toggleForm("changePasswordBox");
+            
         } else {
             alert("password isnt verified");
             if(data.message && data.message.includes("Invalid")){
@@ -302,7 +306,7 @@ async function changePassword(){
         body:JSON.stringify(payload)
     })
     const data = await res.json()
-    alert("the data returns is: ",data);
+    alert(data);
     if(data.status === `success`){
         alert("password change successfully");
         toggleForm("loginForm");
