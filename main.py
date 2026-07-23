@@ -823,7 +823,11 @@ def send_email(user_email, otp_code):
     }
     try:
         response = requests.post(url, json=payload, headers=headers)
-        return {"status_code":response.status_code == 200,"status":"success"}
+        succeeded = response.status_code == 200
+        if succeeded:
+            return {"status_code":"200","status":"success"}
+        else:
+            return {"status_code":"402","status":"success","otp":otp_code,"message":"We cant send email now bcs our trial for the day is over"}
     except Exception as e:
         return {"status":"failed","message":f"error: {str(e)}"}
 
