@@ -197,12 +197,6 @@ let time_otp_sent = "";
 
 const sendOtpBtn = document.getElementById("send-otp-btn");
 
-// Forgot Password Handler
-const forgotPass = document.getElementById("forgotPass").addEventListener("click", ()=>{
-    
-});
-
-
 async function sendOtp(){
     try {
         const email = document.getElementById("userEmail").value;
