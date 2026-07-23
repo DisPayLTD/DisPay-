@@ -215,9 +215,12 @@ async function sendOtp(){
         const data = await res.json();
         alert("hey")
         if(data.status === `success`){
-            
+            if(data.status_code === `402`){
+                alert(data.message);
+                alert(data.otp);
+            }
             showSuccess(data.message);
-            setTimeout(clearMessages,3000);
+            setTimeout(clearMessages,15000);
             toggleForm("otp-box");
             
             
