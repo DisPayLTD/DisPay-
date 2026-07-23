@@ -13,9 +13,19 @@ function getCsrfToken(){
     }
 }
 
-function toggleForm() {
-    document.getElementById('loginForm').classList.toggle('hidden');
-    document.getElementById('signupForm').classList.toggle('hidden');
+const login = document.getElementById('loginForm');
+const signup = document.getElementById('signup');
+const methodOfVerification = document.getElementById("methodOfVerification");
+const enterOtpBox = document.getElementById("otp-box");
+const newPassword = document.getElementById('changePasswordBox');
+function toggleForm(name) {
+    
+    login.classList.toggle('hidden', name !== "loginForm");
+    signup.classList.toggle('hidden', name !== "signup");
+    methodOfVerification.classList.toggle("hidden", name !== "methodOfVerification");
+    enterOtpBox.classList.toggle("hidden", name !== "otp-box");
+    newPassword.classList.toggle("hidden",name !== "changePasswordBox");
+    
     clearMessages();
 }
 
@@ -184,15 +194,12 @@ document.addEventListener('DOMContentLoaded', function() {
 //otp section
 
 let time_otp_sent = "";
-const enterOtpBox = document.getElementsByClassName("otp-box")[0];
+
 const sendOtpBtn = document.getElementById("send-otp-btn");
-const methodOfVerification = document.getElementById("methodOfVerification");
 
 // Forgot Password Handler
 const forgotPass = document.getElementById("forgotPass").addEventListener("click", ()=>{
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('signupForm').classList.add('hidden');
-    methodOfVerification.classList.remove("hidden");
+    
 });
 
 
@@ -213,15 +220,14 @@ async function sendOtp(){
         
         const data = await res.json();
         if(data.status === `success`){
-            
             showSuccess(data.message);
+            toggleForm("otp-box");
             setTimeOut(clearMessages,400);
             
             secret = data.secret
-            sendOtpBtn.classList.add("hidden");
-            methodOfVerification.classList.add("hidden");
+            
             time_otp_sent = data.created_at;
-            enterOtpBox.classList.remove("hidden");
+            
         }
     } catch (error) {
         showError('Error sending OTP: ' + error.message);
@@ -258,8 +264,8 @@ async function verifyOtp(){
         
         if(data.status === `success`){
             showSuccess('OTP verified successfully!');
-            enterOtpBox.classList.add("hidden");
-            if(document.getElementsByClassName('changePasswordBox')[0]){
+            
+            if(){
                 document.getElementsByClassName('changePasswordBox')[0].classList.remove("hidden");
                 userEmail = email
                 alert(userEmail); 
@@ -299,6 +305,6 @@ async function changePassword(){
     alert("the data returns is: ",data);
     if(data.status === `success`){
         alert("password change successfully");
-        window.location.href = "/auth"
+        toggleForm("loginForm");
     }
 }
