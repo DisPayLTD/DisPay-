@@ -824,7 +824,7 @@ def send_email(user_email, otp_code):
     try:
         response = requests.post(url, json=payload, headers=headers)
         succeeded = response.status_code == 200
-        print(response.json())
+        print("response from emailjs",response.text)
         if succeeded:
             return {"status_code":"200","status":"success"}
         else:
