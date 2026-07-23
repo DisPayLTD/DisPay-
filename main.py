@@ -855,7 +855,7 @@ def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_d
 
 @app.post("/change-password")
 def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
-    password= new_details.new_password
+    new_password= new_details.new_password
     email = new_details.user_email
     user = db.query(Users).filter(Users.email == email).first()
     if not user:
