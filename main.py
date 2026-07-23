@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from agent import SalaryAgentPayer
 from agent import tools
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel,EmailStr, SecretStr
 from email.message import EmailMessage
 import pyotp
 import smtplib
@@ -26,8 +26,7 @@ import requests
 from context import set_db_session,set_user_id
 from asgi_csrf import asgi_csrf
 import pandas as pd
-
-
+import time
 
 
 app = FastAPI()
@@ -64,11 +63,13 @@ class Command(BaseModel):
     pin:str
 
 class EmailRequest(BaseModel):
-    email: str 
+    email: EmailStr 
 
-class EmailOTP(BaseModel):
-    email: str  
+class VerifyOTP(BaseModel):
+    created_at: float
     otp: str
+    secret : str
+    email: EmailStr
 
 class Login(BaseModel):
     email: EmailStr
@@ -77,6 +78,9 @@ class Login(BaseModel):
 class PinModel(BaseModel):
     pin : str
 
+class NewDetails(BaseModel):
+    new_password:str
+    user_email:EmailStr
 
 class SignupRequest(BaseModel):
     first_name: str
@@ -87,7 +91,11 @@ class SignupRequest(BaseModel):
     phone_number: str
     bvn: str
 
+#this class is for method of verification email
+class OTPVerification(BaseModel):
+    user_email :EmailStr
 
+    
 @app.on_event("startup")
 def startup():
     init_db()
@@ -368,39 +376,6 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
 
 user_code = {}
 
-@app.post("/send-otp")
-@limiter.limit("5/hour")
-def send_otp(request: Request,email: EmailRequest):
-    msg = EmailMessage()
-    secret = pyotp.random_base32()
-    
-    totp = pyotp.TOTP(secret,interval = 300)
-    otp = totp.now()
-    print('ur otp is: ',otp)
-    user_code[email.email] = {"secret":secret,"otp":otp}
-    msg["Subject"] = "OTP"
-    msg["From"] = EMAIL
-    msg["To"] = email.email
-    msg.set_content(f"Your OTP code is {otp} and expires in 5 minutes")
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout = 5) as server:
-            server.login(EMAIL,PASSWORD)
-            server.send_message(msg)
-            return {"status":"success","message":"sent"}
-    except Exception as e:
-        if otp:
-            return {"status":"success","message":f"walid your culprit {str(e)}","otp":str(otp)}
-    
-@app.post("/verify-otp")
-def verify(user: EmailOTP):
-    if not user_code.get(user.email):
-        return {"Mesage":"No Secret key" }
-    otp = user.otp
-    totp = pyotp.TOTP(user_code.get(user.email).get("secret"),interval = 300)
-    val = totp.verify(otp)
-    if val:
-        del user_code[user.email]
-    return {"authenticated":val}
 
 @app.post("/upload-file")
 async def upload_file(request: Request,db:Session = Depends(get_db), file:UploadFile = File(...)):
@@ -788,3 +763,108 @@ def set_pin_page(request: Request):
     
     with open("templates/set-pin.html") as f:
         return HTMLResponse(content=f.read())
+
+#A function that generate otp
+
+def generate(secret):
+    totp = pyotp.TOTP(secret,interval = 180)
+    return {"otp":totp.now(),"created_at":time.time()}
+
+@app.post("/verify-otp")
+def verify_otp(verify:VerifyOTP, request: Request):
+    
+    print("we have entered the verify otp route")
+    
+    created_at = verify.created_at
+    otp = verify.otp
+    secret = verify.secret
+    
+    time_diff = time.time()- created_at
+    if time_diff > 180:
+        print("time out cant verify")
+        return {
+            "message":"Otp expired",
+            "status":"failed"
+        }
+    try:
+        print("we are in try block")
+        totp = pyotp.TOTP(secret,interval = 180)
+        if totp.verify(otp):
+            print("security correct")
+            return {"status":"success","message":"OTP has been verified","update_password":True}
+        else:
+            print("security wrong")
+            return {"status":"failed","message":"Invalid OTP"}
+    except Exception as e:
+        print("exception has happened")
+        return {"status":"failed","message":str(e)}
+
+def send_email(user_email, otp_code):
+    url = "https://api.emailjs.com/api/v1.0/email/send"
+    
+    template_id = os.getenv("TEMPLATE_ID")
+    service_id = os.getenv("SERVICE_ID")
+    public_key = os.getenv("PUBLIC_KEY")
+    access_token = os.getenv("ACCESS_TOKEN")
+    
+    payload = {
+        "service_id": service_id,      
+        "template_id": template_id,    
+        "user_id": public_key,          
+        "accessToken": access_token,    
+        "template_params": {
+            "email": user_email,                   
+            "passcode": otp_code                      
+        }
+    }
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return {"status_code":response.status_code == 200,"status":"success"}
+    except Exception as e:
+        return {"status":"failed","message":f"error: {str(e)}"}
+
+@app.post("/send-otp")
+def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_db)):
+    user_email = param.user_email
+    
+    user = db.query(Users).filter(Users.email == user_email).first()
+    if not user:
+        return {"status":"failed","message":"user does not exists","url":"/auth"}
+
+    
+    secret = pyotp.random_base32()
+    otp = generate(secret).get("otp")
+    print("otp:",otp)
+    emailStat = send_email(user_email, otp)
+    print("emailStat:",emailStat)
+    status = emailStat.get("status")
+    if status == "success":
+        masked_email = f"{user_email[:3]}{'*'*(len(user_email)-9)}ail.com"
+        return {"status":"success","message":f"OTP has been successfully sent to your email {masked_email} and expires in 3 minute","secret":secret,"created_at":time.time()}
+    return {"message":"OTP not sent try again","status":"failed"}
+
+
+@app.post("/change-password")
+def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
+    password= new_details.new_password
+    email = new_details.user_email
+    user = db.query(Users).filter(Users.email == email).first()
+    if not user:
+        raise HTTPException(
+            status_code = 403,
+            detail = "Unauthorized access"
+        )
+    try:
+        hashed_password = ph.hash(new_password)
+        user.password = hashed_password
+        db.commit()
+        db.refresh(user)
+        return {"status":"success","message":"New Password is Saved Successfully","url":"/auth"}
+    except:
+        db.rollback()
+        return {"status":"failed","message":"error commiting to db we have rollback new password is not added","url":"/auth"}
+    

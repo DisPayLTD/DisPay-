@@ -1,4 +1,6 @@
 const API = '';
+let secret = '';
+let userEmail = '';
 
 function getCsrfToken(){
     const value = `; ${document.cookie}`;
@@ -178,3 +180,125 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') handleSignup();
     });
 });
+
+//otp section
+
+let time_otp_sent = "";
+const enterOtpBox = document.getElementsByClassName("otp-box")[0];
+const sendOtpBtn = document.getElementById("send-otp-btn");
+const methodOfVerification = document.getElementById("methodOfVerification");
+
+// Forgot Password Handler
+const forgotPass = document.getElementById("forgotPass").addEventListener("click", ()=>{
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('signupForm').classList.add('hidden');
+    methodOfVerification.classList.remove("hidden");
+});
+
+
+async function sendOtp(){
+    try {
+        const email = document.getElementById("userEmail").value;
+        if(!email){
+            alert("Please enter email");
+            return;
+        }
+        
+        const payload = {user_email:email}
+        const res = await fetch("/send-otp",{
+            method:"POST",
+            headers: {"Content-Type":"application/json",'X-CSRFToken': getCsrfToken()},
+            body:JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        if(data.status === `success`){
+            
+            showSuccess(data.message);
+            setTimeOut(clearMessages,400);
+            
+            secret = data.secret
+            sendOtpBtn.classList.add("hidden");
+            methodOfVerification.classList.add("hidden");
+            time_otp_sent = data.created_at;
+            enterOtpBox.classList.remove("hidden");
+        }
+    } catch (error) {
+        showError('Error sending OTP: ' + error.message);
+    }
+}
+const verifyBtn = document.getElementById("verify-btn");
+verifyBtn.addEventListener("click",async ()=>{
+        try{
+            verifyBtn.disabled = true
+            verifyBtn.innerText = `Verifying...`;
+            await verifyOtp()
+            
+        }catch(error) {
+            alert(`error: ${String(error)}`);
+        }finally{
+            verifyBtn.disabled = false
+            verifyBtn.innerText = `Verify`
+        }
+    })
+async function verifyOtp(){
+    try {
+        const elements = document.getElementsByClassName("code-box");
+        const otp = Array.from(elements, el => el.value.trim()).join("");
+        const email = document.getElementById("userEmail").value;
+        const payload = {otp: otp, email: email,secret:secret, created_at:time_otp_sent};
+
+        const res = await fetch("/verify-otp",{
+            method: "POST",
+            headers: {"Content-Type": "application/json", 'X-CSRFToken': getCsrfToken()},
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        
+        if(data.status === `success`){
+            showSuccess('OTP verified successfully!');
+            enterOtpBox.classList.add("hidden");
+            if(document.getElementsByClassName('changePasswordBox')[0]){
+                document.getElementsByClassName('changePasswordBox')[0].classList.remove("hidden");
+                userEmail = email
+                alert(userEmail); 
+                setTimeOut(clearMessages,400);
+            }
+        } else {
+            alert("password isnt verified");
+            if(data.message && data.message.includes("Invalid")){
+                showError(data.message);
+                setTimeOut(clearMessages,400);
+                return;
+            }
+            
+            showError(data.message || 'Verification failed');
+            sendOtpBtn.classList.remove("hidden");
+            enterOtpBox.classList.add("hidden");
+        }
+    } catch (error) {
+        showError('Error verifying OTP: ' + error.message);
+    }
+}
+async function changePassword(){
+    alert("newly commit")
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    if(newPassword != confirmPassword){
+        alert("Passwords do not match");
+        return;
+    }
+    payload = {user_email:userEmail,new_password:newPassword}
+    const res = await fetch("/change-password",{
+        headers :{"Content-Type":"application/json","X-CSRFToken": getCsrfToken()},
+        method:"POST",
+        body:JSON.stringify(payload)
+    })
+    const data = await res.json()
+    alert("the data returns is: ",data);
+    if(data.status === `success`){
+        alert("password change successfully");
+        window.location.href = "/auth"
+    }
+}
