@@ -282,6 +282,7 @@ async function verifyOtp(){
     }
 }
 async function changePassword(){
+    alert("newly commit")
     const newPassword = document.getElementById("newPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
     if(newPassword != confirmPassword){
@@ -295,6 +296,7 @@ async function changePassword(){
         body:JSON.stringify(payload)
     })
     const data = await res.json()
+    alert("the data returns is: ",data);
     if(data.status === `success`){
         alert("password change successfully");
         window.location.href = "/auth"
