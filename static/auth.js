@@ -218,7 +218,7 @@ async function sendOtp(){
             
             showSuccess(data.message);
             toggleForm("otp-box");
-            setTimeOut(clearMessages,400);
+            setTimeout(clearMessages,400);
             
             secret = data.secret
             time_otp_sent = data.created_at;
