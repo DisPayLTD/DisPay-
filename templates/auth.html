@@ -96,7 +96,11 @@
             show: false,          // Keep password masked initially
             innerToggle: true,    // Injects a "Show" button inside the right edge of the input
             touchSupport: true    // Ensures it works smoothly on mobile/tablet screens
+            
         });
+        const wrapper = document.getElementById('loginPassword').parentElement;
+        wrapper.style.width = '100%';
+        wrapper.style.display = 'block';
     });
     
     </script>
