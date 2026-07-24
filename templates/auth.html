@@ -34,7 +34,7 @@
                 <input type="password" id="signupPassword" placeholder="Password" minlength="6"required>
                 <input type="tel" id="phone" placeholder="Phone Number"  minlength="11" maxlength="11" required>
                 <input type="text" id="nin" placeholder="NIN (National ID)" required>
-                <input type="text" id="bvn" placeholder="BVN (Optional)" minlength="11" maxlength="11" required>
+                <input type="text" id="bvn" placeholder="BVN (Optional)" minlength="11" maxlength="11" >
                 <button onclick="handleSignup()" class="btn btn-success">Sign Up</button>
                 <p class="toggle-text">Already have an account? <a onclick="toggleForm('loginForm')">Login</a></p>
             </div>
@@ -44,6 +44,7 @@
                 <h2>Method Of Verification</h2>
                 <input type="email" id="userEmail" placeholder="Enter Email" required>
                 <button onclick="sendOtp()" class="btn btn-primary" id="send-otp-btn">Send OTP</button>
+                <p class="toggle-text">Didn't get the OTP? <a onclick="sendOtp()">Resend</a></p>
                 <p class="toggle-text">Already have an account? <a onclick="toggleForm('loginForm')">Login</a></p>
             </div>
             
@@ -76,7 +77,7 @@
             
             <div id="changePasswordBox" class="form-section hidden">
                 <input type="text" id="newPassword" placeholder="New Password" required>
-                <input type="text" id="confirmPassword" placeholder="Last Name" required>
+                <input type="text" id="confirmPassword" placeholder="Confirm password" required>
                 <button class="btn btn-primary" id="confirmChangePasswordBtn" onclick="changePassword()">Confirm</button>
             </div>
             
