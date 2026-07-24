@@ -335,5 +335,5 @@ async function changePassword(){
 }
 document.addEventListener("DOMContentLoaded",()=>{
     const currentView = sessionStorage.getItem("currentWindow");
-    toggleForm(currentView||"loginForm");
+    toggleForm(currentView);
 });
