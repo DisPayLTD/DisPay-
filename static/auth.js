@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     methodOfVerification = document.getElementById("methodOfVerification");
     enterOtpBox = document.getElementById("otp-box");
     newPassword = document.getElementById('changePasswordBox');
-    loadingDiv = document.getElementbById("loading-overlay");
+    loadingDiv = document.getElementById("loading-overlay");
     
     const view = sessionStorage.getItem("currentWindow");
     toggleForm(view || "loginForm");
