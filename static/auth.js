@@ -333,7 +333,7 @@ async function changePassword(){
     const confirmPassword = document.getElementById("confirmPassword").value;
     
      if(newPassword != confirmPassword){
-            showErrorMessage("Passwords do not match");
+            showError("Passwords do not match");
             return;
         }
     
@@ -348,10 +348,10 @@ async function changePassword(){
         const data = await res.json()
     
         if(data.status === `success`){
-            showSuccessMessage("password change successfully");
+            showSuccess("password change successfully");
             toggleForm("loginForm");
         }else {
-            showErrorMessage(data.message);
+            showError(data.message);
         }
     } catch (error){
         console.log(String(error))
