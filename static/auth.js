@@ -13,12 +13,13 @@ function getCsrfToken(){
     }
 }
 
-const login = document.getElementById('loginForm');
-const signup = document.getElementById('signup');
-const methodOfVerification = document.getElementById("methodOfVerification");
-const enterOtpBox = document.getElementById("otp-box");
-const newPassword = document.getElementById('changePasswordBox');
-
+document.addEventListener("DOMContentLoaded",()=>{
+    const login = document.getElementById('loginForm');
+    const signup = document.getElementById('signup');
+    const methodOfVerification = document.getElementById("methodOfVerification");
+    const enterOtpBox = document.getElementById("otp-box");
+    const newPassword = document.getElementById('changePasswordBox');
+})
 function toggleForm(name) {
     
     login.classList.toggle('hidden', name !== "loginForm");
