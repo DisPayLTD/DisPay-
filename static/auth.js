@@ -208,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
 let time_otp_sent = "";
 
 const sendOtpBtn = document.getElementById("send-otp-btn");
+const otpMsg = document.getElementById("otpMsg");
 
 async function sendOtp(){
     const sendOtpBtn = document.getElementById("send-otp-btn");
@@ -232,8 +233,9 @@ async function sendOtp(){
         const data = await res.json();
         
         if(data.status === `success`){
-    
-            showSuccess(data.message);
+
+            otpMsg.innerText = data.message;
+            showSuccess("OTP is successfully sent to your email");
             toggleForm("otp-box");
             
             
