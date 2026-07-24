@@ -13,12 +13,16 @@ function getCsrfToken(){
     }
 }
 
+let login, signup, methodOfVerification, enterOtpBox, newPassword;
+
 document.addEventListener("DOMContentLoaded",()=>{
-    const login = document.getElementById('loginForm');
-    const signup = document.getElementById('signup');
-    const methodOfVerification = document.getElementById("methodOfVerification");
-    const enterOtpBox = document.getElementById("otp-box");
-    const newPassword = document.getElementById('changePasswordBox');
+    login = document.getElementById('loginForm');
+    signup = document.getElementById('signup');
+    methodOfVerification = document.getElementById("methodOfVerification");
+    enterOtpBox = document.getElementById("otp-box");
+    newPassword = document.getElementById('changePasswordBox');
+    const view = sessionStorage.getItem("currentWindow");
+    toggleForm(view || "loginForm");
 })
 function toggleForm(name) {
     
