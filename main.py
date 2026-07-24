@@ -843,13 +843,17 @@ def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_d
     
     secret = pyotp.random_base32()
     otp = generate(secret).get("otp")
-    print("otp:",otp)
+    
     emailStat = send_email(user_email, otp)
-    print("emailStat:",emailStat)
+    
     status = emailStat.get("status")
     if status == "success":
-        masked_email = f"{user_email[:3]}{'*'*(len(user_email)-9)}ail.com"
-        return {"status":"success","message":f"OTP has been successfully sent to your email {masked_email} and expires in 3 minute","secret":secret,"created_at":time.time()}
+        email_length = len(user_email)
+        if "gmail" in user_email:
+            masked_email = f"{user_email[:1]}{'*'*3}{user_email[-10:]}"
+        else:
+            masked_email = f"{user_email[:1]}{'*'*3}{user_email[-(email_length -6):]}"
+        return {"status":"success","message":f"OTP has been successfully sent to {masked_email} and expires in 3 minute","secret":secret,"created_at":time.time()}
     return {"message":"OTP not sent try again","status":"failed"}
 
 
