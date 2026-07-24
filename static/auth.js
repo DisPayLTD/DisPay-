@@ -13,7 +13,7 @@ function getCsrfToken(){
     }
 }
 
-let login, signup, methodOfVerification, enterOtpBox, newPassword;
+let login, signup, methodOfVerification, enterOtpBox, newPassword,loadingDiv;
 
 document.addEventListener("DOMContentLoaded",()=>{
     login = document.getElementById('loginForm');
@@ -31,11 +31,11 @@ function toggleForm(name) {
     methodOfVerification.classList.toggle("hidden", name !== "methodOfVerification");
     enterOtpBox.classList.toggle("hidden", name !== "otp-box");
     newPassword.classList.toggle("hidden",name !== "changePasswordBox");
+    loadingDiv = document.getElementbById("loading-overlay");
     
     sessionStorage.setItem("currentWindow",name);
 
 }
-const loadingDiv = document.getElementbById("loading-overlay");
 
 
 // ==========================================
