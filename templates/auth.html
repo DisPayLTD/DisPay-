@@ -44,7 +44,7 @@
                 <h2>Method Of Verification</h2>
                 <input type="email" id="userEmail" placeholder="Enter Email" required>
                 <button onclick="sendOtp()" class="btn btn-primary" id="send-otp-btn">Send OTP</button>
-                <p class="toggle-text">Didn't get the OTP? <a onclick="sendOtp()">Resend</a></p>
+                
                 <p class="toggle-text">Already have an account? <a onclick="toggleForm('loginForm')">Login</a></p>
             </div>
             
@@ -71,6 +71,7 @@
 		</div>
 		<br><br>
 		<button class="btn btn-primary" id="verify-btn">Verify</button>
+        <p class="toggle-text">Didn't get the OTP? <a onclick="sendOtp()" style="background-color:#04BADE">Resend</a></p>
         <p class="toggle-text">Already have an account? <a onclick="toggleForm('loginForm')">Login</a></p>
 	</div>
             <!--New password entrance block-->
