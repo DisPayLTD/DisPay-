@@ -210,7 +210,12 @@ let time_otp_sent = "";
 const sendOtpBtn = document.getElementById("send-otp-btn");
 
 async function sendOtp(){
+    const sendOtpBtn = document.getElementById("send-otp-btn");
     try {
+        
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.style.opacity = 0.5;
+        
         const email = document.getElementById("userEmail").value;
         if(!email){
             alert("Please enter email");
@@ -225,11 +230,10 @@ async function sendOtp(){
         });
         
         const data = await res.json();
-        alert("hey")
+        
         if(data.status === `success`){
     
             showSuccess(data.message);
-            setTimeout(clearMessages,15000);
             toggleForm("otp-box");
             
             
@@ -239,6 +243,9 @@ async function sendOtp(){
         }
     } catch (error) {
         showError('Error sending OTP: ' + error.message);
+    } finally{
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.style.opacity = 0;
     }
 }
 
@@ -292,11 +299,10 @@ async function verifyOtp(){
         const data = await res.json();
         
         if(data.status === `success`){
-            showSuccess('OTP verified successfully!');
-            
+            // i created this to send it to veriyOtp route
             userEmail = email;
-    
-            setTimeout(clearMessages, 15000);
+            
+            showSuccess('OTP verified successfully!');
             toggleForm("changePasswordBox");
             
         } else {
