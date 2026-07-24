@@ -247,7 +247,7 @@ async function sendOtp(){
         showError('Error sending OTP: ' + error.message);
     } finally{
         sendOtpBtn.disabled = false;
-        sendOtpBtn.style.opacity = 0;
+        sendOtpBtn.style.opacity = 1;
     }
 }
 
