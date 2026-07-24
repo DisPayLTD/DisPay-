@@ -83,7 +83,8 @@ function showSuccess(message) {
 
 function showError(message) {
     if (message.includes("per")) {
-        showToast("Sorry try again later", 'error');
+        //showToast("Sorry try again later", 'error');
+        showToast(message, 'error');
     } else {
         showToast(message, 'error');
     }
