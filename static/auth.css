@@ -265,4 +265,39 @@ body {
     .toast{
         font-size:14px;
     }
+ }
+.loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            
+            /* Center the logo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            /* Semi-transparent background + Backdrop Blur */
+            background-color: rgba(255, 255, 255, 0.2); /* Use rgba(15, 23, 42, 0.5) for dark mode */
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px); /* Safari support */
+
+            z-index: 9999; /* Keeps loader on top of everything */
+        }
+
+        /* --- FLOAT ANIMATION --- */
+        .loadingImg {
+            width: 100px;
+            animation: float 0.8s ease-in-out infinite;
+            filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.12));
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-10px) scale(1.02);
+            }
     }
