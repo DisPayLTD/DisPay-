@@ -33,8 +33,7 @@ function toggleForm(name) {
     newPassword.classList.toggle("hidden",name !== "changePasswordBox");
     
     sessionStorage.setItem("currentWindow",name);
-    
-    clearMessages();
+
 }
 
 
@@ -48,41 +47,46 @@ if (!document.querySelector('link[href*="font-awesome"]')) {
     document.head.appendChild(fontAwesome);
 }
 
-function showError(message) {
-    const errorDiv = document.getElementById('errorMessage');
-    if(message.includes("per")){
-        errorDiv.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 8px;"></i> Sorry try again later`;
-    }else{
-        
-        errorDiv.innerHTML = `<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i>${message}`;
+function getToastContainer() {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
     }
-    errorDiv.classList.remove('hidden');
-    document.getElementById('successMessage').classList.add('hidden');
+    return container;
 }
 
+function showToast(message, type = 'success', duration = 4200) {
+    const container = getToastContainer();
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icon = type === 'success' ? 'fa-check' : 'fa-circle-xmark';
+    toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('removing');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, duration);
+}
 
-// ==========================================
-//  SHOWSUCCESS FUNCTION
-// ==========================================
 function showSuccess(message) {
-    const successDiv = document.getElementById('successMessage');
-    
-    successDiv.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 8px;"></i>${message}`;
-    
-    // Display the success message and hide the error message
-    successDiv.classList.remove('hidden');
-    
-    const errorDiv = document.getElementById('errorMessage');
-    if (errorDiv) {
-        errorDiv.classList.add('hidden');
+    showToast(message, 'success');
+}
+
+function showError(message) {
+    if (message.includes("per")) {
+        showToast("Sorry try again later", 'error');
+    } else {
+        showToast(message, 'error');
     }
-}
+        }
 
 
-function clearMessages() {
-    document.getElementById('errorMessage').classList.add('hidden');
-    document.getElementById('successMessage').classList.add('hidden');
-}
 
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
