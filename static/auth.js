@@ -18,6 +18,7 @@ const signup = document.getElementById('signup');
 const methodOfVerification = document.getElementById("methodOfVerification");
 const enterOtpBox = document.getElementById("otp-box");
 const newPassword = document.getElementById('changePasswordBox');
+
 function toggleForm(name) {
     
     login.classList.toggle('hidden', name !== "loginForm");
@@ -25,6 +26,8 @@ function toggleForm(name) {
     methodOfVerification.classList.toggle("hidden", name !== "methodOfVerification");
     enterOtpBox.classList.toggle("hidden", name !== "otp-box");
     newPassword.classList.toggle("hidden",name !== "changePasswordBox");
+    
+    sessionStorage.setItem("currentWindow",name);
     
     clearMessages();
 }
@@ -328,3 +331,7 @@ async function changePassword(){
         toggleForm("loginForm");
     }
 }
+document.addEventListener("DOMContentLoaded",()=>{
+    const currentView = sessionStorage.getItem("currentWindow");
+    toggleForm(currentView);
+});
