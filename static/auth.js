@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     methodOfVerification = document.getElementById("methodOfVerification");
     enterOtpBox = document.getElementById("otp-box");
     newPassword = document.getElementById('changePasswordBox');
+    loadingDiv = document.getElementbById("loading-overlay");
+    
     const view = sessionStorage.getItem("currentWindow");
     toggleForm(view || "loginForm");
 })
@@ -31,7 +33,7 @@ function toggleForm(name) {
     methodOfVerification.classList.toggle("hidden", name !== "methodOfVerification");
     enterOtpBox.classList.toggle("hidden", name !== "otp-box");
     newPassword.classList.toggle("hidden",name !== "changePasswordBox");
-    loadingDiv = document.getElementbById("loading-overlay");
+    
     
     sessionStorage.setItem("currentWindow",name);
 
