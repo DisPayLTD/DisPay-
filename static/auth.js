@@ -218,10 +218,7 @@ async function sendOtp(){
         const data = await res.json();
         alert("hey")
         if(data.status === `success`){
-            if(data.status_code === `402`){
-                alert(data.message);
-                alert(data.otp);
-            }
+    
             showSuccess(data.message);
             setTimeout(clearMessages,15000);
             toggleForm("otp-box");
@@ -289,12 +286,12 @@ async function verifyOtp(){
             showSuccess('OTP verified successfully!');
             
             userEmail = email;
-            alert(userEmail);
-            setTimeout(clearMessages,4000);
+    
+            setTimeout(clearMessages, 15000);
             toggleForm("changePasswordBox");
             
         } else {
-            alert("password isnt verified");
+            
             if(data.message && data.message.includes("Invalid")){
                 showError(data.message);
                 setTimeout(clearMessages,4000);
@@ -311,7 +308,7 @@ async function verifyOtp(){
 }
 
 async function changePassword(){
-    alert("newly commit")
+    
     const newPassword = document.getElementById("newPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
     if(newPassword != confirmPassword){
@@ -325,7 +322,7 @@ async function changePassword(){
         body:JSON.stringify(payload)
     })
     const data = await res.json()
-    alert(JSON.stringify(data));
+    
     if(data.status === `success`){
         alert("password change successfully");
         toggleForm("loginForm");
@@ -333,5 +330,5 @@ async function changePassword(){
 }
 document.addEventListener("DOMContentLoaded",()=>{
     const currentView = sessionStorage.getItem("currentWindow");
-    toggleForm(currentView);
+    toggleForm(currentView||"loginForm");
 });
