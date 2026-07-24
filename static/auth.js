@@ -35,6 +35,7 @@ function toggleForm(name) {
     sessionStorage.setItem("currentWindow",name);
 
 }
+const loadingDiv = document.getElementbById("loading-overlay");
 
 
 // ==========================================
@@ -98,6 +99,7 @@ async function handleLogin() {
     }
     
     try {
+        loadingDiv.classList.remove("hidden"); 
         const res = await fetch('/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json','X-CSRFToken': getCsrfToken()},
@@ -116,6 +118,8 @@ async function handleLogin() {
         }
     } catch (error) {
         showError('Error: ' + error.message);
+    } finally{
+        loadingDiv.classList.add("hidden"); 
     }
 }
 
@@ -154,6 +158,7 @@ async function handleSignup() {
     }
     
     try {
+        loadingDiv.classList.remove("hidden"); 
         const res = await fetch('/signup', {
             method: 'POST',
             headers: {'Content-Type': 'application/json','X-CSRFToken': getCsrfToken()},
@@ -187,6 +192,8 @@ async function handleSignup() {
         }
     } catch (error) {
         showError('Error: ' + error.message);
+    } finally {
+        loadingDiv.classList.add("hidden"); 
     }
 }
 
@@ -211,12 +218,9 @@ const sendOtpBtn = document.getElementById("send-otp-btn");
 const otpMsg = document.getElementById("otpMsg");
 
 async function sendOtp(){
-    const sendOtpBtn = document.getElementById("send-otp-btn");
+    
     try {
-        
-        sendOtpBtn.disabled = true;
-        sendOtpBtn.style.opacity = 0.5;
-        
+        loadingDiv.classList.remove("hidden"); 
         const email = document.getElementById("userEmail").value;
         if(!email){
             alert("Please enter email");
@@ -246,8 +250,7 @@ async function sendOtp(){
     } catch (error) {
         showError('Error sending OTP: ' + error.message);
     } finally{
-        sendOtpBtn.disabled = false;
-        sendOtpBtn.style.opacity = 1;
+        loadingDiv.classList.add("hidden"); 
     }
 }
 
@@ -272,6 +275,7 @@ const verifyBtn = document.getElementById("verify-btn");
 
 verifyBtn.addEventListener("click",async ()=>{
         try{
+            loadingDiv.classList.remove("hidden"); 
             verifyBtn.disabled = true
             verifyBtn.innerText = `Verifying...`;
             await verifyOtp()
@@ -281,6 +285,7 @@ verifyBtn.addEventListener("click",async ()=>{
         }finally{
             verifyBtn.disabled = false
             verifyBtn.innerText = `Verify`
+            loadingDiv.classList.add("hidden"); 
         }
     })
 
@@ -316,8 +321,7 @@ async function verifyOtp(){
             }
             
             showError(data.message || 'Verification failed');
-            sendOtpBtn.classList.remove("hidden");
-            enterOtpBox.classList.add("hidden");
+            toggleForm("otpBox");
         }
     } catch (error) {
         showError('Error verifying OTP: ' + error.message);
@@ -325,24 +329,34 @@ async function verifyOtp(){
 }
 
 async function changePassword(){
-    
     const newPassword = document.getElementById("newPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
-    if(newPassword != confirmPassword){
-        alert("Passwords do not match");
-        return;
-    }
-    payload = {user_email:userEmail,new_password:newPassword}
-    const res = await fetch("/change-password",{
-        headers :{"Content-Type":"application/json","X-CSRFToken": getCsrfToken()},
-        method:"POST",
-        body:JSON.stringify(payload)
-    })
-    const data = await res.json()
     
-    if(data.status === `success`){
-        alert("password change successfully");
-        toggleForm("loginForm");
+     if(newPassword != confirmPassword){
+            showErrorMessage("Passwords do not match");
+            return;
+        }
+    
+    try{
+        loadingDiv.classList.remove("hidden"); 
+        payload = {user_email:userEmail,new_password:newPassword}
+        const res = await fetch("/change-password",{
+            headers :{"Content-Type":"application/json","X-CSRFToken": getCsrfToken()},
+            method:"POST",
+            body:JSON.stringify(payload)
+        })
+        const data = await res.json()
+    
+        if(data.status === `success`){
+            showSuccessMessage("password change successfully");
+            toggleForm("loginForm");
+        }else {
+            showErrorMessage(data.message);
+        }
+    } catch (error){
+        console.log(String(error))
+    } finally {
+        loadingDiv.classList.add("hidden"); 
     }
 }
 document.addEventListener("DOMContentLoaded",()=>{
