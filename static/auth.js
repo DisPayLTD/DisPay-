@@ -111,15 +111,19 @@ async function handleLogin() {
         const data = await res.json();
         
         if (res.ok) {
+            
+            loadingDiv.classList.add("hidden"); 
             showSuccess('Login successful! Redirecting...');
             setTimeout(() => {
                 window.location.href = data.url || '/agent';
             }, 1000);
         } else {
             showError('' + (data.detail || 'Invalid email or password'));
+            loadingDiv.classList.add("hidden"); 
         }
     } catch (error) {
         showError('Error: ' + error.message);
+        
     } finally{
         loadingDiv.classList.add("hidden"); 
     }
