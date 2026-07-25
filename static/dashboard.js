@@ -2,6 +2,7 @@ const API = '';
 let userEmail = '';
 let isAuthenticated = true;
 let pendingPaymentData = null;
+const loadingDiv = document.getElementById("loading-overlay");
 
 function getCsrfToken(){
     const value = `; ${document.cookie}`;
@@ -199,14 +200,14 @@ async function executePayment(event) {
     }
     
     if (!isAuthenticated) {
-        alert('❌ Not authenticated. Please login first');
+        showError('❌ Not authenticated. Please login first');
         return;
     }
     
     const command = document.getElementById('command').value;
     
     if (!command.trim()) {
-        alert('❌ Please enter a payment command');
+        showError('❌ Please enter a payment command');
         return;
     }
     
@@ -242,6 +243,7 @@ async function submitPin() {
     const failedTransfers = document.getElementById("failedTransfers");
     
     try {
+        loadingDiv.classList.remove("hidden");
         const res = await fetch('/send-money', {
             method: 'POST',
             headers: {
@@ -254,6 +256,7 @@ async function submitPin() {
         const data = await res.json();
         
         if (data.status === 'success') {
+            
             successTransfers.innerHTML = data.success_html_table || '<p>No successful transfers</p>';
             failedTransfers.innerHTML = data.failed_html_table || '<p>No failed transfers</p>';
             resultsContent.innerHTML = data.ai_msg || 'Payment processed successfully';
@@ -263,10 +266,13 @@ async function submitPin() {
             
             closePinModal();
         } else {
+            
             showPinError(data.message || 'Payment failed');
         }
     } catch (error) {
         showPinError('Error: ' + error.message);
+    } finally {
+        loadingDiv.classList.add("hidden");
     }
 }
 
