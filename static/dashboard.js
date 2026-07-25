@@ -243,7 +243,9 @@ async function submitPin() {
     const failedTransfers = document.getElementById("failedTransfers");
     
     try {
-        loadingDiv.classList.remove("hidden");
+        document.getElementById("confirmPayment").addEventListener("click",()=>{
+            loadingDiv.classList.remove("hidden")
+        });
         const res = await fetch('/send-money', {
             method: 'POST',
             headers: {
