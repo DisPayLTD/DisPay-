@@ -127,7 +127,7 @@ async function loadUserData() {
 
 function populateDashboard(user) {
     // Sidebar user info
-    loadingDiv.classList.remove("hidden");
+    
     const initial = user.first_name.charAt(0).toUpperCase() || 'U';
     document.getElementById('profileInitial').textContent = initial;
     document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
@@ -292,10 +292,9 @@ async function submitPin() {
     const successTransfers = document.getElementById("successTransfer");
     const failedTransfers = document.getElementById("failedTransfers");
     
+    loadingDiv.classList.remove("hidden");
+    
     try {
-        document.getElementById("confirmPayment").addEventListener("click",()=>{
-            loadingDiv.classList.remove("hidden");
-        });
         const res = await fetch('/send-money', {
             method: 'POST',
             headers: {
