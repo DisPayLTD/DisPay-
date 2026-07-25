@@ -111,6 +111,35 @@ def csrf_token(request: Request):
         return {"message":str(e)}
 
 
+
+# ... sitemap route ...
+
+@app.get("/sitemap.xml")
+def get_sitemap():
+    sitemap_xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://sitemaps.org">
+  <url>
+    <loc>https://dispay.com.ng</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://dispay.com.ngauth</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dispay.com.ngdashboard</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://dispay.com.ngset-pin</loc>
+    <priority>0.5</priority>
+  </url>
+</urlset>"""
+    return Response(content=sitemap_xml, media_type="application/xml")
+    
+
+
+
 @app.get("/")
 def index(request: Request):
     """Redirect to auth or dashboard based on session"""
@@ -129,6 +158,7 @@ def auth_page():
     """Serve authentication page"""
     with open("templates/auth.html") as f:
         return HTMLResponse(content=f.read())
+
 
 @app.get("/heart-beat")
 def heart_beat(request: Request,db:Session=Depends(get_db)):
