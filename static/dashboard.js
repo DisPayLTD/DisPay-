@@ -244,7 +244,7 @@ async function submitPin() {
     
     try {
         document.getElementById("confirmPayment").addEventListener("click",()=>{
-            loadingDiv.classList.remove("hidden")
+            loadingDiv.classList.remove("hidden");
         });
         const res = await fetch('/send-money', {
             method: 'POST',
@@ -258,7 +258,7 @@ async function submitPin() {
         const data = await res.json();
         
         if (data.status === 'success') {
-            
+            loadingDiv.classList.add("hidden");
             successTransfers.innerHTML = data.success_html_table || '<p>No successful transfers</p>';
             failedTransfers.innerHTML = data.failed_html_table || '<p>No failed transfers</p>';
             resultsContent.innerHTML = data.ai_msg || 'Payment processed successfully';
@@ -268,7 +268,7 @@ async function submitPin() {
             
             closePinModal();
         } else {
-            
+            loadingDiv.classList.add("hidden");
             showPinError(data.message || 'Payment failed');
         }
     } catch (error) {
