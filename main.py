@@ -829,78 +829,23 @@ def verify_otp(verify:VerifyOTP, request: Request):
         return {"status":"failed","message":str(e)}
         
 
+
 def send_email(user_email, otp_code):
     url = "https://brevo.com"
     brevo_api_key = os.getenv("BREVO_API_KEY") 
     
-    logo_url = "https://www.image2url.com/r2/default/images/1784915371545-57e9f345-a379-49b7-830b-162beaeeef1f.png"
-
-    # Fully customized template matching your landing page's professional purple palette
-    html_template = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dispay Verification Code</title>
-        <style>
-            body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f5f7ff; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }}
-            .wrapper {{ width: 100%; table-layout: fixed; background-color: #f5f7ff; padding-bottom: 40px; padding-top: 40px; }}
-            .container {{ max-width: 500px; background-color: #ffffff; margin: 0 auto; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.05); overflow: hidden; }}
-            .header {{ padding: 36px 32px 16px 32px; text-align: center; background-color: #ffffff; }}
-            .logo-img {{ height: 50px; width: auto; object-fit: contain; }}
-            .content {{ padding: 20px 32px 32px 32px; color: #312e81; line-height: 1.6; font-size: 15px; }}
-            h1 {{ font-size: 22px; font-weight: 700; color: #1e1b4b; margin-top: 0; margin-bottom: 12px; text-align: center; }}
-            p.intro {{ text-align: center; color: #4338ca; margin-bottom: 24px; font-size: 15px; opacity: 0.9; }}
-            .otp-box {{ background-color: #eef2ff; border: 2px dashed #6366f1; border-radius: 12px; padding: 16px; text-align: center; margin: 24px 0; }}
-            .otp-code {{ font-size: 38px; font-weight: 800; color: #4f46e5; letter-spacing: 6px; font-family: monospace; }}
-            .timer-alert {{ font-size: 13px; color: #b91c1c; background-color: #fef2f2; border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 24px; font-weight: 500; border: 1px solid #fee2e2; }}
-            .footer {{ background-color: #fafafa; padding: 24px 32px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #edf2f7; }}
-            .support-text {{ font-size: 13px; color: #6b7280; text-align: center; margin-top: 24px; line-height: 1.5; }}
-        </style>
-    </head>
-    <body>
-        <div class="wrapper">
-            <div class="container">
-                <div class="header">
-                    <img src="{logo_url}" class="logo-img" alt="DisPay Logo" />
-                </div>
-                <div class="content">
-                    <h1>Verify your identity</h1>
-                    <p class="intro">Use this secure one-time passcode to authorize your automated disbursement payroll request.</p>
-                    
-                    <div class="otp-box">
-                        <div class="otp-code">{otp_code}</div>
-                    </div>
-                    
-                    <div class="timer-alert">
-                        ⚠️ Security Notice: This code will expire in 2 minutes (120 seconds).
-                    </div>
-                    
-                    <p class="support-text">If you did not initiate this payroll authorization process, please flag this transaction or contact DisPay support right away.</p>
-                </div>
-                <div class="footer">
-                    <p>&copy; 2026 DisPay Infrastructure. All rights reserved.</p>
-                    <p>Automated payment authorization engine. Do not reply to this inbox.</p>
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-
     payload = {
-        "sender": {
-            "name": "DisPay Support", 
-            "email": "support@dispay.com.ng"
-        },
+        # This references your newly activated Brevo Template ID
+        "templateId": 2, 
         "to": [
             {
                 "email": user_email
             }
         ],
-        "subject": f"{otp_code} is your DisPay verification code",
-        "htmlContent": html_template
+        # This passes the otp_code into the {{ params.otp_code }} placeholder inside Brevo
+        "params": {
+            "otp_code": otp_code
+        }
     }
     
     headers = {
@@ -911,9 +856,10 @@ def send_email(user_email, otp_code):
     
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=10)
+        # Brevo returns 201 Created on successful execution
         succeeded = response.status_code == 201
         
-        print("response from brevo", response.text)
+        print("response from brevo template engine:", response.text)
         
         if succeeded:
             return {"status_code": "200", "status": "success"}
@@ -926,6 +872,7 @@ def send_email(user_email, otp_code):
             }
     except Exception as e:
         return {"status": "failed", "message": f"error: {str(e)}"}
+
         
 @app.post("/send-otp")
 def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_db)):
