@@ -95,6 +95,100 @@ class SignupRequest(BaseModel):
 class OTPVerification(BaseModel):
     user_email :EmailStr
 
+
+class PayrollUpdate(BaseModel):
+    """
+    Every field optional. Only fields present in the actual request body
+    get applied — this is what makes partial saves safe. See the
+    exclude_unset=True usage in the PATCH endpoint below.
+    """
+    name: Optional[str] = None
+    role: Optional[str] = None
+    department: Optional[str] = None
+    phone_number: Optional[str] = None
+    bank_name: Optional[str] = None
+    account_number: Optional[str] = None
+
+    gross_pay: Optional[Decimal] = None
+    bonuses: Optional[Decimal] = None
+    allowance: Optional[Decimal] = None
+    thirteenth_month: Optional[Decimal] = None
+    overtime: Optional[Decimal] = None
+    leave_allowance: Optional[Decimal] = None
+
+    nhf: Optional[Decimal] = None
+    transport_cost: Optional[Decimal] = None
+    health: Optional[Decimal] = None
+    pension: Optional[Decimal] = None
+    paye: Optional[Decimal] = None
+    loan: Optional[Decimal] = None
+    surcharge: Optional[Decimal] = None
+
+    employer_pension: Optional[Decimal] = None
+    nsitf: Optional[Decimal] = None
+    itf: Optional[Decimal] = None
+    group_life_insurance: Optional[Decimal] = None
+
+    @field_validator(*NUMERIC_FIELDS, check_fields=False)
+    @classmethod
+    def no_negative_values(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("value cannot be negative")
+        return v
+
+    @field_validator("account_number")
+    @classmethod
+    def account_number_digits_only(cls, v):
+        if v is not None and v != "" and not v.isdigit():
+            raise ValueError("account number must contain digits only")
+        return v
+
+
+class EmployeeOut(BaseModel):
+    id: int
+    name: str
+    role: str
+    department: str
+    phone_number: Optional[str] = ""
+    bank_name: Optional[str] = ""
+    account_number: Optional[str] = ""
+    gross_pay: Decimal
+    bonuses: Decimal
+    allowance: Decimal
+    thirteenth_month: Decimal
+    overtime: Decimal
+    leave_allowance: Decimal
+    nhf: Decimal
+    transport_cost: Decimal
+    health: Decimal
+    pension: Decimal
+    paye: Decimal
+    loan: Decimal
+    surcharge: Decimal
+    employer_pension: Decimal
+    nsitf: Decimal
+    itf: Decimal
+    group_life_insurance: Decimal
+    net_pay: Decimal
+
+    class Config:
+        from_attributes = True
+
+
+class EmployeeCreate(BaseModel):
+    name: str = "New employee"
+    role: str = "Role"
+    department: str = "Unassigned"
+    phone_number: Optional[str] = ""
+    bank_name: Optional[str] = ""
+    account_number: Optional[str] = ""
+
+    @field_validator("account_number")
+    @classmethod
+    def account_number_digits_only(cls, v):
+        if v and not v.isdigit():
+            raise ValueError("account number must contain digits only")
+        return v
     
 @app.on_event("startup")
 def startup():
@@ -920,4 +1014,122 @@ def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
         db.rollback()
         print("error saving new password:",str(e))
         return {"status":"failed","message":f"error commiting to db we have rollback new password is not added error:{str(e)}","url":"/auth"}
-    
+
+
+
+
+# ──────────────────────────────────────────────────────────────
+# 3. Auth helper — confirms the caller is an employer/admin, not
+#    just any logged-in user. Adjust to match your actual auth model
+#    (e.g. a `role` column on Users, or a separate is_admin flag).
+# ──────────────────────────────────────────────────────────────
+
+def get_current_employer(request: Request, db: Session = Depends(get_db)) -> int:
+    user_id = getattr(request.state, "user_id", None)
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access")
+
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if not getattr(user, "is_employer", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only employer accounts can manage payroll",
+        )
+    return user_id
+
+
+# ──────────────────────────────────────────────────────────────
+# 4. Endpoints
+# ──────────────────────────────────────────────────────────────
+
+@app.get("/admin/payroll", response_model=list[EmployeeOut])
+def list_payroll(
+    employer_id: int = Depends(get_current_employer),
+    db: Session = Depends(get_db),
+):
+    employees = (
+        db.query(Employee)
+        .filter(Employee.employer_id == employer_id)
+        .order_by(Employee.department, Employee.name)
+        .all()
+    )
+    return employees
+
+
+@app.post("/admin/employees", response_model=EmployeeOut, status_code=status.HTTP_201_CREATED)
+def add_employee(
+    payload: EmployeeCreate,
+    employer_id: int = Depends(get_current_employer),
+    db: Session = Depends(get_db),
+):
+    employee = Employee(
+        employer_id=employer_id,
+        name=payload.name,
+        role=payload.role,
+        department=payload.department,
+        phone_number=payload.phone_number,
+        bank_name=payload.bank_name,
+        account_number=payload.account_number,
+    )
+    db.add(employee)
+    db.commit()
+    db.refresh(employee)
+    return employee
+
+
+@app.delete("/admin/employees/{employee_id}", status_code=status.HTTP_200_OK)
+def remove_employee(
+    employee_id: int,
+    employer_id: int = Depends(get_current_employer),
+    db: Session = Depends(get_db),
+):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.id == employee_id, Employee.employer_id == employer_id)
+        .first()
+    )
+    if not employee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+
+    db.delete(employee)
+    db.commit()
+    return {"status": "success", "message": "Employee removed"}
+
+
+@app.patch("/admin/payroll/{employee_id}", response_model=EmployeeOut)
+def update_payroll(
+    employee_id: int,
+    changes: PayrollUpdate,
+    employer_id: int = Depends(get_current_employer),
+    db: Session = Depends(get_db),
+):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.id == employee_id, Employee.employer_id == employer_id)
+        .first()
+    )
+    if not employee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+
+    # Only fields actually present in the request body are applied —
+    # this is the fix for the "editing one field resets the others" bug.
+    update_data = changes.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(employee, field, value)
+
+    # Recompute net pay AFTER applying updates so it reflects the latest state
+    new_net_pay = compute_net_pay(employee)
+    if new_net_pay < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Net pay cannot be negative — check deductions",
+        )
+    employee.net_pay = new_net_pay
+
+    db.commit()
+    db.refresh(employee)
+    return employee
