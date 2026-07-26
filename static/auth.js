@@ -369,3 +369,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     const currentView = sessionStorage.getItem("currentWindow");
     toggleForm(currentView);
 });
+
+function payrollServices(){
+    window.location.href = "/payroll-services"
+}
