@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from agent import SalaryAgentPayer
 from agent import tools
-from pydantic import BaseModel,EmailStr, SecretStr
+from pydantic import BaseModel,EmailStr, SecretStr,Field, field_validator
 from email.message import EmailMessage
 import pyotp
 import smtplib
@@ -1014,6 +1014,26 @@ def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
         db.rollback()
         print("error saving new password:",str(e))
         return {"status":"failed","message":f"error commiting to db we have rollback new password is not added error:{str(e)}","url":"/auth"}
+
+EARNING_FIELDS = [
+    "gross_pay", "bonuses", "allowance",
+    "thirteenth_month", "overtime", "leave_allowance",
+]
+DEDUCTION_FIELDS = [
+    "nhf", "transport_cost", "health", "pension", "paye", "loan", "surcharge",
+]
+EMPLOYER_FIELDS = [
+    "employer_pension", "nsitf", "itf", "group_life_insurance",
+]
+NUMERIC_FIELDS = EARNING_FIELDS + DEDUCTION_FIELDS + EMPLOYER_FIELDS
+
+
+def compute_net_pay(emp: "Employee") -> Decimal:
+    additions = sum(getattr(emp, f) or 0 for f in [
+        "bonuses", "allowance", "thirteenth_month", "overtime", "leave_allowance"
+    ])
+    deductions = sum(getattr(emp, f) or 0 for f in DEDUCTION_FIELDS)
+    return Decimal(emp.gross_pay or 0) + Decimal(additions) - Decimal(deductions)
 
 
 
