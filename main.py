@@ -833,7 +833,7 @@ def send_email(user_email, otp_code):
     url = "https://brevo.com"
     brevo_api_key = os.getenv("BREVO_API_KEY") 
     
-    logo_url = "https://www.image2url.com/r2/default/images/image-to-webp-1784900850227-f1a6a09e-8ab8-49ea-b146-30cc044a0ff6.webp"
+    logo_url = "https://www.image2url.com/r2/default/images/1784915371545-57e9f345-a379-49b7-830b-162beaeeef1f.png"
 
     # Fully customized template matching your landing page's professional purple palette
     html_template = f"""
