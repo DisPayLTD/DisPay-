@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DisPay — Payroll</title>
+<style>
+  :root {
+    --grad-1: #7C6FE0;
+    --grad-2: #6659CC;
+    --grad-3: #5B4FC4;
+    --indigo: #6C7AE8;
+    --indigo-dark: #5A67D8;
+    --indigo-light: #EEF0FD;
+    --text-dark: #1A1A2E;
+    --text-mid: #475569;
+    --text-soft: #94A3B8;
+    --border: #E2E8F0;
+    --red: #DC2626;
+    --red-bg: #FEF2F2;
+    --green: #16A34A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--grad-1) 0%, var(--grad-2) 45%, var(--grad-3) 100%);
+    min-height: 100vh;
+    padding: 40px 16px;
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+  .logo-badge {
+    width: 36px; height: 36px; border-radius: 10px; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .logo-badge svg { width: 20px; height: 20px; }
+  .brand { color: #fff; font-size: 20px; font-weight: 700; }
+
+  .summary {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(6px);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .summary .label { color: rgba(255,255,255,0.7); font-size: 13px; margin: 0 0 2px; }
+  .summary .value { color: #fff; font-size: 18px; font-weight: 600; margin: 0; }
+  .summary .right { text-align: right; }
+
+  .add-btn-row { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+  .add-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: #fff; color: var(--indigo-dark); border: none;
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.16); }
+  .add-btn svg { width: 16px; height: 16px; }
+
+  /* Department groups */
+  .dept-group { margin-bottom: 22px; }
+  .dept-heading {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 10px 2px;
+  }
+  .dept-heading h3 {
+    color: #fff; font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0;
+    opacity: 0.92;
+  }
+  .dept-heading .count {
+    color: rgba(255,255,255,0.6); font-size: 12px;
+  }
+  .dept-heading .line {
+    flex: 1; height: 1px; background: rgba(255,255,255,0.25);
+  }
+
+  .employee-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #F1F5F9;
+    /* No overflow:hidden here — it would clip the absolutely-positioned
+       delete-confirmation popover. Corners still look rounded since every
+       child shares the same white background. */
+  }
+  .card-header { border-radius: 16px 16px 0 0; }
+  .card-body { border-radius: 0 0 16px 16px; }
+
+  .card-header {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; cursor: pointer; background: none; border: none;
+    text-align: left; gap: 12px;
+  }
+
+  .card-header .info { flex: 1; min-width: 0; }
+  .card-header .info .row1 { display: flex; align-items: baseline; gap: 8px; }
+  .card-header .info input.name-input {
+    font-weight: 600; color: var(--text-dark); font-size: 15px;
+    border: none; background: transparent; width: 100%; padding: 2px 0;
+  }
+  .card-header .info input.name-input:focus { outline: none; border-bottom: 1px solid var(--indigo); }
+  .card-header .info .meta-row { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+  .card-header .info input.role-input {
+    font-size: 13px; color: var(--text-soft); border: none; background: transparent;
+    padding: 1px 0; flex: 1; min-width: 0;
+  }
+  .card-header .info input.role-input:focus { outline: none; border-bottom: 1px solid var(--border); }
+
+  .dept-input {
+    font-size: 11px; font-weight: 600; color: var(--indigo-dark);
+    background: var(--indigo-light); border: none; border-radius: 6px;
+    padding: 3px 8px; flex-shrink: 0; cursor: text; width: 110px;
+    font-family: inherit;
+  }
+  .dept-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(108,122,232,0.3); }
+  .dept-input::placeholder { color: #B9C0E8; }
+
+  .unsaved-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: #F59E0B; flex-shrink: 0; margin-left: 2px;
+  }
+
+  .name-input.dirty-text, .role-input.dirty-text {
+    background: var(--indigo-light);
+    border-radius: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-left: -4px;
+  }
+
+  /* Global "Save all changes" bar */
+  .save-all-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  }
+  .save-all-bar.visible { display: flex; }
+  .save-all-bar .msg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-dark);
+  }
+  .save-all-bar .msg .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;
+  }
+  .save-all-btn {
+    background: var(--indigo); color: #fff; border: none;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s ease;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .save-all-btn:hover:not(:disabled) { background: var(--indigo-dark); }
+  .save-all-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .card-header .right-side { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+
+  .net-preview { text-align: right; }
+  .net-preview .lbl { font-size: 11px; color: var(--text-soft); margin: 0; }
+  .net-preview .amt { font-size: 15px; font-weight: 600; color: var(--text-dark); margin: 0; }
+  .net-preview .amt.negative { color: var(--red); }
+
+  .icon-btn {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-soft); border-radius: 6px;
+  }
+  .icon-btn:hover { background: #F1F5F9; color: var(--text-mid); }
+  .icon-btn.remove-btn:hover { background: var(--red-bg); color: var(--red); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  .chevron { transition: transform 0.15s ease; }
+  .chevron.open { transform: rotate(180deg); }
+
+  .card-body { display: none; padding: 4px 18px 18px; border-top: 1px solid #F1F5F9; }
+  .card-body.open { display: block; }
+
+  .field-group { margin: 16px 0; }
+  .field-group:first-child { margin-top: 14px; }
+  .group-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--indigo-dark); margin: 0 0 2px;
+  }
+  .group-sub { font-size: 12px; color: var(--text-soft); margin: 0 0 8px; }
+
+  .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media (min-width: 480px) { .field-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .field label { display: block; font-size: 12px; color: var(--text-mid); margin-bottom: 4px; }
+  .field input {
+    width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+    font-size: 13px; color: var(--text-dark); font-family: inherit;
+  }
+  .field input:focus { outline: none; border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(108,122,232,0.15); }
+  .field input.dirty { border-color: #A5B4FC; background: var(--indigo-light); }
+
+  .warning {
+    display: flex; align-items: center; gap: 8px; background: var(--red-bg);
+    color: var(--red); font-size: 13px; padding: 8px 12px; border-radius: 8px; margin: 12px 0;
+  }
+  .warning svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .save-row { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; }
+  .save-row .net-text { font-size: 13px; color: var(--text-mid); }
+  .save-row .net-text strong { color: var(--text-dark); }
+
+  .save-btn {
+    display: flex; align-items: center; gap: 6px; background: var(--indigo); color: #fff;
+    border: none; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s ease;
+  }
+  .save-btn:hover:not(:disabled) { background: var(--indigo-dark); }
+  .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .save-btn svg { width: 14px; height: 14px; }
+
+  .spin { animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer-note { text-align: center; color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 24px; }
+
+  .empty-state {
+    background: rgba(255,255,255,0.1); border-radius: 16px; padding: 40px 20px;
+    text-align: center; color: rgba(255,255,255,0.75); font-size: 14px;
+  }
+
+  /* Inline remove-confirm popover (replaces browser confirm(), which is
+     blocked inside sandboxed preview iframes and silently does nothing) */
+  .confirm-pop {
+    position: absolute; z-index: 50; background: #fff; border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.04);
+    padding: 12px; width: 200px;
+    right: 0; top: calc(100% + 6px);
+  }
+  .card { position: relative; }
+  .confirm-pop p { margin: 0 0 10px; font-size: 13px; color: var(--text-dark); }
+  .confirm-pop .btn-row { display: flex; gap: 8px; }
+  .confirm-pop button {
+    flex: 1; border: none; border-radius: 6px; padding: 7px 0;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .confirm-pop .confirm-yes { background: var(--red); color: #fff; }
+  .confirm-pop .confirm-no { background: #F1F5F9; color: var(--text-mid); }
+  .remove-wrap { position: relative; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#2563EB"/>
+        <path d="M9.5 8.2c0-1.1 1-1.9 2.4-1.9 1.9 0 3.1 1.2 3.1 2.8 0 1.2-.7 2-1.5 2.5.9.5 1.7 1.4 1.7 2.7 0 1.8-1.4 3-3.4 3-1.5 0-2.6-.8-2.6-2h1.7c0 .5.4.8 1 .8.8 0 1.3-.5 1.3-1.2 0-.9-.7-1.4-1.9-1.4h-.6v-1.5h.5c1 0 1.6-.5 1.6-1.2 0-.6-.5-1.1-1.3-1.1-.6 0-1 .3-1 .8H9.5z" fill="#fff"/>
+      </svg>
+    </div>
+    <span class="brand">dispay</span>
+  </div>
+
+  <div class="summary">
+    <div>
+      <p class="label">Payroll — <span id="periodLabel">July 2026</span></p>
+      <p class="value"><span id="empCount">0</span> employees</p>
+    </div>
+    <div class="right">
+      <p class="label">Total net disbursement</p>
+      <p class="value" id="totalNet">₦0</p>
+    </div>
+  </div>
+
+  <div class="save-all-bar" id="saveAllBar">
+    <div class="msg">
+      <span class="dot"></span>
+      <span><strong id="unsavedCount">0</strong> employee(s) with unsaved changes</span>
+    </div>
+    <button class="save-all-btn" id="saveAllBtn">Save all changes</button>
+  </div>
+
+  <div class="add-btn-row">
+    <button class="add-btn" id="addEmployeeBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add employee
+    </button>
+  </div>
+
+  <div id="deptGroups"></div>
+
+  <datalist id="dept-suggestions"></datalist>
+
+  <p class="footer-note">Only edited fields are sent when you save — everything else stays untouched.</p>
+</div>
+
+<script>
+// ── Field definitions (mirrors the FastAPI PayrollUpdate schema) ──
+// ── Department is free text, not a fixed list — DisPay serves many
+// industries (offices, hospitals, real estate, logistics, etc.), so we
+// can't hardcode every possible department. These are just suggestions
+// shown via <datalist>; the employer can type anything.
+const DEPARTMENT_SUGGESTIONS = [
+  "Engineering", "Product", "Operations", "Finance", "HR", "Sales",
+  "Marketing", "Legal", "IT Support", "Customer Support", "Admin",
+  "Nursing", "Medical Staff", "Pharmacy", "Facilities",
+  "Property Management", "Leasing", "Maintenance", "Security",
+  "Logistics", "Procurement", "Warehouse", "Unassigned",
+];
+
+const FIELD_GROUPS = [
+  {
+    label: "Earnings",
+    fields: [
+      ["gross_pay", "Gross pay"],
+      ["bonuses", "Bonuses"],
+      ["allowance", "Allowance"],
+      ["thirteenth_month", "13th month"],
+      ["overtime", "Overtime"],
+      ["leave_allowance", "Leave allowance"],
+    ],
+  },
+  {
+    label: "Employee deductions",
+    fields: [
+      ["nhf", "NHF"],
+      ["transport_cost", "Transport cost"],
+      ["health", "Health"],
+      ["pension", "Pension (employee share)"],
+      ["paye", "PAYE"],
+      ["loan", "Loan repayment"],
+      ["surcharge", "Surcharge"],
+    ],
+  },
+  {
+    label: "Employer contributions",
+    sub: "Paid by the company — not deducted from net pay",
+    fields: [
+      ["employer_pension", "Pension (employer share)"],
+      ["nsitf", "NSITF"],
+      ["itf", "ITF"],
+      ["group_life_insurance", "Group life insurance"],
+    ],
+  },
+];
+
+const ALL_FIELDS = FIELD_GROUPS.flatMap(g => g.fields.map(f => f[0]));
+
+function blankEmployee(id) {
+  const emp = {
+    id, name: "New employee", role: "Role", department: "Unassigned",
+    phone_number: "", bank_name: "", account_number: "",
+  };
+  ALL_FIELDS.forEach(f => emp[f] = 0);
+  return emp;
+}
+
+// Seed data
+let employees = [
+  Object.assign(blankEmployee(1), {
+    name: "Adaeze Okonkwo", role: "Frontend Engineer", department: "Engineering",
+    phone_number: "08031234567", bank_name: "GTBank", account_number: "0123456789",
+    gross_pay: 350000, bonuses: 20000, allowance: 15000,
+    nhf: 8750, health: 5000, pension: 28000, paye: 32000,
+    employer_pension: 7000, nsitf: 3500, itf: 3500, group_life_insurance: 2000,
+  }),
+  Object.assign(blankEmployee(2), {
+    name: "Ibrahim Bello", role: "Product Researcher", department: "Product",
+    phone_number: "08129876543", bank_name: "Access Bank", account_number: "0987654321",
+    gross_pay: 280000, allowance: 10000,
+    nhf: 7000, transport_cost: 5000, health: 5000, paye: 24000, loan: 15000,
+    employer_pension: 22400, nsitf: 2800, itf: 2800, group_life_insurance: 2000,
+  }),
+];
+
+let nextId = 3;
+const dirtyMap = {};        // { empId: Set(fieldKey) }
+const openMap = {};         // { empId: bool }
+const removeConfirmMap = {}; // { empId: bool } — inline confirm popover state
+
+// Populate the department suggestions datalist once
+document.getElementById("dept-suggestions").innerHTML =
+  DEPARTMENT_SUGGESTIONS.map(d => `<option value="${d}"></option>`).join("");
+
+function naira(n) {
+  return "₦" + Math.round(Number(n) || 0).toLocaleString("en-NG");
+}
+
+function computeNet(emp) {
+  const additions = (emp.bonuses||0) + (emp.allowance||0) + (emp.thirteenth_month||0) + (emp.overtime||0) + (emp.leave_allowance||0);
+  const deductions = (emp.nhf||0) + (emp.transport_cost||0) + (emp.health||0) + (emp.pension||0) + (emp.paye||0) + (emp.loan||0) + (emp.surcharge||0);
+  return (emp.gross_pay||0) + additions - deductions;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function groupByDepartment(list) {
+  const groups = {};
+  list.forEach(emp => {
+    const dept = (emp.department || "").trim() || "Unassigned";
+    if (!groups[dept]) groups[dept] = [];
+    groups[dept].push(emp);
+  });
+  // Known suggestions first (in their listed order), then any custom
+  // department names the employer typed in, sorted alphabetically.
+  const known = DEPARTMENT_SUGGESTIONS.filter(d => groups[d]);
+  const extra = Object.keys(groups).filter(d => !DEPARTMENT_SUGGESTIONS.includes(d)).sort();
+  return [...known, ...extra].map(dept => ({ dept, members: groups[dept] }));
+}
+
+function render() {
+  const container = document.getElementById("deptGroups");
+  document.getElementById("empCount").textContent = employees.length;
+
+  const totalNet = employees.reduce((sum, e) => sum + computeNet(e), 0);
+  document.getElementById("totalNet").textContent = naira(totalNet);
+
+  updateSaveAllBar();
+
+  if (employees.length === 0) {
+    container.innerHTML = `<div class="empty-state">No employees yet. Click "Add employee" to get started.</div>`;
+    return;
+  }
+
+  const groups = groupByDepartment(employees);
+
+  container.innerHTML = groups.map(({ dept, members }) => `
+    <div class="dept-group">
+      <div class="dept-heading">
+        <h3>${escapeHtml(dept)}</h3>
+        <span class="count">${members.length}</span>
+        <div class="line"></div>
+      </div>
+      <div class="employee-list">
+        ${members.map(emp => renderCard(emp)).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  attachListeners();
+}
+
+function renderCard(emp) {
+  const net = computeNet(emp);
+  const negative = net < 0;
+  const isOpen = !!openMap[emp.id];
+  const dirty = dirtyMap[emp.id] || new Set();
+  const confirmingRemove = !!removeConfirmMap[emp.id];
+
+  const deptListId = "dept-suggestions";
+  const hasUnsaved = dirty.size > 0;
+
+  const bankContactHtml = `
+    <div class="field-group">
+      <p class="group-label">Bank &amp; contact</p>
+      <div class="field-grid">
+        <div class="field">
+          <label>Phone number</label>
+          <input
+            type="tel"
+            data-emp="${emp.id}"
+            data-field="phone_number"
+            class="field-input text-field ${dirty.has("phone_number") ? "dirty" : ""}"
+            value="${escapeHtml(emp.phone_number || "")}"
+            placeholder="080..."
+          />
+        </div>
+        <div class="field">
+          <label>Bank name</label>
+          <input
+            type="text"
+            data-emp="${emp.id}"
+            data-field="bank_name"
+            class="field-input text-field ${dirty.has("bank_name") ? "dirty" : ""}"
+            value="${escapeHtml(emp.bank_name || "")}"
+            placeholder="e.g. GTBank"
+          />
+        </div>
+        <div class="field">
+          <label>Account number</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            data-emp="${emp.id}"
+            data-field="account_number"
+            class="field-input text-field ${dirty.has("account_number") ? "dirty" : ""}"
+            value="${escapeHtml(emp.account_number || "")}"
+            placeholder="10 digits"
+          />
+        </div>
+      </div>
+    </div>
+  `;
+
+  const groupsHtml = FIELD_GROUPS.map(group => `
+    <div class="field-group">
+      <p class="group-label">${group.label}</p>
+      ${group.sub ? `<p class="group-sub">${group.sub}</p>` : ""}
+      <div class="field-grid">
+        ${group.fields.map(([key, label]) => `
+          <div class="field">
+            <label>${label}</label>
+            <input
+              type="number"
+              data-emp="${emp.id}"
+              data-field="${key}"
+              class="field-input ${dirty.has(key) ? "dirty" : ""}"
+              value="${emp[key] ?? 0}"
+            />
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  return `
+    <div class="card" data-emp-card="${emp.id}">
+      <div class="card-header" data-toggle="${emp.id}">
+        <div class="info">
+          <div class="row1">
+            <input class="name-input" data-emp="${emp.id}" data-field="__name" value="${escapeHtml(emp.name)}" />
+            ${hasUnsaved ? `<span class="unsaved-dot" title="Unsaved changes"></span>` : ""}
+          </div>
+          <div class="meta-row">
+            <input class="role-input" data-emp="${emp.id}" data-field="__role" value="${escapeHtml(emp.role)}" />
+            <input
+              class="dept-input"
+              data-emp="${emp.id}"
+              data-field="__department"
+              list="${deptListId}"
+              value="${escapeHtml(emp.department)}"
+              placeholder="Department"
+            />
+          </div>
+        </div>
+        <div class="right-side">
+          <div class="net-preview">
+            <p class="lbl">Net pay</p>
+            <p class="amt ${negative ? "negative" : ""}">${naira(net)}</p>
+          </div>
+          <div class="remove-wrap">
+            <button class="icon-btn remove-btn" data-remove="${emp.id}" title="Remove employee">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+            </button>
+            ${confirmingRemove ? `
+              <div class="confirm-pop" data-confirm-pop="${emp.id}">
+                <p>Remove ${escapeHtml(emp.name)} from payroll?</p>
+                <div class="btn-row">
+                  <button class="confirm-no" data-cancel-remove="${emp.id}">Cancel</button>
+                  <button class="confirm-yes" data-confirm-remove="${emp.id}">Remove</button>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+          <button class="icon-btn" data-toggle-btn="${emp.id}" title="Expand">
+            <svg class="chevron ${isOpen ? "open" : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="card-body ${isOpen ? "open" : ""}" data-body="${emp.id}">
+        ${bankContactHtml}
+        ${groupsHtml}
+        ${negative ? `
+          <div class="warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Net pay can't be negative — reduce deductions before saving.
+          </div>
+        ` : ""}
+        <div class="save-row">
+          <span class="net-text">Net pay: <strong>${naira(net)}</strong></span>
+          <button class="save-btn" data-save="${emp.id}" ${negative || dirty.size === 0 ? "disabled" : ""}>
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updateSaveAllBar() {
+  const dirtyIds = Object.keys(dirtyMap).filter(id => (dirtyMap[id] || new Set()).size > 0);
+  const bar = document.getElementById("saveAllBar");
+  const countEl = document.getElementById("unsavedCount");
+  const btn = document.getElementById("saveAllBtn");
+
+  countEl.textContent = dirtyIds.length;
+  bar.classList.toggle("visible", dirtyIds.length > 0);
+
+  // Disable "Save all" if any dirty employee currently has a negative net pay
+  const anyNegative = dirtyIds.some(id => {
+    const emp = employees.find(e => e.id === Number(id));
+    return emp && computeNet(emp) < 0;
+  });
+  btn.disabled = anyNegative;
+}
+
+function attachListeners() {
+  // Expand / collapse.
+  // IMPORTANT: only ONE listener per card, attached to the header row.
+  // The chevron button sits inside the header, so a click on it already
+  // bubbles up and triggers this same handler — giving the chevron its
+  // own separate listener as well used to double-fire on every click
+  // (open then immediately close again), which is why it looked broken.
+  document.querySelectorAll("[data-toggle]").forEach(el => {
+    el.addEventListener("click", (e) => {
+      if (e.target.closest("[data-remove], .remove-wrap, .confirm-pop")) return;
+      const id = Number(el.dataset.toggle);
+      openMap[id] = !openMap[id];
+      render();
+    });
+  });
+
+  // Remove employee — step 1: open inline confirm popover (NOT window.confirm,
+  // which is blocked/no-op inside sandboxed preview iframes)
+  document.querySelectorAll("[data-remove]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = Number(btn.dataset.remove);
+      // Close any other open popovers first
+      Object.keys(removeConfirmMap).forEach(k => removeConfirmMap[k] = false);
+      removeConfirmMap[id] = true;
+      render();
+    });
+  });
+
+  // Cancel removal
+  document.querySelectorAll("[data-cancel-remove]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = Number(btn.dataset.cancelRemove);
+      removeConfirmMap[id] = false;
+      render();
+    });
+  });
+
+  // Confirm removal — step 2: actually remove
+  document.querySelectorAll("[data-confirm-remove]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = Number(btn.dataset.confirmRemove);
+      employees = employees.filter(emp => emp.id !== id);
+      delete dirtyMap[id];
+      delete openMap[id];
+      delete removeConfirmMap[id];
+      render();
+    });
+  });
+
+  // Click outside a confirm popover closes it
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".confirm-pop") && !e.target.closest("[data-remove]")) {
+      let changed = false;
+      Object.keys(removeConfirmMap).forEach(k => {
+        if (removeConfirmMap[k]) { removeConfirmMap[k] = false; changed = true; }
+      });
+      if (changed) render();
+    }
+  });
+
+  // Department (free text, with datalist suggestions)
+  document.querySelectorAll(".dept-input").forEach(input => {
+    input.addEventListener("click", (e) => e.stopPropagation());
+    input.addEventListener("change", (e) => {
+      const id = Number(input.dataset.emp);
+      const emp = employees.find(x => x.id === id);
+      if (!emp) return;
+      emp.department = input.value.trim() || "Unassigned";
+      if (!dirtyMap[id]) dirtyMap[id] = new Set();
+      dirtyMap[id].add("department");
+      render(); // department affects grouping, so a full re-render is correct here
+    });
+  });
+
+  // Field edits (numbers + name/role text inputs)
+  document.querySelectorAll(".field-input, .name-input, .role-input").forEach(input => {
+    input.addEventListener("click", (e) => e.stopPropagation());
+    input.addEventListener("input", (e) => {
+      const id = Number(input.dataset.emp);
+      const field = input.dataset.field;
+      const emp = employees.find(x => x.id === id);
+      if (!emp) return;
+
+      if (field === "__name") {
+        emp.name = input.value;
+        if (!dirtyMap[id]) dirtyMap[id] = new Set();
+        dirtyMap[id].add("name");
+        updateCardStats(id);
+        return;
+      }
+      if (field === "__role") {
+        emp.role = input.value;
+        if (!dirtyMap[id]) dirtyMap[id] = new Set();
+        dirtyMap[id].add("role");
+        updateCardStats(id);
+        return;
+      }
+
+      if (input.classList.contains("text-field")) {
+        emp[field] = input.value;
+      } else {
+        emp[field] = input.value === "" ? 0 : Number(input.value);
+      }
+      if (!dirtyMap[id]) dirtyMap[id] = new Set();
+      dirtyMap[id].add(field);
+
+      updateCardStats(id);
+    });
+  });
+
+  // Save
+  document.querySelectorAll("[data-save]").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const id = Number(btn.dataset.save);
+      const emp = employees.find(x => x.id === id);
+      const dirty = dirtyMap[id] || new Set();
+      if (dirty.size === 0) return;
+
+      const net = computeNet(emp);
+      if (net < 0) return;
+
+      // Only changed fields go in the payload — matches the
+      // exclude_unset=True contract on the FastAPI side.
+      // Keyed on the employee's real id, not array position.
+      const payload = {};
+      dirty.forEach(key => payload[key] = emp[key]);
+
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" stroke-dasharray="42" stroke-dashoffset="10"/></svg> Saving…`;
+
+      try {
+        // Replace with your real endpoint:
+        // const res = await fetch(`/admin/payroll/${id}`, {
+        //   method: 'PATCH',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(payload),
+        // });
+        // if (!res.ok) throw new Error('Save failed');
+        await new Promise(r => setTimeout(r, 600)); // simulated request
+
+        dirtyMap[id] = new Set();
+        render();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "Save failed — retry";
+      }
+    });
+  });
+}
+
+function updateCardStats(id) {
+  const emp = employees.find(x => x.id === id);
+  const net = computeNet(emp);
+  const negative = net < 0;
+  const card = document.querySelector(`[data-emp-card="${id}"]`);
+  if (!card) return;
+
+  const amtEl = card.querySelector(".net-preview .amt");
+  amtEl.textContent = naira(net);
+  amtEl.classList.toggle("negative", negative);
+
+  const netTextStrong = card.querySelector(".save-row .net-text strong");
+  if (netTextStrong) netTextStrong.textContent = naira(net);
+
+  const saveBtn = card.querySelector("[data-save]");
+  const dirty = dirtyMap[id] || new Set();
+  if (saveBtn) saveBtn.disabled = negative || dirty.size === 0;
+
+  card.querySelectorAll(".field-input").forEach(inp => {
+    inp.classList.toggle("dirty", dirty.has(inp.dataset.field));
+  });
+  const nameInput = card.querySelector(".name-input");
+  const roleInput = card.querySelector(".role-input");
+  if (nameInput) nameInput.classList.toggle("dirty-text", dirty.has("name"));
+  if (roleInput) roleInput.classList.toggle("dirty-text", dirty.has("role"));
+
+  let warningEl = card.querySelector(".warning");
+  const body = card.querySelector(".card-body");
+  if (negative && !warningEl) {
+    const div = document.createElement("div");
+    div.className = "warning";
+    div.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Net pay can't be negative — reduce deductions before saving.`;
+    body.insertBefore(div, body.querySelector(".save-row"));
+  } else if (!negative && warningEl) {
+    warningEl.remove();
+  }
+
+  const totalNet = employees.reduce((sum, e) => sum + computeNet(e), 0);
+  document.getElementById("totalNet").textContent = naira(totalNet);
+
+  updateSaveAllBar();
+}
+
+// Add employee
+document.getElementById("addEmployeeBtn").addEventListener("click", () => {
+  const emp = blankEmployee(nextId++);
+  employees.push(emp);
+  openMap[emp.id] = true;
+  render();
+
+  requestAnimationFrame(() => {
+    const nameInput = document.querySelector(`.name-input[data-emp="${emp.id}"]`);
+    if (nameInput) { nameInput.focus(); nameInput.select(); }
+  });
+});
+
+// Save all changes across every employee with unsaved edits
+document.getElementById("saveAllBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("saveAllBtn");
+  const dirtyIds = Object.keys(dirtyMap)
+    .map(Number)
+    .filter(id => (dirtyMap[id] || new Set()).size > 0);
+
+  if (dirtyIds.length === 0) return;
+
+  const anyNegative = dirtyIds.some(id => {
+    const emp = employees.find(e => e.id === id);
+    return emp && computeNet(emp) < 0;
+  });
+  if (anyNegative) return; // matching per-card guard — fix negative net pay first
+
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = "Saving…";
+
+  try {
+    // Replace with real calls, e.g.:
+    // await Promise.all(dirtyIds.map(id => {
+    //   const emp = employees.find(e => e.id === id);
+    //   const payload = {};
+    //   (dirtyMap[id] || new Set()).forEach(key => payload[key] = emp[key]);
+    //   return fetch(`/admin/payroll/${id}`, {
+    //     method: 'PATCH',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(payload),
+    //   });
+    // }));
+    await new Promise(r => setTimeout(r, 700)); // simulated request
+
+    dirtyIds.forEach(id => { dirtyMap[id] = new Set(); });
+    render();
+  } finally {
+    btn.textContent = originalText;
+  }
+});
+
+render();
+</script>
+</body>
+</html>
