@@ -831,7 +831,7 @@ def verify_otp(verify:VerifyOTP, request: Request):
 
 
 def send_email(user_email, otp_code):
-    url = "https://brevo.com"
+    url = "https://api.brevo.com/v3/smtp/email"
     brevo_api_key = os.getenv("BREVO_API_KEY") 
     
     payload = {
