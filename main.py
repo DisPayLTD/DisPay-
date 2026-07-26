@@ -295,7 +295,7 @@ def heart_beat(request: Request,db:Session=Depends(get_db)):
 def dashboard(request: Request,db: Session=Depends(get_db)):
     """Serve dashboard page - requires authentication"""
     my_users = db.query(Users).all()
-    print("Total users" ,len(my_users))
+    #print("Total users" ,len(my_users))
     
         
     for user in my_users:
@@ -313,6 +313,19 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
         # Redirect to PIN setup if not set
         return RedirectResponse(url="/set-pin", status_code=302)
     with open("templates/dashboard.html") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("payroll-services")
+def serve_payroll_page():
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        raise HTTPException(
+            detail = "Unauthorized Access"
+        )
+    user = db.query(Users).filter(Users.id == user_id).first()
+ 
+    with open("templates/payroll-manager.html") as f:
         return HTMLResponse(content=f.read())
 
 
