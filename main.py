@@ -813,13 +813,14 @@ def verify_otp(verify:VerifyOTP, request: Request):
     if time_diff > 180:
         print("time out cant verify")
         return {
+            "status":"failed",
             "message":"Otp expired",
             "status":"failed"
         }
     try:
         totp = pyotp.TOTP(secret,interval = 180)
         if totp.verify(otp):
-            print("security correct")
+            
             return {"status":"success","message":"OTP has been verified","update_password":True}
         else:
             print("security wrong")
@@ -866,7 +867,7 @@ def send_email(user_email, otp_code):
         else:
             return {
                 "status_code": "402", 
-                "status": "success", 
+                "status": "failed", 
                 "otp": otp_code, 
                 "message": "We cant send email now bcs our trial for the day is over"
             }
