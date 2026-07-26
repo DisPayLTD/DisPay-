@@ -817,7 +817,6 @@ def verify_otp(verify:VerifyOTP, request: Request):
             "status":"failed"
         }
     try:
-        print("we are in try block")
         totp = pyotp.TOTP(secret,interval = 180)
         if totp.verify(otp):
             print("security correct")
@@ -828,40 +827,106 @@ def verify_otp(verify:VerifyOTP, request: Request):
     except Exception as e:
         print("exception has happened")
         return {"status":"failed","message":str(e)}
+        
 
 def send_email(user_email, otp_code):
-    url = "https://api.emailjs.com/api/v1.0/email/send"
+    url = "https://brevo.com"
+    brevo_api_key = os.getenv("BREVO_API_KEY") 
     
-    template_id = os.getenv("TEMPLATE_ID")
-    service_id = os.getenv("SERVICE_ID")
-    public_key = os.getenv("PUBLIC_KEY")
-    access_token = os.getenv("ACCESS_TOKEN")
-    
+    logo_url = "https://image2url.com"
+
+    # Fully customized template matching your landing page's professional purple palette
+    html_template = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dispay Verification Code</title>
+        <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f5f7ff; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }}
+            .wrapper {{ width: 100%; table-layout: fixed; background-color: #f5f7ff; padding-bottom: 40px; padding-top: 40px; }}
+            .container {{ max-width: 500px; background-color: #ffffff; margin: 0 auto; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.05); overflow: hidden; }}
+            .header {{ padding: 36px 32px 16px 32px; text-align: center; background-color: #ffffff; }}
+            .logo-img {{ height: 50px; width: auto; object-fit: contain; }}
+            .content {{ padding: 20px 32px 32px 32px; color: #312e81; line-height: 1.6; font-size: 15px; }}
+            h1 {{ font-size: 22px; font-weight: 700; color: #1e1b4b; margin-top: 0; margin-bottom: 12px; text-align: center; }}
+            p.intro {{ text-align: center; color: #4338ca; margin-bottom: 24px; font-size: 15px; opacity: 0.9; }}
+            .otp-box {{ background-color: #eef2ff; border: 2px dashed #6366f1; border-radius: 12px; padding: 16px; text-align: center; margin: 24px 0; }}
+            .otp-code {{ font-size: 38px; font-weight: 800; color: #4f46e5; letter-spacing: 6px; font-family: monospace; }}
+            .timer-alert {{ font-size: 13px; color: #b91c1c; background-color: #fef2f2; border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 24px; font-weight: 500; border: 1px solid #fee2e2; }}
+            .footer {{ background-color: #fafafa; padding: 24px 32px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #edf2f7; }}
+            .support-text {{ font-size: 13px; color: #6b7280; text-align: center; margin-top: 24px; line-height: 1.5; }}
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="container">
+                <div class="header">
+                    <img src="{logo_url}" class="logo-img" alt="DisPay Logo" />
+                </div>
+                <div class="content">
+                    <h1>Verify your identity</h1>
+                    <p class="intro">Use this secure one-time passcode to authorize your automated disbursement payroll request.</p>
+                    
+                    <div class="otp-box">
+                        <div class="otp-code">{otp_code}</div>
+                    </div>
+                    
+                    <div class="timer-alert">
+                        ⚠️ Security Notice: This code will expire in 2 minutes (120 seconds).
+                    </div>
+                    
+                    <p class="support-text">If you did not initiate this payroll authorization process, please flag this transaction or contact DisPay support right away.</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; 2026 DisPay Infrastructure. All rights reserved.</p>
+                    <p>Automated payment authorization engine. Do not reply to this inbox.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
     payload = {
-        "service_id": service_id,      
-        "template_id": template_id,    
-        "user_id": public_key,          
-        "accessToken": access_token,    
-        "template_params": {
-            "email": user_email,                   
-            "passcode": otp_code                      
-        }
+        "sender": {
+            "name": "DisPay Support", 
+            "email": "support@dispay.com.ng"
+        },
+        "to": [
+            {
+                "email": user_email
+            }
+        ],
+        "subject": f"{otp_code} is your DisPay verification code",
+        "htmlContent": html_template
     }
     
     headers = {
-        "Content-Type": "application/json"
+        "accept": "application/json",
+        "api-key": brevo_api_key,
+        "content-type": "application/json"
     }
+    
     try:
-        response = requests.post(url, json=payload, headers=headers)
-        succeeded = response.status_code == 200
-        print("response from emailjs",response.text)
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        succeeded = response.status_code == 201
+        
+        print("response from brevo", response.text)
+        
         if succeeded:
-            return {"status_code":"200","status":"success"}
+            return {"status_code": "200", "status": "success"}
         else:
-            return {"status_code":"402","status":"success","otp":otp_code,"message":"We cant send email now bcs our trial for the day is over"}
+            return {
+                "status_code": "402", 
+                "status": "success", 
+                "otp": otp_code, 
+                "message": "We cant send email now bcs our trial for the day is over"
+            }
     except Exception as e:
-        return {"status":"failed","message":f"error: {str(e)}"}
-
+        return {"status": "failed", "message": f"error: {str(e)}"}
+        
 @app.post("/send-otp")
 def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_db)):
     user_email = param.user_email
