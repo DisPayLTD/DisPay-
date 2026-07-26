@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import String, Float, create_engine, Column, Integer, DateTime, func, ForeignKey, Text, JSON,text, Boolean
+from sqlalchemy import String, Float, create_engine, Column, Integer, DateTime, func, ForeignKey, Numeric,Text, JSON,text, Boolean
 from sqlalchemy.orm import sessionmaker
 from typing import Any
 from sqlalchemy.orm import declarative_base, relationship,Mapped,mapped_column
