@@ -323,7 +323,7 @@ async function verifyOtp(){
             
             if(data.message && data.message.includes("Invalid")){
                 showError(data.message);
-                setTimeout(clearMessages,4000);
+                setTi
                 return;
             }
             
