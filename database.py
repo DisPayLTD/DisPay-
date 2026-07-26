@@ -28,7 +28,54 @@ class Users(Base):
     wallet_balance = Column(Float, default=0.0)
     creation_time = Column(DateTime(timezone=True), server_default=func.now())
     transfers = relationship("Transfers", back_populates="user")
-    
+
+
+class Employee(Base):
+    __tablename__ = "employees"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employer_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    name = Column(String, nullable=False, default="New employee")
+    role = Column(String, nullable=False, default="Role")
+    department = Column(String, nullable=False, default="Unassigned")
+
+    # Contact & bank details — stored as strings deliberately. Account
+    # numbers can have leading zeros, and neither field is ever used
+    # in arithmetic, so Numeric/Integer would be the wrong type here.
+    phone_number = Column(String, nullable=True, default="")
+    bank_name = Column(String, nullable=True, default="")
+    account_number = Column(String, nullable=True, default="")
+
+    # Earnings
+    gross_pay = Column(Numeric(12, 2), nullable=False, default=0)
+    bonuses = Column(Numeric(12, 2), nullable=False, default=0)
+    allowance = Column(Numeric(12, 2), nullable=False, default=0)
+    thirteenth_month = Column(Numeric(12, 2), nullable=False, default=0)
+    overtime = Column(Numeric(12, 2), nullable=False, default=0)
+    leave_allowance = Column(Numeric(12, 2), nullable=False, default=0)
+
+    # Employee-side deductions
+    nhf = Column(Numeric(12, 2), nullable=False, default=0)
+    transport_cost = Column(Numeric(12, 2), nullable=False, default=0)
+    health = Column(Numeric(12, 2), nullable=False, default=0)
+    pension = Column(Numeric(12, 2), nullable=False, default=0)  # employee share; 0 = employer covers 100%
+    paye = Column(Numeric(12, 2), nullable=False, default=0)
+    loan = Column(Numeric(12, 2), nullable=False, default=0)
+    surcharge = Column(Numeric(12, 2), nullable=False, default=0)
+
+    # Employer-side contributions — never subtracted from net pay
+    employer_pension = Column(Numeric(12, 2), nullable=False, default=0)
+    nsitf = Column(Numeric(12, 2), nullable=False, default=0)
+    itf = Column(Numeric(12, 2), nullable=False, default=0)
+    group_life_insurance = Column(Numeric(12, 2), nullable=False, default=0)
+
+    net_pay = Column(Numeric(12, 2), nullable=False, default=0)
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 class Transfers(Base):
     
     __tablename__ = "transfers"
