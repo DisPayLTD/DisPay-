@@ -127,17 +127,6 @@ Design decisions worth knowing about:
     fallback used when an employer hasn't customized anything.
 """
 
-from decimal import Decimal
-from typing import Optional
-
-from fastapi import FastAPI, Depends, Request, HTTPException, status
-from pydantic import BaseModel, Field, field_validator
-from sqlalchemy.orm import Session
-
-from database import get_db, Employee, TaxBand, Users
-
-app = FastAPI()
-
 
 # ──────────────────────────────────────────────────────────────
 # Field groupings — used for net pay calc and bulk validation
