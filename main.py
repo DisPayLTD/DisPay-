@@ -16,7 +16,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 import uuid
 import re
-from database import get_db, init_db,Users,Transfers, Idempotency, Logging 
+from database import get_db, init_db,Users,Transfers, Idempotency, Logging , engine 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import text
@@ -382,6 +382,12 @@ class PayrollUpdate(BaseModel):
 
 @app.on_event("startup")
 def startup():
+    with engine.connect() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE users ADD COLUMN is_employer BOOLEAN DEFAULT FALSE"
+            )
+        )
     init_db()
     
 @app.get("/csrf-token")
