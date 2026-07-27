@@ -28,13 +28,38 @@ class Users(Base):
     wallet_balance = Column(Float, default=0.0)
     creation_time = Column(DateTime(timezone=True), server_default=func.now())
     transfers = relationship("Transfers", back_populates="user")
+    is_employer = Column(Integer, default=0,nullable=True)
 
+
+"""
+DisPay — Database setup & ORM models
+=====================================
+
+Holds the SQLAlchemy engine/session setup and every table definition
+(Employee, TaxBand — plus wherever your existing Users model lives).
+
+If you already have a database.py with your own engine/Base/Users
+model, DON'T create a second one — instead:
+  1. Copy the `Employee` and `TaxBand` classes into your existing file
+  2. Keep using your existing `Base`, `engine`, `SessionLocal`, `get_db`
+  3. Skip the engine/session boilerplate below entirely
+
+The boilerplate here is only a starting point for projects that don't
+have this set up yet.
+"""
+
+
+
+
+# ──────────────────────────────────────────────────────────────
+# Employee — one row per employee under an employer
+# ──────────────────────────────────────────────────────────────
 
 class Employee(Base):
     __tablename__ = "employees"
 
     id = Column(Integer, primary_key=True, index=True)
-    employer_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    employer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
     name = Column(String, nullable=False, default="New employee")
     role = Column(String, nullable=False, default="Role")
@@ -64,6 +89,10 @@ class Employee(Base):
     loan = Column(Numeric(12, 2), nullable=False, default=0)
     surcharge = Column(Numeric(12, 2), nullable=False, default=0)
 
+    # Used only for rent relief in the PAYE calculation (NTA 2025: 20% of
+    # annual rent, capped at NGN 500,000). Not a payroll deduction itself.
+    annual_rent = Column(Numeric(12, 2), nullable=False, default=0)
+
     # Employer-side contributions — never subtracted from net pay
     employer_pension = Column(Numeric(12, 2), nullable=False, default=0)
     nsitf = Column(Numeric(12, 2), nullable=False, default=0)
@@ -75,6 +104,26 @@ class Employee(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
+
+class TaxBand(Base):
+    """
+    Configurable PAYE bands, per employer. If an employer has no rows
+    here, DEFAULT_NTA_2025_BANDS (in main.py) is used automatically —
+    so nothing breaks for employers who never touch tax settings, and
+    the law can be updated later without a code deploy.
+    """
+    __tablename__ = "tax_bands"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    sequence = Column(Integer, nullable=False)  # band order, 0 = lowest slice
+    # Width of this slice, in Naira. NULL means "unbounded" — only valid
+    # on the highest-sequence band (e.g. "everything above ₦50m").
+    width = Column(Numeric(14, 2), nullable=True)
+    # Stored as a human percentage (15.00 means 15%), not a 0-1 fraction —
+    # this is what you type into the settings form directly.
+    rate_percent = Column(Numeric(5, 2), nullable=False)
+    
 
 class Transfers(Base):
     
