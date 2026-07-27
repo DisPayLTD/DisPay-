@@ -315,7 +315,7 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
     with open("templates/dashboard.html") as f:
         return HTMLResponse(content=f.read())
 
-@app.get("payroll-services")
+@app.get("/payroll-services")
 def serve_payroll_page():
     user_id = request.session.get("user_id")
 
