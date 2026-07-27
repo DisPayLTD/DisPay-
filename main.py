@@ -388,6 +388,8 @@ def startup():
                 "ALTER TABLE users ADD COLUMN is_employer BOOLEAN DEFAULT FALSE"
             )
         )
+        conn.commit()
+        
     init_db()
     
 @app.get("/csrf-token")
