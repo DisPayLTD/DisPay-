@@ -382,13 +382,15 @@ class PayrollUpdate(BaseModel):
 
 @app.on_event("startup")
 def startup():
+    """
     with engine.connect() as conn:
         conn.execute(
             text(
                 "ALTER TABLE users ADD COLUMN is_employer BOOLEAN DEFAULT FALSE"
             )
-        )
+        )7
         conn.commit()
+    """
         
     init_db()
     
