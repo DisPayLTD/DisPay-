@@ -316,14 +316,14 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
         return HTMLResponse(content=f.read())
 
 @app.get("/payroll-services")
-def serve_payroll_page():
+def serve_payroll_page(request: Request):
     user_id = request.session.get("user_id")
 
     if not user_id:
         raise HTTPException(
             detail = "Unauthorized Access"
         )
-    user = db.query(Users).filter(Users.id == user_id).first()
+    
  
     with open("templates/payroll-manager.html") as f:
         return HTMLResponse(content=f.read())
