@@ -130,7 +130,21 @@ async function handleLogin() {
     }
 }
 
+// Toggle between Personal and Business Signup
+function setAccountType(type) {
+    document.getElementById("accountType").value = type;
+
+    document.getElementById("btnTypePersonal").classList.toggle("active", type === "personal");
+    document.getElementById("btnTypeBusiness").classList.toggle("active", type === "business");
+
+    const bizFields = document.getElementById("businessFields");
+    const isBusiness = type === "business";
+    bizFields.classList.toggle("hidden", !isBusiness);
+}
+
+// Updated handleSignup function
 async function handleSignup() {
+    const accountType = document.getElementById('accountType').value;
     const firstName = document.getElementById('firstName').value.trim();
     const lastName = document.getElementById('lastName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
@@ -138,70 +152,140 @@ async function handleSignup() {
     const phone = document.getElementById('phone').value.trim();
     const nin = document.getElementById('nin').value.trim();
     const bvn = document.getElementById('bvn').value.trim();
-    
-    // Validation
+
+    // Standard Validation
     if (!firstName || !lastName || !email || !password || !phone || !nin) {
-        showError('Please fill all required fields');
+        showError('Please fill all required personal fields');
         return;
     }
-    
-    // Email validation
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        showError('Invalid email address or password');
+        showError('Invalid email address');
         return;
     }
-    
-    // Password validation (at least 6 characters)
+
     if (password.length < 6) {
         showError('Password must be at least 6 characters');
         return;
     }
-    
-    // Phone validation (basic)
+
     if (phone.length < 10) {
         showError('Invalid phone number');
         return;
     }
-    
-    try {
-        loadingDiv.classList.remove("hidden"); 
-        const res = await fetch('/signup', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json','X-CSRFToken': getCsrfToken()},
-            body: JSON.stringify({
-                first_name: firstName,
-                last_name: lastName,
-                email,
-                password,
-                phone_number: phone,
-                nin,
-                bvn
-            })
-        });
-        const data = await res.json();
-        
-        if (data.status === `success`) {
-            showSuccess('Account created successfully! Switching to login...');
-            setTimeout(() => {
-                toggleForm("loginForm");
-                // Clear signup form
-                document.getElementById('firstName').value = '';
-                document.getElementById('lastName').value = '';
-                document.getElementById('signupEmail').value = '';
-                document.getElementById('signupPassword').value = '';
-                document.getElementById('phone').value = '';
-                document.getElementById('nin').value = '';
-                document.getElementById('bvn').value = '';
-            }, 1500);
-        } else {
-            showError('' + (data.detail || data.message || 'Signup failed'));
+
+    // --- PERSONAL SIGNUP ROUTE ---
+    if (accountType === 'personal') {
+        try {
+            loadingDiv.classList.remove("hidden");
+            const res = await fetch('/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email,
+                    password,
+                    phone_number: phone,
+                    nin,
+                    bvn
+                })
+            });
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showSuccess('Account created successfully! Switching to login...');
+                setTimeout(() => {
+                    toggleForm("loginForm");
+                    clearSignupForm();
+                }, 1500);
+            } else {
+                showError('' + (data.detail || data.message || 'Signup failed'));
+            }
+        } catch (error) {
+            showError('Error: ' + error.message);
+        } finally {
+            loadingDiv.classList.add("hidden");
         }
-    } catch (error) {
-        showError('Error: ' + error.message);
-    } finally {
-        loadingDiv.classList.add("hidden"); 
+        return;
     }
+
+    // --- BUSINESS SIGNUP ROUTE ---
+    if (accountType === 'business') {
+        const orgName = document.getElementById('orgName').value.trim();
+        const cac = document.getElementById('cac').value.trim();
+        const regType = document.getElementById('regType').value;
+        const tin = document.getElementById('tin').value.trim();
+
+        if (!orgName || !cac || !tin) {
+            showError('Please fill in Business Name, CAC, and TIN fields');
+            return;
+        }
+
+        try {
+            loadingDiv.classList.remove("hidden");
+
+            // Step 1: Verify CAC & TIN first
+            const verifyRes = await fetch('/verify-cac-tin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                body: JSON.stringify({ cac, tin, reg_type: regType })
+            });
+            const verifyData = await verifyRes.json();
+
+            if (!verifyRes.ok || verifyData.status !== 'success') {
+                showError(verifyData.detail || verifyData.message || 'CAC or TIN verification failed');
+                loadingDiv.classList.add("hidden");
+                return;
+            }
+
+            // Step 2: Proceed with Business Onboarding
+            const onboardRes = await fetch('/onboard-new-business', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email,
+                    password,
+                    phone_number: phone,
+                    nin,
+                    bvn,
+                    name: orgName,
+                    cac: `${regType}-${cac}`,
+                    tin: tin
+                })
+            });
+            const onboardData = await onboardRes.json();
+
+            if (onboardData.status === 'success') {
+                showSuccess('Business registered successfully!');
+                setTimeout(() => {
+                    window.location.href = onboardData.url || '/dashboard';
+                }, 1200);
+            } else {
+                showError('' + (onboardData.detail || onboardData.message || 'Business onboarding failed'));
+            }
+        } catch (error) {
+            showError('Error: ' + error.message);
+        } finally {
+            loadingDiv.classList.add("hidden");
+        }
+    }
+}
+
+function clearSignupForm() {
+    document.getElementById('firstName').value = '';
+    document.getElementById('lastName').value = '';
+    document.getElementById('signupEmail').value = '';
+    document.getElementById('signupPassword').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('nin').value = '';
+    document.getElementById('bvn').value = '';
+    document.getElementById('orgName').value = '';
+    document.getElementById('cac').value = '';
+    document.getElementById('tin').value = '';
 }
 
 // Allow Enter key to submit
