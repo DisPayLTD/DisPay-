@@ -41,7 +41,7 @@ class Employee(Base):
     email = Column(String(255), nullable=False, unique=True)
     state_of_residence = Column(String(255),nullable=False)
     
-    employer_id = Column(Integer, ForeignKey("employers.id"))
+    #employer_id = Column(Integer, ForeignKey("employers.id"))
     #employer = relationship("Organization",back_populates="employees")
 
     # Financial Base Components
