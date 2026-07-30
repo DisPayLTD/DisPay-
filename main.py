@@ -96,289 +96,57 @@ class SignupRequest(BaseModel):
 class OTPVerification(BaseModel):
     user_email :EmailStr
 
-"""
-DisPay — Admin Payroll Backend
-==============================
-
-Employer -> many-employees payroll model:
-
-  - GET    /admin/payroll                        list all employees for this employer
-  - POST   /admin/employees                      add a new employee
-  - DELETE /admin/employees/{id}                  remove an employee
-  - PATCH  /admin/payroll/{id}                    update ONLY the fields sent
-  - GET    /admin/tax-bands                       view current PAYE bands (custom or default)
-  - PUT    /admin/tax-bands                       replace the employer's PAYE bands
-  - DELETE /admin/tax-bands                       revert to the NTA 2025 default bands
-  - GET    /admin/payroll/{id}/compute-paye       preview suggested PAYE, doesn't save
-  - POST   /admin/payroll/{id}/apply-computed-paye  compute PAYE and save it
-
-Design decisions worth knowing about:
-  - Employees are keyed by their real DB id (`employee_id`), never by
-    array position. The frontend's array order is not trusted.
-  - PATCH uses `exclude_unset=True` so untouched fields are never
-    overwritten with 0.
-  - Employer-side contributions (employer_pension, nsitf, itf,
-    group_life_insurance) never affect net_pay — they're informational
-    / for compliance reporting only.
-  - Money fields use Numeric/Decimal in the DB, not float, to avoid
-    rounding drift on financial data.
-  - PAYE tax bands are configurable per employer (see TaxBand in
-    database.py) rather than hardcoded, so a change in the law doesn't
-    require a code deploy. DEFAULT_NTA_2025_BANDS below is only the
-    fallback used when an employer hasn't customized anything.
-"""
-
-
-# ──────────────────────────────────────────────────────────────
-# Field groupings — used for net pay calc and bulk validation
-# ──────────────────────────────────────────────────────────────
-
-EARNING_FIELDS = [
-    "gross_pay", "bonuses", "allowance",
-    "thirteenth_month", "overtime", "leave_allowance",
-]
-DEDUCTION_FIELDS = [
-    "nhf", "transport_cost", "health", "pension", "paye", "loan", "surcharge",
-]
-EMPLOYER_FIELDS = [
-    "employer_pension", "nsitf", "itf", "group_life_insurance",
-]
-NUMERIC_FIELDS = EARNING_FIELDS + DEDUCTION_FIELDS + EMPLOYER_FIELDS + ["annual_rent"]
-
-
-def compute_net_pay(emp: Employee) -> Decimal:
-    additions = sum(getattr(emp, f) or 0 for f in [
-        "bonuses", "allowance", "thirteenth_month", "overtime", "leave_allowance"
-    ])
-    deductions = sum(getattr(emp, f) or 0 for f in DEDUCTION_FIELDS)
-    return Decimal(emp.gross_pay or 0) + Decimal(additions) - Decimal(deductions)
-
-
-# ──────────────────────────────────────────────────────────────
-# PAYE — Nigeria Tax Act 2025, effective 1 January 2026
-# ──────────────────────────────────────────────────────────────
-# These are the DEFAULT bands, used automatically for any employer who
-# hasn't set up custom TaxBand rows. If the law changes again, an
-# employer can override via PUT /admin/tax-bands without a code deploy —
-# or you can just update this default for everyone who hasn't customized.
-#
-# Band width is the SIZE of each slice, not an absolute threshold —
-# e.g. (2200000, 0.15) means "the next 2.2m of income, taxed at 15%",
-# covering the range from 800,000 to 3,000,000 given the band before it.
-DEFAULT_NTA_2025_BANDS = [
-    (Decimal("800000"), Decimal("0.00")),    # first 800,000 — tax-free
-    (Decimal("2200000"), Decimal("0.15")),   # next 2.2m  (800k -> 3.0m)
-    (Decimal("9000000"), Decimal("0.18")),   # next 9m    (3.0m -> 12.0m)
-    (Decimal("13000000"), Decimal("0.21")),  # next 13m   (12.0m -> 25.0m)
-    (Decimal("25000000"), Decimal("0.23")),  # next 25m   (25.0m -> 50.0m)
-    (None, Decimal("0.25")),                 # everything above 50m
-]
-
-RENT_RELIEF_RATE = Decimal("0.20")
-RENT_RELIEF_CAP = Decimal("500000")
-
-
-def get_effective_paye_bands(employer_id: int, db: Session) -> list[tuple[Optional[Decimal], Decimal]]:
+class EmployeePayrollRequest(BaseModel):
     """
-    Returns the employer's custom tax bands if they've set any up,
-    otherwise falls back to DEFAULT_NTA_2025_BANDS. This is the single
-    place PAYE calculation logic should get its bands from — never read
-    DEFAULT_NTA_2025_BANDS directly outside of this function and the
-    settings endpoints.
+    Validates a complete, flat JSON payload for Nigerian payroll creation.
+    Pass this directly as the request body data type in your API route.
     """
-    rows = (
-        db.query(TaxBand)
-        .filter(TaxBand.employer_id == employer_id)
-        .order_by(TaxBand.sequence)
-        .all()
-    )
-    if not rows:
-        return DEFAULT_NTA_2025_BANDS
+    # Core Identification
+    employee_id: str 
+    first_name: str 
+    last_name: str 
+    email: str 
+    state_of_residence: str
+    
+    # Financial Base Components
+    monthly_basic: Decimal 
+    monthly_housing: Decimal
+    monthly_transport: Decimal
+    bvn: str 
+    nin: str 
+    
+    
+    # Pension Configuration
+    pension_pfa_name: str
+    pension_pin: str 
+    employee_pension_rate: Decimal 
+    
+    #health
+    monthly_life_assurance:Optional[Decimal]
+    
+    #additionals
+    allowance: Optional[Decimal]
+    bonus: Optional[Decimal]
+    
+    #expenses
+    loans:Optional[Decimal]
+    unpaid_loan : Optional[Decimal]
+    surcharge: Optional[Decimal]
+    
+    opt_in_nhf: bool 
+    nhf_number: Optional[str]
+    nhf_rate:Optional[Decimal]
+    
+    bank_name: str 
+    bank_code: str 
+    account_number: str 
 
-    return [(row.width, row.rate_percent / Decimal("100")) for row in rows]
-
-
-def compute_rent_relief(annual_rent: Decimal) -> Decimal:
-    """20% of annual rent, capped at NGN 500,000."""
-    if not annual_rent or annual_rent <= 0:
-        return Decimal("0")
-    return min(annual_rent * RENT_RELIEF_RATE, RENT_RELIEF_CAP)
-
-
-def compute_annual_paye(chargeable_income: Decimal, bands: list) -> Decimal:
-    """
-    Applies progressive tax bands to annual chargeable income.
-    chargeable_income should already have reliefs (pension, NHF, rent
-    relief) subtracted from gross annual income before calling this.
-    `bands` is a list of (width, rate) tuples — use
-    get_effective_paye_bands() to get the right ones for an employer.
-    """
-    if chargeable_income <= 0:
-        return Decimal("0")
-
-    remaining = chargeable_income
-    tax = Decimal("0")
-
-    for width, rate in bands:
-        if remaining <= 0:
-            break
-        if width is None:
-            # Final, uncapped band
-            tax += remaining * rate
-            remaining = Decimal("0")
-        else:
-            taxed_in_band = min(remaining, width)
-            tax += taxed_in_band * rate
-            remaining -= taxed_in_band
-
-    return tax
-
-
-def compute_monthly_paye(
-    monthly_gross: Decimal,
-    bands: list,
-    monthly_pension: Decimal = Decimal("0"),
-    monthly_nhf: Decimal = Decimal("0"),
-    annual_rent: Decimal = Decimal("0"),
-) -> Decimal:
-    """
-    Annualizes monthly figures, applies statutory reliefs (pension, NHF,
-    rent relief), runs the progressive bands, then converts back to a
-    monthly PAYE deduction.
-    """
-    annual_gross = monthly_gross * 12
-    annual_pension = monthly_pension * 12
-    annual_nhf = monthly_nhf * 12
-    rent_relief = compute_rent_relief(annual_rent)
-
-    chargeable = annual_gross - annual_pension - annual_nhf - rent_relief
-    chargeable = max(chargeable, Decimal("0"))
-
-    annual_paye = compute_annual_paye(chargeable, bands)
-    return (annual_paye / 12).quantize(Decimal("0.01"))
-
-
-# ──────────────────────────────────────────────────────────────
-# Pydantic schemas
-# ──────────────────────────────────────────────────────────────
-
-class EmployeeOut(BaseModel):
-    id: int
-    name: str
-    role: str
-    department: str
-    phone_number: Optional[str] = ""
-    bank_name: Optional[str] = ""
-    account_number: Optional[str] = ""
-    gross_pay: Decimal
-    bonuses: Decimal
-    allowance: Decimal
-    thirteenth_month: Decimal
-    overtime: Decimal
-    leave_allowance: Decimal
-    nhf: Decimal
-    transport_cost: Decimal
-    health: Decimal
-    pension: Decimal
-    paye: Decimal
-    loan: Decimal
-    surcharge: Decimal
-    annual_rent: Decimal
-    employer_pension: Decimal
-    nsitf: Decimal
-    itf: Decimal
-    group_life_insurance: Decimal
-    net_pay: Decimal
-
-    class Config:
-        from_attributes = True
-
-
-class EmployeeCreate(BaseModel):
-    name: str = "New employee"
-    role: str = "Role"
-    department: str = "Unassigned"
-    phone_number: Optional[str] = ""
-    bank_name: Optional[str] = ""
-    account_number: Optional[str] = ""
-
-    @field_validator("account_number")
+    @field_validator("bvn", "nin", "account_number")
     @classmethod
-    def account_number_digits_only(cls, v):
-        if v and not v.isdigit():
-            raise ValueError("account number must contain digits only")
+    def validate_numeric_strings(cls, v: str) -> str:
+        if not v.isdigit():
+            raise ValueError("Value must contain numeric characters only.")
         return v
-
-
-class TaxBandIn(BaseModel):
-    """One editable row in the tax settings UI: a slice width (Naira)
-    and its rate as a plain percentage, e.g. 15 for 15%."""
-    width: Optional[Decimal] = None  # None only allowed on the last band (unbounded)
-    rate_percent: Decimal = Field(..., ge=0, le=100)
-
-
-class TaxBandOut(BaseModel):
-    sequence: int
-    width: Optional[Decimal]
-    rate_percent: Decimal
-
-    class Config:
-        from_attributes = True
-
-
-class TaxBandsResponse(BaseModel):
-    bands: list[TaxBandOut]
-    is_custom: bool  # False = currently falling back to the NTA 2025 default
-
-
-class PayrollUpdate(BaseModel):
-    """
-    Every field optional. Only fields present in the actual request body
-    get applied — this is what makes partial saves safe. See the
-    exclude_unset=True usage in the PATCH endpoint below.
-    """
-    name: Optional[str] = None
-    role: Optional[str] = None
-    department: Optional[str] = None
-    phone_number: Optional[str] = None
-    bank_name: Optional[str] = None
-    account_number: Optional[str] = None
-
-    gross_pay: Optional[Decimal] = None
-    bonuses: Optional[Decimal] = None
-    allowance: Optional[Decimal] = None
-    thirteenth_month: Optional[Decimal] = None
-    overtime: Optional[Decimal] = None
-    leave_allowance: Optional[Decimal] = None
-
-    nhf: Optional[Decimal] = None
-    transport_cost: Optional[Decimal] = None
-    health: Optional[Decimal] = None
-    pension: Optional[Decimal] = None
-    paye: Optional[Decimal] = None
-    loan: Optional[Decimal] = None
-    surcharge: Optional[Decimal] = None
-    annual_rent: Optional[Decimal] = None
-
-    employer_pension: Optional[Decimal] = None
-    nsitf: Optional[Decimal] = None
-    itf: Optional[Decimal] = None
-    group_life_insurance: Optional[Decimal] = None
-
-    @field_validator(*NUMERIC_FIELDS, check_fields=False)
-    @classmethod
-    def no_negative_values(cls, v):
-        if v is not None and v < 0:
-            raise ValueError("value cannot be negative")
-        return v
-
-    @field_validator("account_number")
-    @classmethod
-    def account_number_digits_only(cls, v):
-        if v is not None and v != "" and not v.isdigit():
-            raise ValueError("account number must contain digits only")
-        return v
-
 
 @app.on_event("startup")
 def startup():
@@ -1228,277 +996,85 @@ def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
         print("error saving new password:",str(e))
         return {"status":"failed","message":f"error commiting to db we have rollback new password is not added error:{str(e)}","url":"/auth"}
 
-
-
-
-# ──────────────────────────────────────────────────────────────
-# Auth helper — confirms the caller is an employer/admin, not just
-# any logged-in user. Adjust to match your actual auth model (e.g. a
-# `role` column on Users, or a separate is_admin flag).
-# ──────────────────────────────────────────────────────────────
-
-def get_current_employer(request: Request, db: Session = Depends(get_db)) -> int:
-    user_id = getattr(request.state, "user_id", None)
+@app.post("/employees-data")
+def insert_employee_data(data:EmployeePayrollRequest, request: Request,db: Session=Depends(get_db)):
+    user_id = request.session.get("user_id")
     if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access")
-
+        raise HTTPException (
+            detail = "Unauthorized Access"
+        )
     user = db.query(Users).filter(Users.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    if not getattr(user, "is_employer", False):
+    is_an_employer = user.is_employer
+    if not is_an_employer:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only employer accounts can manage payroll",
+            detail= "User is not an employer",
+            status_code = 401
         )
-    return user_id
+    employer_id = user.employer_id
+    
+    employer = db.query(Organization).filter(Organization.id == employer_id).first()
+    
+    employees = employer.employees
+    try:
+        employee_data = data.model_dump(exclude_unset=True)
+        employee = db.query(Employee).filter(Employee.email == data.email, Employee.employer_id == employer.id).first()
+        
+        if not employee:
+            employee_data = data.model_dump(exclude_unset=True)
+            new_employee = Employee(**employee_data,employer_id = employer.id)
+            
+            db.add(new_employee)
+            db.commit()
+            db.refresh(new_employee)
+            return {
+                "status":"success",
+                "message":"data saved successfully 🎉🎊"
+            }
+        else:
+            
+            for key,val in employee_data.items():
+                setattr(employee,key,val)
+                
+            db.commit()
+            db.refresh(employee)
+            return {
+                "status":"success",
+                "message":"data updated successfully 🎉🎊"
+        }
+            
+    except Exception as e:
+        db.rollback()
+        return {"status":"failed","message":str(e)}
 
 
-# ──────────────────────────────────────────────────────────────
-# Employee endpoints
-# ──────────────────────────────────────────────────────────────
-
-@app.get("/admin/payroll", response_model=list[EmployeeOut])
-def list_payroll(
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    employees = (
-        db.query(Employee)
-        .filter(Employee.employer_id == employer_id)
-        .order_by(Employee.department, Employee.name)
-        .all()
-    )
-    return employees
-
-
-@app.post("/admin/employees", response_model=EmployeeOut, status_code=status.HTTP_201_CREATED)
-def add_employee(
-    payload: EmployeeCreate,
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    employee = Employee(
-        employer_id=employer_id,
-        name=payload.name,
-        role=payload.role,
-        department=payload.department,
-        phone_number=payload.phone_number,
-        bank_name=payload.bank_name,
-        account_number=payload.account_number,
-    )
-    db.add(employee)
-    db.commit()
-    db.refresh(employee)
-    return employee
-
-
-@app.delete("/admin/employees/{employee_id}", status_code=status.HTTP_200_OK)
-def remove_employee(
-    employee_id: int,
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    employee = (
-        db.query(Employee)
-        .filter(Employee.id == employee_id, Employee.employer_id == employer_id)
-        .first()
-    )
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    db.delete(employee)
-    db.commit()
-    return {"status": "success", "message": "Employee removed"}
-
-
-@app.patch("/admin/payroll/{employee_id}", response_model=EmployeeOut)
-def update_payroll(
-    employee_id: int,
-    changes: PayrollUpdate,
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    employee = (
-        db.query(Employee)
-        .filter(Employee.id == employee_id, Employee.employer_id == employer_id)
-        .first()
-    )
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    # Only fields actually present in the request body are applied —
-    # this is the fix for the "editing one field resets the others" bug.
-    update_data = changes.model_dump(exclude_unset=True)
-
-    for field, value in update_data.items():
-        setattr(employee, field, value)
-
-    # Recompute net pay AFTER applying updates so it reflects the latest state
-    new_net_pay = compute_net_pay(employee)
-    if new_net_pay < 0:
+@app.get("/get-employees-data")
+def get_employee_data(request: Requests,db: Session=Depends(get_db)):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException (
+            detail = "Unauthorized Access",
+            status_code = 401
+        )
+        
+    user = db.query(Users).filter(Users.id == user_id).first()
+    is_an_employer = user.is_employer
+    if not is_an_employer:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Net pay cannot be negative — check deductions",
+            detail= "User is not an employer",
+            status_code = 403
         )
-    employee.net_pay = new_net_pay
-
-    db.commit()
-    db.refresh(employee)
-    return employee
-
-
-# ──────────────────────────────────────────────────────────────
-# Tax band settings endpoints
-# ──────────────────────────────────────────────────────────────
-
-@app.get("/admin/tax-bands", response_model=TaxBandsResponse)
-def get_tax_bands(
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    """
-    Returns the employer's custom PAYE bands, or the NTA 2025 default
-    if they haven't set any up yet. `is_custom` tells the frontend
-    which one it's looking at, so it can show "using default" vs
-    "using your custom rates".
-    """
-    rows = (
-        db.query(TaxBand)
-        .filter(TaxBand.employer_id == employer_id)
-        .order_by(TaxBand.sequence)
-        .all()
-    )
-    if rows:
+    try:
+        employer_id = user.employer_id
+        employer = db.query(Organization).filter(Organization.id == employer_id).first()
+        employees = employer.employees
         return {
-            "bands": [
-                {"sequence": r.sequence, "width": r.width, "rate_percent": r.rate_percent}
-                for r in rows
-            ],
-            "is_custom": True,
+            "status":"success",
+            "employees":employees,
+            "message":"fetched employees successfully"
+        }
+    except Exception as error:
+        return {
+            "status":"failed",
+            "message":f"error:({str(error)})"
         }
 
-    return {
-        "bands": [
-            {"sequence": i, "width": width, "rate_percent": rate * 100}
-            for i, (width, rate) in enumerate(DEFAULT_NTA_2025_BANDS)
-        ],
-        "is_custom": False,
-    }
-
-
-@app.put("/admin/tax-bands", response_model=TaxBandsResponse)
-def set_tax_bands(
-    bands: list[TaxBandIn],
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    """
-    Replaces the employer's entire tax band configuration. Only the
-    LAST band in the list may have width=None (unbounded top rate);
-    every other band must have a positive width.
-    """
-    if not bands:
-        raise HTTPException(status_code=400, detail="Provide at least one tax band")
-
-    for i, band in enumerate(bands):
-        is_last = i == len(bands) - 1
-        if band.width is None and not is_last:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Band {i} has no width but isn't the last band — only the top band can be unbounded",
-            )
-        if band.width is not None and band.width <= 0:
-            raise HTTPException(status_code=400, detail=f"Band {i} width must be positive")
-
-    # Replace wholesale — simplest correct behavior for a settings form
-    db.query(TaxBand).filter(TaxBand.employer_id == employer_id).delete()
-    for i, band in enumerate(bands):
-        db.add(TaxBand(
-            employer_id=employer_id,
-            sequence=i,
-            width=band.width,
-            rate_percent=band.rate_percent,
-        ))
-    db.commit()
-
-    return get_tax_bands(employer_id=employer_id, db=db)
-
-
-@app.delete("/admin/tax-bands", response_model=TaxBandsResponse)
-def reset_tax_bands(
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    """Removes all custom bands, reverting this employer to the NTA 2025 default."""
-    db.query(TaxBand).filter(TaxBand.employer_id == employer_id).delete()
-    db.commit()
-    return get_tax_bands(employer_id=employer_id, db=db)
-
-
-# ──────────────────────────────────────────────────────────────
-# PAYE compute endpoints
-# ──────────────────────────────────────────────────────────────
-
-@app.get("/admin/payroll/{employee_id}/compute-paye")
-def preview_paye(
-    employee_id: int,
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    """
-    Computes what PAYE *should* be under the employer's current bands
-    (custom or NTA 2025 default), based on the employee's gross_pay,
-    pension, nhf, and annual_rent — without saving anything.
-    """
-    employee = (
-        db.query(Employee)
-        .filter(Employee.id == employee_id, Employee.employer_id == employer_id)
-        .first()
-    )
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    bands = get_effective_paye_bands(employer_id, db)
-    suggested_paye = compute_monthly_paye(
-        monthly_gross=Decimal(employee.gross_pay or 0),
-        bands=bands,
-        monthly_pension=Decimal(employee.pension or 0),
-        monthly_nhf=Decimal(employee.nhf or 0),
-        annual_rent=Decimal(employee.annual_rent or 0),
-    )
-    return {
-        "current_paye": employee.paye,
-        "suggested_paye": suggested_paye,
-        "basis": "custom" if db.query(TaxBand).filter(TaxBand.employer_id == employer_id).first() else "NTA 2025 default",
-    }
-
-
-@app.post("/admin/payroll/{employee_id}/apply-computed-paye", response_model=EmployeeOut)
-def apply_computed_paye(
-    employee_id: int,
-    employer_id: int = Depends(get_current_employer),
-    db: Session = Depends(get_db),
-):
-    """Computes PAYE per the employer's current bands and saves it directly."""
-    employee = (
-        db.query(Employee)
-        .filter(Employee.id == employee_id, Employee.employer_id == employer_id)
-        .first()
-    )
-    if not employee:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-
-    bands = get_effective_paye_bands(employer_id, db)
-    employee.paye = compute_monthly_paye(
-        monthly_gross=Decimal(employee.gross_pay or 0),
-        bands=bands,
-        monthly_pension=Decimal(employee.pension or 0),
-        monthly_nhf=Decimal(employee.nhf or 0),
-        annual_rent=Decimal(employee.annual_rent or 0),
-    )
-    employee.net_pay = compute_net_pay(employee)
-
-    db.commit()
-    db.refresh(employee)
-    return employee
