@@ -26,18 +26,47 @@
             </div>
 
             <!-- SIGNUP FORM -->
-            <div id="signup" class="form-section hidden">
-                <h2>Create Account</h2>
-                <input type="text" id="firstName" placeholder="First Name" required>
-                <input type="text" id="lastName" placeholder="Last Name" required>
-                <input type="email" id="signupEmail" placeholder="Email" required>
-                <input type="password" id="signupPassword" placeholder="Password" minlength="6"required>
-                <input type="tel" id="phone" placeholder="Phone Number"  minlength="11" maxlength="11" required>
-                <input type="text" id="nin" placeholder="NIN (National ID)" required>
-                <input type="text" id="bvn" placeholder="BVN (Optional)" minlength="11" maxlength="11" >
-                <button onclick="handleSignup()" class="btn btn-success">Sign Up</button>
-                <p class="toggle-text">Already have an account? <a onclick="toggleForm('loginForm')">Login</a></p>
-            </div>
+            <!-- SIGNUP FORM -->
+<div id="signup" class="form-section hidden">
+    <h2>Create Account</h2>
+
+    <!-- Account Type Selector -->
+    <div class="account-type-toggle">
+        <button type="button" id="btnTypePersonal" class="active" onclick="setAccountType('personal')">Personal</button>
+        <button type="button" id="btnTypeBusiness" onclick="setAccountType('business')">Business</button>
+    </div>
+    <input type="hidden" id="accountType" value="personal">
+
+    <!-- Shared Personal / Admin Fields -->
+    <input type="text" id="firstName" placeholder="First Name" required>
+    <input type="text" id="lastName" placeholder="Last Name" required>
+    <input type="email" id="signupEmail" placeholder="Email" required>
+    <input type="password" id="signupPassword" placeholder="Password" minlength="6" required>
+    <input type="tel" id="phone" placeholder="Phone Number" minlength="11" maxlength="11" required>
+    <input type="text" id="nin" placeholder="NIN (National ID)" required>
+    <input type="text" id="bvn" placeholder="BVN (Optional)" minlength="11" maxlength="11">
+
+    <!-- Business Specific Fields (Hidden by default) -->
+    <div id="businessFields" class="hidden">
+        <input type="text" id="orgName" placeholder="Business / Company Name">
+        
+        <!-- Registration Type & Input Container -->
+        <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+            <input type="text" id="cac" placeholder="CAC Registration Number" style="flex: 1; margin: 0;">
+            <select id="regType" style="width: 90px; margin: 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: #fff;">
+                <option value="RC">RC</option>
+                <option value="BN">BN</option>
+                <option value="IT">IT</option>
+            </select>
+        </div>
+        
+        <input type="text" id="tin" placeholder="Tax Identification Number (TIN)">
+    </div>
+
+    <button onclick="handleSignup()" class="btn btn-success">Sign Up</button>
+    <p class="toggle-text">Already have an account? <a onclick="toggleForm('loginForm')">Login</a></p>
+</div>
+
             
             <!-- Method of Verification-->
             <div class="form-section hidden" id="methodOfVerification">
