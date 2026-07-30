@@ -31,99 +31,54 @@ class Users(Base):
     is_employer = Column(Integer, default=0,nullable=True)
 
 
-"""
-DisPay — Database setup & ORM models
-=====================================
-
-Holds the SQLAlchemy engine/session setup and every table definition
-(Employee, TaxBand — plus wherever your existing Users model lives).
-
-If you already have a database.py with your own engine/Base/Users
-model, DON'T create a second one — instead:
-  1. Copy the `Employee` and `TaxBand` classes into your existing file
-  2. Keep using your existing `Base`, `engine`, `SessionLocal`, `get_db`
-  3. Skip the engine/session boilerplate below entirely
-
-The boilerplate here is only a starting point for projects that don't
-have this set up yet.
-"""
-
-
-
-
-# ──────────────────────────────────────────────────────────────
-# Employee — one row per employee under an employer
-# ──────────────────────────────────────────────────────────────
-
 class Employee(Base):
-    __tablename__ = "employees"
+    __tablename__ = "employee"
 
-    id = Column(Integer, primary_key=True, index=True)
-    employer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-
-    name = Column(String, nullable=False, default="New employee")
-    role = Column(String, nullable=False, default="Role")
-    department = Column(String, nullable=False, default="Unassigned")
-
-    # Contact & bank details — stored as strings deliberately. Account
-    # numbers can have leading zeros, and neither field is ever used
-    # in arithmetic, so Numeric/Integer would be the wrong type here.
-    phone_number = Column(String, nullable=True, default="")
-    bank_name = Column(String, nullable=True, default="")
-    account_number = Column(String, nullable=True, default="")
-
-    # Earnings
-    gross_pay = Column(Numeric(12, 2), nullable=False, default=0)
-    bonuses = Column(Numeric(12, 2), nullable=False, default=0)
-    allowance = Column(Numeric(12, 2), nullable=False, default=0)
-    thirteenth_month = Column(Numeric(12, 2), nullable=False, default=0)
-    overtime = Column(Numeric(12, 2), nullable=False, default=0)
-    leave_allowance = Column(Numeric(12, 2), nullable=False, default=0)
-
-    # Employee-side deductions
-    nhf = Column(Numeric(12, 2), nullable=False, default=0)
-    transport_cost = Column(Numeric(12, 2), nullable=False, default=0)
-    health = Column(Numeric(12, 2), nullable=False, default=0)
-    pension = Column(Numeric(12, 2), nullable=False, default=0)  # employee share; 0 = employer covers 100%
-    paye = Column(Numeric(12, 2), nullable=False, default=0)
-    loan = Column(Numeric(12, 2), nullable=False, default=0)
-    surcharge = Column(Numeric(12, 2), nullable=False, default=0)
-
-    # Used only for rent relief in the PAYE calculation (NTA 2025: 20% of
-    # annual rent, capped at NGN 500,000). Not a payroll deduction itself.
-    annual_rent = Column(Numeric(12, 2), nullable=False, default=0)
-
-    # Employer-side contributions — never subtracted from net pay
-    employer_pension = Column(Numeric(12, 2), nullable=False, default=0)
-    nsitf = Column(Numeric(12, 2), nullable=False, default=0)
-    itf = Column(Numeric(12, 2), nullable=False, default=0)
-    group_life_insurance = Column(Numeric(12, 2), nullable=False, default=0)
-
-    net_pay = Column(Numeric(12, 2), nullable=False, default=0)
-
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-
-
-class TaxBand(Base):
-    """
-    Configurable PAYE bands, per employer. If an employer has no rows
-    here, DEFAULT_NTA_2025_BANDS (in main.py) is used automatically —
-    so nothing breaks for employers who never touch tax settings, and
-    the law can be updated later without a code deploy.
-    """
-    __tablename__ = "tax_bands"
-
-    id = Column(Integer, primary_key=True, index=True)
-    employer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    sequence = Column(Integer, nullable=False)  # band order, 0 = lowest slice
-    # Width of this slice, in Naira. NULL means "unbounded" — only valid
-    # on the highest-sequence band (e.g. "everything above ₦50m").
-    width = Column(Numeric(14, 2), nullable=True)
-    # Stored as a human percentage (15.00 means 15%), not a 0-1 fraction —
-    # this is what you type into the settings form directly.
-    rate_percent = Column(Numeric(5, 2), nullable=False)
+    # Core Identification
+    id = Column(Integer, primary_key=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=False, unique=True)
+    state_of_residence = Column(String(255),nullable=False)
     
+    employer_id = Column(Integer, ForeignKey("employers.id"))
+    #employer = relationship("Organization",back_populates="employees")
+
+    # Financial Base Components
+    monthly_basic = Column(Numeric(15, 2), nullable=False)
+    monthly_housing = Column(Numeric(15, 2), nullable=False)
+    monthly_transport = Column(Numeric(15, 2), nullable=False)
+    bvn = Column(String(11), nullable=True)
+    nin = Column(String(11), nullable=False)
+
+    # Pension Configuration
+    pension_pfa_name = Column(String(150), nullable=False)
+    pension_pin = Column(String(50), nullable=False)
+    employee_pension_rate = Column(Numeric(5, 6), nullable=True,default=0.006667)
+    
+    #health assurance
+    monthly_life_assurance = Column(Numeric(5, 6), nullable=True,default=0.00)
+    
+    #Additional Pay 
+    allowance = Column(Numeric(15, 2), nullable=True)
+    bonus = Column(Numeric(15, 2), nullable=True)
+    
+    #expenses
+    loans = Column(Numeric(15, 2), nullable=True,default=0.00)
+    unpaid_loan = Column(Numeric(15,2),nullable=True,default=0.00)
+    surcharge = Column(Numeric(15,2),nullable=True,default=0.00)
+    
+
+
+    # Housing Fund
+    opt_in_nhf = Column(Boolean, nullable=False, default=False)
+    nhf_number = Column(String(50), nullable=True)
+    nhf_rate = Column(Numeric(5, 4), nullable=True,default=0.025)
+
+    # Bank Details
+    bank_name = Column(String(100), nullable=False)
+    bank_code = Column(String(20), nullable=False)
+    account_number = Column(String(10), nullable=False)
 
 class Transfers(Base):
     
