@@ -301,3 +301,77 @@ body {
                 transform: translateY(-10px) scale(1.02);
             }
     }
+/* ==========================================
+   BUSINESS SIGNUP & TOGGLE EXTENSIONS
+   ========================================== */
+
+/* Account Type Toggle (Personal vs Business) */
+.account-type-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.account-type-toggle button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f8fafc;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.account-type-toggle button:hover {
+    background: #edf2f7;
+}
+
+.account-type-toggle button.active {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+/* Business Form Container */
+#businessFields {
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 14px;
+    margin-top: 6px;
+}
+
+/* Dropdown & CAC Group Styling */
+#businessFields select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    background-color: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#businessFields select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 600px) {
+    .account-type-toggle button {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    #businessFields select {
+        padding: 10px 12px;
+        font-size: 16px; /* Matches your existing mobile input font-size */
+    }
+        }
+    
