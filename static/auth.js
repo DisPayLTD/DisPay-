@@ -152,13 +152,13 @@ async function handleSignup() {
     const phone = document.getElementById('phone').value.trim();
     const nin = document.getElementById('nin').value.trim();
     const bvn = document.getElementById('bvn').value.trim();
-    const dob: document.getElementById('dob').value,
-    const gender: document.getElementById('gender').value,
-    const address: document.getElementById('address').value.trim(),
+    const dob = document.getElementById('dob').value;
+    const gender = document.getElementById('gender').value;
+    const address = document.getElementById('address').value.trim();
 };
 
     // Standard Validation
-    if (!firstName || !lastName || !email || !password || !phone || !nin) {
+    if (!firstName || !lastName || !email || !password || !phone || !nin ||!dob ||!gender ||! address) {
         showError('Please fill all required personal fields');
         return;
     }
@@ -189,11 +189,14 @@ async function handleSignup() {
                 body: JSON.stringify({
                     first_name: firstName,
                     last_name: lastName,
-                    email,
-                    password,
+                    email:email,
+                    password: password,
                     phone_number: phone,
-                    nin,
-                    bvn
+                    nin:nin,
+                    bvn: bvn,
+                    dob:dob,
+                    address: address,
+                    gender: gender 
                 })
             });
             const data = await res.json();
