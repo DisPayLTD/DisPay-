@@ -144,74 +144,75 @@ function setAccountType(type) {
 
 // Updated handleSignup function
 async function handleSignup() {
-    const accountType = document.getElementById('accountType').value;
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value;
-    const phone = document.getElementById('phone').value.trim();
-    const nin = document.getElementById('nin').value.trim();
-    const bvn = document.getElementById('bvn').value.trim();
-    const dob = document.getElementById('dob').value;
-    const gender = document.getElementById('gender').value;
-    const address = document.getElementById('address').value.trim();
+    try{
+        const accountType = document.getElementById('accountType').value;
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        const phone = document.getElementById('phone').value.trim();
+        const nin = document.getElementById('nin').value.trim();
+        const bvn = document.getElementById('bvn').value.trim();
+        const dob = document.getElementById('dob').value;
+        const gender = document.getElementById('gender').value;
+        const address = document.getElementById('address').value.trim();
+        // Standard Validation
+        if (!firstName || !lastName || !email || !password || !phone || !nin ||!dob ||!gender || !address) {
+            showError('Please fill all required personal fields');
+            return;
+        }
 
-    // Standard Validation
-    if (!firstName || !lastName || !email || !password || !phone || !nin ||!dob ||!gender || !address) {
-        showError('Please fill all required personal fields');
-        return;
-    }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showError('Invalid email address');
+            return;
+        }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showError('Invalid email address');
-        return;
-    }
+        if (password.length < 6) {
+            showError('Password must be at least 6 characters');
+            return;
+        }
 
-    if (password.length < 6) {
-        showError('Password must be at least 6 characters');
-        return;
-    }
+        if (phone.length < 10) {
+            showError('Invalid phone number');
+            return;
+        }
 
-    if (phone.length < 10) {
-        showError('Invalid phone number');
-        return;
-    }
-
-    // --- PERSONAL SIGNUP ROUTE ---
-    if (accountType === 'personal') {
-        try {
-            loadingDiv.classList.remove("hidden");
-            const res = await fetch('/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-                body: JSON.stringify({
-                    first_name: firstName,
-                    last_name: lastName,
-                    email:email,
-                    password: password,
-                    phone_number: phone,
-                    nin:nin,
-                    bvn: bvn,
-                    dob:dob,
-                    address: address,
-                    gender: gender 
-                })
-            });
-            const data = await res.json();
-            alert(JSON.stringify(data))
-            if (data.status === 'success') {
-                showSuccess('Account created successfully! Switching to login...');
-                setTimeout(() => {
-                    toggleForm("loginForm");
-                    clearSignupForm();
-                }, 1500);
-            } else {
-                showError('' + (data.detail || data.message || 'Signup failed'));
-            }
-        } catch (error) {
-            showError('Error: ' + error.message);
-        } finally {
+        // --- PERSONAL SIGNUP ROUTE ---
+        if (accountType === 'personal') {
+            try {
+                loadingDiv.classList.remove("hidden");
+                const res = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        email:email,
+                        password: password,
+                        phone_number: phone,
+                        nin:nin,
+                        bvn: bvn,
+                        dob:dob,
+                        address: address,
+                        gender: gender 
+                    })
+                });
+                const data = await res.json();
+                alert(JSON.stringify(data))
+                if (data.status === 'success') {
+                    showSuccess('Account created successfully! Switching to login...');
+                    setTimeout(() => {
+                        toggleForm("loginForm");
+                        clearSignupForm();
+                    }, 1500);
+                } else {
+                    showError('' + (data.detail || data.message || 'Signup failed'));
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+                alert(String(error))
+            } finally {
             loadingDiv.classList.add("hidden");
         }
         return;
