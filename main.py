@@ -153,15 +153,17 @@ class EmployeePayrollRequest(BaseModel):
 
 @app.on_event("startup")
 def startup():
-    """
+    
     with engine.connect() as conn:
-        conn.execute(
-            text(
-                "ALTER TABLE users ADD COLUMN is_employer BOOLEAN DEFAULT FALSE"
-            )
-        )7
+        conn.execute(text("""
+            ALTER TABLE users 
+            ADD COLUMN dob DATE,
+            ADD COLUMN gender VARCHAR,
+            ADD COLUMN address VARCHAR
+    """)
+        )
         conn.commit()
-    """
+    
         
     init_db()
     
