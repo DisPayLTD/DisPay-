@@ -211,10 +211,13 @@ async function handleSignup() {
                 }
             } catch (error) {
                 showError('Error: ' + error.message);
-                alert(String(error))
+                
             } finally {
             loadingDiv.classList.add("hidden");
         }
+    }catch (error){
+        alert(String(error))
+    }
         return;
     }
 
