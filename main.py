@@ -757,7 +757,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
             
         if res_json.get("success"):
             data = res_json.get("data", {})
-            
+            print("generate account number",data )
             account_number = data.get("virtual_account_number")           
             bank_code = data.get("bank_code")
             bank_name = get_bank_name(bank_code)
