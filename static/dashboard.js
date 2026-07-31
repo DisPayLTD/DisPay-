@@ -517,6 +517,132 @@ function updateDateTime() {
         headerDate.textContent = `${month}/${day}/${year}`;
     }
 }
+// ============================================
+// BALANCE VISIBILITY TOGGLE (NEW)
+// ============================================
+let isBalanceVisible = true;
+
+function toggleBalanceVisibility() {
+    isBalanceVisible = !isBalanceVisible;
+    const balanceDisplay = document.getElementById('balanceDisplay');
+    const toggleIcon = document.getElementById('balanceToggle');
+
+    if (isBalanceVisible) {
+        balanceDisplay.style.filter = 'none';
+        toggleIcon.className = 'fa-solid fa-eye';
+    } else {
+        balanceDisplay.style.filter = 'blur(8px)';
+        toggleIcon.className = 'fa-solid fa-eye-slash';
+    }
+}
+
+// ============================================
+// FOCUS AI BOX (NEW)
+// ============================================
+function focusAIBox() {
+    switchTab('home');
+    setTimeout(() => {
+        const aiTextarea = document.getElementById('command');
+        if (aiTextarea) {
+            aiTextarea.focus();
+            aiTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 300);
+}
+
+// ============================================
+// TRIGGER FILE UPLOAD (NEW)
+// ============================================
+function triggerFileUpload() {
+    const fileInput = document.getElementById('paymentFile');
+    if (fileInput) {
+        fileInput.click();
+    }
+}
+
+// ============================================
+// BUY AIRTIME (NEW)
+// ============================================
+function buyAirtime() {
+    const network = document.getElementById('airtimeNetwork').value;
+    const phone = document.getElementById('airtimePhone').value;
+    const amount = document.getElementById('airtimeAmount').value;
+
+    if (!network || !phone || !amount) {
+        showError('Please fill all fields');
+        return;
+    }
+
+    if (phone.length !== 11) {
+        showError('Invalid phone number');
+        return;
+    }
+
+    if (amount < 50) {
+        showError('Minimum amount is ₦50');
+        return;
+    }
+
+    showSuccess(`Airtime purchase feature coming soon! ${network} - ${phone} - ₦${amount}`);
+}
+
+// ============================================
+// BUY DATA (NEW)
+// ============================================
+function buyData() {
+    const network = document.getElementById('dataNetwork').value;
+    const phone = document.getElementById('dataPhone').value;
+    const plan = document.getElementById('dataPlan').value;
+
+    if (!network || !phone || !plan) {
+        showError('Please fill all fields');
+        return;
+    }
+
+    if (phone.length !== 11) {
+        showError('Invalid phone number');
+        return;
+    }
+
+    showSuccess(`Data purchase feature coming soon! ${network} - ${phone} - ${plan}`);
+}
+
+// ============================================
+// BUY ELECTRICITY (NEW)
+// ============================================
+function buyElectricity() {
+    const disco = document.getElementById('electricityDisco').value;
+    const meterType = document.getElementById('meterType').value;
+    const meterNumber = document.getElementById('meterNumber').value;
+    const amount = document.getElementById('electricityAmount').value;
+
+    if (!disco || !meterType || !meterNumber || !amount) {
+        showError('Please fill all fields');
+        return;
+    }
+
+    if (amount < 500) {
+        showError('Minimum amount is ₦500');
+        return;
+    }
+
+    showSuccess(`Electricity payment coming soon! ${disco} - ${meterType} - ${meterNumber} - ₦${amount}`);
+}
+
+// ============================================
+// NOTIFICATION BADGE UPDATE (NEW)
+// ============================================
+function updateNotificationBadge(count) {
+    const badges = document.querySelectorAll('.notification-badge');
+    badges.forEach(badge => {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'block' : 'none';
+    });
+}
+
+// ============================================
+// LOAD RECENT TRANSACTIONS (NEW)
+// ============================================
 
 // ============================================
 // LOAD TRANSACTION HISTORY
