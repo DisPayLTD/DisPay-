@@ -155,7 +155,6 @@ async function handleSignup() {
     const dob = document.getElementById('dob').value;
     const gender = document.getElementById('gender').value;
     const address = document.getElementById('address').value.trim();
-};
 
     // Standard Validation
     if (!firstName || !lastName || !email || !password || !phone || !nin ||!dob ||!gender || !address) {
