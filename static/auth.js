@@ -158,7 +158,7 @@ async function handleSignup() {
 };
 
     // Standard Validation
-    if (!firstName || !lastName || !email || !password || !phone || !nin ||!dob ||!gender ||! address) {
+    if (!firstName || !lastName || !email || !password || !phone || !nin ||!dob ||!gender || !address) {
         showError('Please fill all required personal fields');
         return;
     }
