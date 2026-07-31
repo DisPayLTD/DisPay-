@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+	
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DisPay - Authentication</title>
+    <link rel="stylesheet" href="/static/auth.css">
+</head>
+
+<body>
+
+    <!-- Animated Background Particles -->
+    <div class="bg-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="container">
+        <div class="auth-box">
+
+            <!-- Glowing accent bar -->
+            <div class="accent-bar"></div>
+
+            <div class="logo">
+                <img src="https://www.image2url.com/r2/default/images/image-to-webp-1784900850227-f1a6a09e-8ab8-49ea-b146-30cc044a0ff6.webp" alt="DisPay Logo" width="150px">
+                <p class="logo-tagline">Fast. Secure. Seamless.</p>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div id="loginForm" class="form-section">
+                <h2>Welcome Back 👋</h2>
+                <p class="form-subtitle">Sign in to continue to your dashboard</p>
+
+                <div class="input-group">
+                    <label for="loginEmail">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" id="loginEmail" placeholder="you@example.com" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button onclick="handleLogin()" class="btn btn-primary">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login
+                </button>
+
+                <p class="toggle-text">Don't have an account? <a onclick="toggleForm('signup')">Sign Up</a></p>
+                <p><a id="forgotPass" class="forgot-link" onclick="toggleForm('methodOfVerification');">Forgot password?</a></p>
+            </div>
+
+            <!-- SIGNUP FORM -->
+            <div id="signup" class="form-section hidden">
+                <h2>Create Account ✨</h2>
+                <p class="form-subtitle">Join DisPay and start transacting</p>
+
+                <!-- Account Type Selector -->
+                <div class="account-type-toggle">
+                    <button type="button" id="btnTypePersonal" class="active" onclick="setAccountType('personal')">
+                        <i class="fa-solid fa-user"></i> Personal
+                    </button>
+                    <button type="button" id="btnTypeBusiness" onclick="setAccountType('business')">
+                        <i class="fa-solid fa-building"></i> Business
+                    </button>
+                </div>
+                <input type="hidden" id="accountType" value="personal">
+
+              
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" placeholder="John" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" placeholder="Doe" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="signupEmail">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" id="signupEmail" placeholder="you@example.com" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="signupPassword">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="signupPassword" placeholder="Min. 6 characters" minlength="6" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Phone Number</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-phone input-icon"></i>
+                        <input type="tel" id="phone" placeholder="08012345678" minlength="11" maxlength="11" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="nin">NIN</label>
+                        <input type="text" id="nin" placeholder="National ID" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="bvn">BVN (Optional)</label>
+                        <input type="text" id="bvn" placeholder="Bank Verification" minlength="11" maxlength="11">
+                    </div>
+                </div>
+
+                <!-- Business Specific Fields -->
+                <div id="businessFields" class="hidden">
+                    <div class="business-divider">
+                        <span>Business Information</span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="orgName">Business Name</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-briefcase input-icon"></i>
+                            <input type="text" id="orgName" placeholder="Company / Business Name">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="cac">CAC Registration</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="cac" placeholder="Registration Number" style="flex: 1; margin: 0;">
+                            <select id="regType" class="reg-type-select">
+                                <option value="RC">RC</option>
+                                <option value="BN">BN</option>
+                                <option value="IT">IT</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="tin">TIN</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-file-invoice input-icon"></i>
+                            <input type="text" id="tin" placeholder="Tax Identification Number">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="handleSignup()" class="btn btn-success">
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                </button>
+
+                <p class="toggle-text">Already have an account? <a onclick="toggleForm('loginForm')">Login</a></p>
+            </div>
+
+            <!-- METHOD OF VERIFICATION -->
+            <div class="form-section hidden" id="methodOfVerification">
+                <h2>Reset Password 🔐</h2>
+                <p class="form-subtitle">We'll send a verification code to your email</p>
+
+                <div class="input-group">
+                    <label for="userEmail">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" id="userEmail" placeholder="you@example.com" required>
+                    </div>
+                </div>
+
+                <button onclick="sendOtp()" class="btn btn-primary" id="send-otp-btn">
+                    <i class="fa-solid fa-paper-plane"></i> Send OTP
+                </button>
+
+                <p class="toggle-text">Remember your password? <a onclick="toggleForm('loginForm')">Login</a></p>
+            </div>
+
+            <!-- OTP VERIFICATION -->
+            <div id="otp-box" class="otp-box hidden">
+                <h2>Enter Verification Code 📧</h2>
+                <p class="form-subtitle" id="otpMsg">Check your email for the 6-digit code</p>
+
+                <div class="input-container">
+                    <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="1" placeholder="·" class="code-box">
+                    <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="1" placeholder="·" class="code-box">
+                    <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="1" placeholder="·" class="code-box">
+                    <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="1" placeholder="·" class="code-box">
+                    <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="1" placeholder="·" class="code-box">
+                    <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')" maxlength="1" placeholder="·" class="code-box">
+                </div>
+
+                <button class="btn btn-primary" id="verify-btn">
+                    <i class="fa-solid fa-check-circle"></i> Verify Code
+                </button>
+
+                <p class="toggle-text">Didn't receive it? <a onclick="sendOtp()" class="resend-link">Resend OTP</a></p>
+                <p class="toggle-text">Back to <a onclick="toggleForm('loginForm')">Login</a></p>
+            </div>
+
+            <!-- CHANGE PASSWORD -->
+            <div id="changePasswordBox" class="form-section hidden">
+                <h2>Set New Password 🔑</h2>
+                <p class="form-subtitle">Choose a strong password for your account</p>
+
+                <div class="input-group">
+                    <label for="newPassword">New Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="newPassword" placeholder="Min. 6 characters" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="confirmPassword" placeholder="Re-enter password" required>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="confirmChangePasswordBtn" onclick="changePassword()">
+                    <i class="fa-solid fa-check"></i> Confirm Change
+                </button>
+            </div>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+            <div id="successMessage" class="success-message hidden"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loader-content">
+            <img src="https://www.image2url.com/r2/default/images/image-to-webp-1784915373221-2ce47afb-31fc-4b3f-af02-80a51b1015d7.webp" alt="DisPay Loading" class="loadingImg">
+            <p class="loading-text">Processing...</p>
+        </div>
+    </div>
+
+    <script src="/static/auth.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hideshowpassword/2.2.0/hideShowPassword.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#loginPassword').hideShowPassword({
+                show: false,
+                innerToggle: true,
+                touchSupport: true
+            });
+            const wrapper = document.getElementById('loginPassword').parentElement;
+            wrapper.style.width = '100%';
+            wrapper.style.display = 'block';
+        });
+    </script>
+    
+</body>
+
+</html>
