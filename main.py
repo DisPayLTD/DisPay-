@@ -613,7 +613,7 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
         return "Idempotency key exists"
         
     
-tx_ref = f"REMITRON-VA-{str(uuid.uuid4().hex[:16])}"
+tx_ref = f"DISPAY-VA-{str(uuid.uuid4().hex[:16])}"
 
 def retrieve_existing_account(eml):
     url = "https://api.flutterwave.com/v3/payout-subaccounts"
@@ -671,39 +671,29 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     phone = user.phone_number
     first_name = user.first_name
     last_name = user.last_name
+    dob = user.dob
+    gender = user.gender
+    bvn = user.bvn
+    address = user.address
     
-    existing_acct = retrieve_existing_account(email)
-    #print("existing acct: ",existing_acct)
-    if existing_acct:
-        account_number,bank_name,psa_ref = existing_acct
-        user.account_number = account_number
-        user.bank_name = bank_name
-        user.psa_ref = psa_ref
-        user.has_wallet = True
-        
-        db.commit()
-        db.refresh(user)
-        return {
-            "status": "success",
-            "message": "Retrieved successfully,Email was already linked to an existing account! ",
-            "url": "/dashboard"
-        }
-    
-    api = os.getenv("FLUTTER_SECRET_API_KEY")
+    api = os.getenv("SQUAD_API_KEY")
     header = {
         "Authorization": f"Bearer {api}",
         "Content-Type": "application/json"
     }
      
     body = {
-        "account_name": f"{first_name} {last_name}", 
-        "email": email,
-        "mobilenumber": phone,
-        "country": "NG",
-        "bank_code": "035"                           
-    }
-    
-    url = "https://api.flutterwave.com/v3/payout-subaccounts"
+    "customer_identifier": tx_ref,
+    "first_name": first_name,
+    "last_name": last_name,
+    "mobile_num": phone,
+    "email": email,
+    "bvn": bvn,
+    "dob": dob,
+    "address": address,
+    "gender": gender,
+        }
+    url = "https://api-d.squadco.com/"
 
     try:
         res = requests.post(
@@ -713,13 +703,59 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
         )
         res_json = res.json()
         
-        
-        if res_json.get("status") == "success":
+        """
+        Nigeria CBN 3-digit bank codes -> bank name.
+        These are the traditional 3-digit CBN clearing/sort codes used by
+        Nigerian commercial banks. This is the code format Squad's
+        virtual-account API returns in `bank_code` (e.g. "058" for GTBank,
+        "737" for Wema, as seen in Squad's own sample responses).
+        Note: Microfinance banks and fintech/digital banks (Kuda, Opay,
+        Moniepoint, PalmPay, etc.) generally use a *different*, longer
+        6-digit NIBSS/NIP code scheme, not included here. If Squad ever
+        returns a bank_code not in this dict, treat it as unmapped rather
+        than guessing, and fall back to displaying the raw code.
+        """
+        NG_BANK_CODES = {
+            "044": "Access Bank",
+            "023": "Citibank Nigeria",
+            "050": "Ecobank Nigeria",
+            "070": "Fidelity Bank",
+            "011": "First Bank of Nigeria",
+            "214": "First City Monument Bank (FCMB)",
+            "058": "Guaranty Trust Bank (GTBank)",
+            "030": "Heritage Bank",
+            "301": "Jaiz Bank",
+            "082": "Keystone Bank",
+            "076": "Polaris Bank",
+            "101": "Providus Bank",
+            "221": "Stanbic IBTC Bank",
+            "068": "Standard Chartered Bank",
+            "232": "Sterling Bank",
+            "032": "Union Bank of Nigeria",
+            "033": "United Bank for Africa (UBA)",
+            "215": "Unity Bank",
+            "035": "Wema Bank",
+            "057": "Zenith Bank",
+            "100": "SunTrust Bank",
+            "102": "Titan Trust Bank",
+            "103": "Globus Bank",
+            "104": "Parallex Bank",
+            "105": "Premium Trust Bank",
+            "106": "Signature Bank",
+            "107": "Optimus Bank",
+            "737": "Wema Bank (ALAT / alt code seen in Squad samples)",
+        }
+        def get_bank_name(bank_code: str) -> str:
+            """Look up a bank name by its 3-digit CBN code."""
+            return NG_BANK_CODES.get(bank_code, f"Unknown Bank ({bank_code})")
+            
+        if res_json.get("success"):
             data = res_json.get("data", {})
-             
-            account_number = data.get("nuban")           
-            bank_name = data.get("bank_name")             
-            psa_ref = data.get("account_reference")       
+            
+            account_number = data.get("virtual_account_number")           
+            bank_code = data.get("bank_code")
+            bank_name = get_bank_name(bank_code)
+            psa_ref = data.get("customer_identifier")       
             
             user.account_number = account_number
             user.bank_name = bank_name
