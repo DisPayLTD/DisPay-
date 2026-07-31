@@ -951,3 +951,4 @@ document.addEventListener('DOMContentLoaded', function() {
     const navHome = document.getElementById('navHome');
     if (navHome) navHome.classList.add('active');
 });
+        
