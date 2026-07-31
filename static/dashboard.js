@@ -628,3 +628,200 @@ function showPinModal(paymentData) {
     pendingPaymentData = paymentData;
     document.getElementById('pinModal').style.display = 'flex';
                            }
+async function loadRecentTransactions() {
+    try {
+        const res = await fetch("/transaction-history");
+        const data = await res.json();
+
+        if (data.status === 'success') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = data.html;
+
+            const allRows = tempDiv.querySelectorAll('tbody tr');
+            const recentRows = Array.from(allRows).slice(0, 5);
+
+            if (recentRows.length > 0) {
+                let html = '<div class="transaction-items">';
+                recentRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 3) {
+                        html += `
+                            <div class="transaction-item">
+                                <div class="transaction-icon">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                                <div class="transaction-details">
+                                    <h4>${cells[0].textContent}</h4>
+                                    <p>${cells[1].textContent}</p>
+                                </div>
+                                <div class="transaction-amount">
+                                    ₦${cells[2].textContent}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+                document.getElementById('recentTransactions').innerHTML = html;
+            } else {
+                document.getElementById('recentTransactions').innerHTML = 
+                    '<p class="empty-state">No recent transactions</p>';
+            }
+        }
+    } catch (e) {
+        console.error('Error loading recent transactions:', e);
+    }
+}
+
+// ============================================
+// ENHANCED POPULATE DASHBOARD (NEW)
+// ============================================
+function enhancedPopulateDashboard(user) {
+    // Sidebar profile
+    const initial = user.first_name.charAt(0).toUpperCase() || 'U';
+    const sidebarInitial = document.getElementById('sidebarInitial');
+    const sidebarName = document.getElementById('sidebarName');
+    const sidebarEmail = document.getElementById('sidebarEmail');
+
+    if (sidebarInitial) sidebarInitial.textContent = initial;
+    if (sidebarName) sidebarName.textContent = `${user.first_name} ${user.last_name}`;
+    if (sidebarEmail) sidebarEmail.textContent = user.email;
+
+    // Greeting
+    const hour = new Date().getHours();
+    let greeting = 'Hi';
+    if (hour < 12) greeting = 'Good Morning';
+    else if (hour < 17) greeting = 'Good Afternoon';
+    else greeting = 'Good Evening';
+
+    const greetingText = document.getElementById('greetingText');
+    if (greetingText) greetingText.textContent = `${greeting}, ${user.first_name} 👋`;
+
+    // Profile tab
+    const profileName = document.getElementById('profileName');
+    const profileEmail = document.getElementById('profileEmail');
+    const profilePhone = document.getElementById('profilePhone');
+    const profileNIN = document.getElementById('profileNIN');
+    const profileBVN = document.getElementById('profileBVN');
+
+    if (profileName) profileName.textContent = `${user.first_name} ${user.last_name}`;
+    if (profileEmail) profileEmail.textContent = user.email;
+    if (profilePhone) profilePhone.textContent = user.phone_number || '-';
+    if (profileNIN) profileNIN.textContent = user.nin || '-';
+    if (profileBVN) profileBVN.textContent = user.bvn || '-';
+
+    // Show employer-only elements
+    if (user.is_employer) {
+        document.querySelectorAll('.employer-only').forEach(el => {
+            el.style.display = '';
+        });
+    }
+}
+
+// ============================================
+// ENHANCED LOAD USER DATA (WRAPPER)
+// ============================================
+async function enhancedLoadUserData() {
+    try {
+        const res = await fetch('/get-user-data');
+        const data = await res.json();
+
+        if (data.status === 'success') {
+            populateDashboard(data.user);
+            enhancedPopulateDashboard(data.user);
+        } else {
+            window.location.href = data.url || '/auth';
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+    }
+}
+
+// ============================================
+// AUTO-SCROLL TO RESULTS (NEW)
+// ============================================
+function scrollToResults() {
+    const resultsDiv = document.getElementById('results');
+    if (resultsDiv && !resultsDiv.classList.contains('hidden')) {
+        setTimeout(() => {
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+    }
+}
+
+// ============================================
+// ENHANCED SWITCH TAB (WRAPPER FOR YOUR EXISTING)
+// ============================================
+function enhancedSwitchTab(tabName) {
+    // Call your existing switchTab if it exists
+    if (typeof switchTab === 'function') {
+        switchTab(tabName);
+    }
+
+    // Additional enhancements
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    const tabElement = document.getElementById(tabName + 'Tab');
+    if (tabElement) {
+        tabElement.classList.add('active');
+    }
+
+    // Update bottom nav
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+
+    if (tabName === 'home') {
+        const navHome = document.getElementById('navHome');
+        if (navHome) navHome.classList.add('active');
+    } else if (tabName === 'history') {
+        const navHistory = document.getElementById('navHistory');
+        if (navHistory) navHistory.classList.add('active');
+        loadTransactionHistory();
+    } else if (tabName === 'profile') {
+        const navProfile = document.getElementById('navProfile');
+        if (navProfile) navProfile.classList.add('active');
+    }
+
+    // Close sidebar
+    closeSidebar();
+
+    // Scroll to top
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.scrollTo(0, 0);
+}
+
+// Override switchTab if you want the enhanced version
+// Uncomment the line below:
+// switchTab = enhancedSwitchTab;
+
+// ============================================
+// INITIALIZE NEW FEATURES ON DOM LOAD
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Load recent transactions
+    loadRecentTransactions();
+    setInterval(loadRecentTransactions, 30000);
+
+    // Enhanced user data load
+    enhancedLoadUserData();
+
+    // File upload handler
+    const fileInput = document.getElementById('paymentFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                uploadFile({ preventDefault: () => {} });
+            }
+        });
+    }
+
+    // Initialize notification badge
+    updateNotificationBadge(0);
+
+    // Initialize with home tab
+    const navHome = document.getElementById('navHome');
+    if (navHome) navHome.classList.add('active');
+});
+
+                        
