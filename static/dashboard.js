@@ -919,7 +919,7 @@ function enhancedSwitchTab(tabName) {
 
 // Override switchTab if you want the enhanced version
 // Uncomment the line below:
-// switchTab = enhancedSwitchTab;
+ switchTab = enhancedSwitchTab;
 
 // ============================================
 // INITIALIZE NEW FEATURES ON DOM LOAD
