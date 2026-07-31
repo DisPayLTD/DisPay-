@@ -199,7 +199,7 @@ async function handleSignup() {
                 })
             });
             const data = await res.json();
-
+            alert(JSON.stringify(data))
             if (data.status === 'success') {
                 showSuccess('Account created successfully! Switching to login...');
                 setTimeout(() => {
