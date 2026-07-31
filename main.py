@@ -91,6 +91,9 @@ class SignupRequest(BaseModel):
     nin: str
     phone_number: str
     bvn: str
+    dob: date
+    gender: str  # or Literal["male", "female", "other"]
+    address: str
 
 #this class is for method of verification email
 class OTPVerification(BaseModel):
