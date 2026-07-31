@@ -152,6 +152,10 @@ async function handleSignup() {
     const phone = document.getElementById('phone').value.trim();
     const nin = document.getElementById('nin').value.trim();
     const bvn = document.getElementById('bvn').value.trim();
+    const dob: document.getElementById('dob').value,
+    const gender: document.getElementById('gender').value,
+    const address: document.getElementById('address').value.trim(),
+};
 
     // Standard Validation
     if (!firstName || !lastName || !email || !password || !phone || !nin) {
