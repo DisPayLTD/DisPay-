@@ -198,7 +198,8 @@ async function handleSignup() {
                         bvn: bvn,
                         dob:dob,
                         address: address,
-                        gender: gender 
+                        gender: gender,
+                        is_employer:false
                     })
                 });
                 const data = await res.json();
@@ -262,7 +263,8 @@ async function handleSignup() {
                         bvn,
                         name: orgName,
                         cac: `${regType}-${cac}`,
-                        tin: tin
+                        tin: tin,
+                        is_employer:true
                     })
                 });
                 const onboardData = await onboardRes.json();
