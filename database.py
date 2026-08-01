@@ -103,7 +103,7 @@ class Idempotency(Base):
     user_id = Column(Integer,ForeignKey("users.id"))
     idempotency_key= Column(String, unique=True)
     result = Column(JSON)
-    user = relationship("Users",back_populates="idempotency",cascade="all, delete-orphan")
+    user = relationship("Users",back_populates="idempotency")
     created_at = Column(DateTime(timezone=True),server_default = func.now())
 
 
