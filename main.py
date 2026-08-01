@@ -1,6 +1,13 @@
-from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status,Form
+from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status,Form,Header
+import hmac
+import hashlib
+import logging
+from decimal import Decimal, InvalidOperation
+from datetime import datetime, timezone
+from typing import Any, Dict
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 import json
-from decimal import Decimal
 import secrets 
 from slowapi import Limiter 
 from slowapi.util import get_remote_address
@@ -534,6 +541,112 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
     }
     return res
 
+
+
+
+logger = logging.getLogger("squad_webhook")
+
+SQUAD_SECRET_KEY = os.getenv("SQUAD_API_KEY")
+
+
+@app.post("/webhooks/squad")  # `app` = your existing FastAPI() instance in main.py
+def squad_webhook_listener(
+    request: Request,
+    x_squad_encrypted_body: str = Header(None),
+    db: Session = Depends(get_db),
+):
+    # 1. Require the signature header
+    if not x_squad_encrypted_body:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing signature header.",
+        )
+
+    # 2. Raw bytes of the request body (sync version doesn't need `await`)
+    raw_payload_bytes = request.body()  # NOTE: see warning below about this line
+
+    # 3. Compute HMAC SHA512
+    computed_hash = hmac.new(
+        key=SQUAD_SECRET_KEY.encode("utf-8"),
+        msg=raw_payload_bytes,
+        digestmod=hashlib.sha512,
+    ).hexdigest().upper()
+
+    # 4. Constant-time compare
+    if not hmac.compare_digest(computed_hash, x_squad_encrypted_body.upper()):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Signature verification failed.",
+        )
+
+    # 5. Parse the payload
+    payload: Dict[str, Any] = request.json()  # NOTE: see warning below too
+
+    channel = payload.get("channel")
+    transaction_indicator = payload.get("transaction_indicator")
+    tx_reference = payload.get("transaction_reference")
+    customer_identifier = payload.get("customer_identifier")
+    settled_amount_raw = payload.get("settled_amount")
+    sender_name = payload.get("sender_name")
+
+    if channel != "virtual-account" or transaction_indicator != "C":
+        return {"status": "ignored", "reason": "Not a virtual account credit event."}
+
+    if not customer_identifier or not tx_reference:
+        logger.error("Squad webhook missing identifiers: %s", payload)
+        return {"status": "ignored", "reason": "Missing required identifiers."}
+
+    try:
+        settled_amount = Decimal(settled_amount_raw)
+    except (InvalidOperation, TypeError):
+        logger.error("Squad webhook invalid settled_amount: %s", payload)
+        return {"status": "ignored", "reason": "Invalid amount format."}
+
+    # --- Look up user with sync db.query() ---
+    user = db.query(User).filter(User.psa_ref == customer_identifier).first()
+
+    if user is None:
+        logger.error(
+            "Squad webhook: no user found for psa_ref=%s (tx_ref=%s)",
+            customer_identifier, tx_reference,
+        )
+        return {"status": "ignored", "reason": "Unknown customer_identifier."}
+
+    # --- Idempotency check ---
+    existing_refs = {
+        tx.get("transaction_reference")
+        for tx in (user.transactions or [])
+    }
+    if tx_reference in existing_refs:
+        return {"status": "success", "message": "Transaction already recorded."}
+
+    # --- Credit balance ---
+    user.wallet_balance = float(Decimal(str(user.wallet_balance)) + settled_amount)
+
+    new_tx_record = {
+        "transaction_reference": tx_reference,
+        "amount": str(settled_amount),
+        "sender_name": sender_name,
+        "channel": channel,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    """
+    if user.transactions is None:
+        user.transactions = [new_tx_record]
+    else:
+        user.transactions.append(new_tx_record)
+        flag_modified(user, "transactions")
+    """
+
+    db.commit()
+
+    logger.info(
+        "Credited user %s with %s NGN (tx_ref=%s, new_balance=%s)",
+        user.id, settled_amount, tx_reference, user.wallet_balance,
+    )
+
+    return {"status": "success"}
+        
 @app.post("/send-money")
 @limiter.limit("5/minute")
 def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
