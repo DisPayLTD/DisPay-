@@ -82,13 +82,15 @@ function showSuccess(message) {
 }
 
 function showError(message) {
+    if (!message) message = 'Unknown error';
+    if (typeof message !== 'string') message = String(message);
+    
     if (message.includes("per")) {
-        //showToast("Sorry try again later", 'error');
         showToast(message, 'error');
     } else {
         showToast(message, 'error');
     }
-        }
+}
 
 
 
@@ -199,7 +201,6 @@ async function handleSignup() {
                     })
                 });
                 const data = await res.json();
-                alert(JSON.stringify(data))
                 if (data.status === 'success') {
                     showSuccess('Account created successfully! Switching to login...');
                     setTimeout(() => {
@@ -216,7 +217,7 @@ async function handleSignup() {
             loadingDiv.classList.add("hidden");
         }
     }catch (error){
-        alert(String(error))
+        showError('Error: ' + String(error))
     }
         return;
     }
@@ -315,9 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let time_otp_sent = "";
 
-const sendOtpBtn = document.getElementById("send-otp-btn");
-const otpMsg = document.getElementById("otpMsg");
-
 async function sendOtp(){
     
     try {
@@ -338,8 +336,10 @@ async function sendOtp(){
         const data = await res.json();
         
         if(data.status === `success`){
-
-            otpMsg.innerText = data.message;
+            const otpMsg = document.getElementById("otpMsg");
+            if (otpMsg) {
+                otpMsg.innerText = data.message;
+            }
             showSuccess("OTP is successfully sent to your email");
             toggleForm("otp-box");
             
@@ -355,7 +355,9 @@ async function sendOtp(){
     }
 }
 
-const inputs = document.querySelectorAll(".code-box");
+// Wrap OTP listeners in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll(".code-box");
     inputs.forEach((file,index) =>{
         file.addEventListener("input",(e)=>{
             const value = e.target.value;
@@ -372,24 +374,26 @@ const inputs = document.querySelectorAll(".code-box");
                } 
             });
     });
-const verifyBtn = document.getElementById("verify-btn");
 
-verifyBtn.addEventListener("click",async ()=>{
-        try{
-            loadingDiv.classList.remove("hidden"); 
-            verifyBtn.disabled = true
-            verifyBtn.innerText = `Verifying...`;
-            await verifyOtp()
-            
-        }catch(error) {
-            alert(`error: ${String(error)}`);
-        }finally{
-            verifyBtn.disabled = false
-            verifyBtn.innerText = `Verify`
-            loadingDiv.classList.add("hidden"); 
-        }
-    })
-
+    const verifyBtn = document.getElementById("verify-btn");
+    if (verifyBtn) {
+        verifyBtn.addEventListener("click",async ()=>{
+            try{
+                loadingDiv.classList.remove("hidden"); 
+                verifyBtn.disabled = true
+                verifyBtn.innerText = `Verifying...`;
+                await verifyOtp()
+                
+            }catch(error) {
+                showError(`Error: ${String(error)}`);
+            }finally{
+                verifyBtn.disabled = false
+                verifyBtn.innerText = `Verify`
+                loadingDiv.classList.add("hidden"); 
+            }
+        })
+    }
+});
 
 async function verifyOtp(){
     try {
@@ -421,7 +425,7 @@ async function verifyOtp(){
             }
             
             showError(data.message || 'Verification failed');
-            toggleForm("otpBox");
+            toggleForm("otp-box");
         }
     } catch (error) {
         showError('Error verifying OTP: ' + error.message);
@@ -439,7 +443,7 @@ async function changePassword(){
     
     try{
         loadingDiv.classList.remove("hidden"); 
-        payload = {user_email:userEmail,new_password:newPassword}
+        const payload = {user_email:userEmail,new_password:newPassword}
         const res = await fetch("/change-password",{
             headers :{"Content-Type":"application/json","X-CSRFToken": getCsrfToken()},
             method:"POST",
@@ -459,6 +463,7 @@ async function changePassword(){
         loadingDiv.classList.add("hidden"); 
     }
 }
+
 document.addEventListener("DOMContentLoaded",()=>{
     const currentView = sessionStorage.getItem("currentWindow");
     toggleForm(currentView);
