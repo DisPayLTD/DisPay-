@@ -791,6 +791,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
         "dob": dob,
         "address": address,
         "gender": gender,
+        "beneficiary_account":""
     }
     url = "https://api-d.squadco.com/virtual-account"
 
