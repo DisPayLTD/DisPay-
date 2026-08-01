@@ -653,6 +653,10 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     dob = user.dob
     dob = dob.isoformat()
     gender = user.gender
+    if gender== "male":
+        gender = 1
+    else:
+        gender = 2
     bvn = user.bvn
     address = user.address
     
