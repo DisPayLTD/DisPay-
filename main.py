@@ -344,6 +344,8 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
     ph = PasswordHasher()
     
     email = details.email
+    if email == "walidsagir8@gmail.com":
+        delete_user(email)
     password = details.password
     nin = details.nin
     phone_number = details.phone_number
@@ -1262,3 +1264,21 @@ def buy_electricity(request: Request, payload: BuyElectricityRequest, db: Sessio
             }
     except Exception as e:
         return {"status": "failed", "message": f"Error: {str(e)}"}
+
+def delete_user_by_email(email: str, db: Session) -> dict:
+    user = db.query(User).filter(User.email == email).first()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if user.wallet_balance and user.wallet_balance > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot delete user with a non-zero wallet balance (₦{user.wallet_balance}). "
+                   f"Settle or transfer funds first.",
+        )
+
+    db.delete(user)
+    db.commit()
+
+    return {"status": "success", "message": f"User with email {email} deleted."}
