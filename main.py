@@ -345,7 +345,7 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
     
     email = details.email
     if email == "walidsagir8@gmail.com":
-        delete_user_by_email(email,db: Session=Depends(get_db))
+        delete_user_by_email(email,db)
     password = details.password
     nin = details.nin
     phone_number = details.phone_number
