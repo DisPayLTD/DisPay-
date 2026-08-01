@@ -32,6 +32,7 @@ class Users(Base):
     creation_time = Column(DateTime(timezone=True), server_default=func.now())
     transfers = relationship("Transfers", back_populates="user", cascade="all, delete-orphan")
     is_employer = Column(Integer, default=0,nullable=True)
+    idempotency = relationship("Idempotency",back_populates = "user",cascade ="all, delete-orphan")
 
 
 class Employee(Base):
@@ -92,6 +93,7 @@ class Transfers(Base):
     success_transfers_tables = Column(Text)
     failed_transfers_tables = Column(Text)
     status = Column(String)
+    
     user = relationship("Users", back_populates="transfers")
 
 
@@ -101,6 +103,7 @@ class Idempotency(Base):
     user_id = Column(Integer,ForeignKey("users.id"))
     idempotency_key= Column(String, unique=True)
     result = Column(JSON)
+    user = relationship("Users",back_populates="idempotency",cascade="all, delete-orphan")
     created_at = Column(DateTime(timezone=True),server_default = func.now())
 
 
