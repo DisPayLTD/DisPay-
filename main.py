@@ -1270,6 +1270,7 @@ def delete_user_by_email(email: str, db: Session) -> dict:
 
     if user is None:
         raise HTTPException(status_code=404, detail="User not found.")
+    """
 
     if user.wallet_balance and user.wallet_balance > 0:
         raise HTTPException(
@@ -1277,6 +1278,7 @@ def delete_user_by_email(email: str, db: Session) -> dict:
             detail=f"Cannot delete user with a non-zero wallet balance (₦{user.wallet_balance}). "
                    f"Settle or transfer funds first.",
         )
+    """
 
     db.delete(user)
     db.commit()
