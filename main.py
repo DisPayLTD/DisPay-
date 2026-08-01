@@ -673,7 +673,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
         "address": address,
         "gender": gender,
     }
-    url = "https://api-d.squadco.com/"
+    url = "https://api-d.squadco.com/virtual-account"
 
     try:
         res = requests.post(url, headers=header, json=body)
