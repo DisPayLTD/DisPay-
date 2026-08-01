@@ -353,6 +353,10 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
     print("we entered the signup route")
     first_name = details.first_name
     last_name = details.last_name
+    is_employer = details.is_employer
+    dob = details.dob
+    gender = details.gender
+    address = details.address
     hash_password = ph.hash(password)
     existing_user = db.query(Users).filter(Users.email == email).first()
     
@@ -370,7 +374,11 @@ def signup(request: Request, details: SignupRequest,db:Session = Depends(get_db)
             bvn = bvn,
             nin = nin,
             first_name = first_name,
-            last_name = last_name
+            last_name = last_name,
+            is_employer = is_employer,
+            dob = dob,
+            gender = gender,
+            address = address 
         )
         
         db.add(user)
