@@ -28,7 +28,9 @@ from context import set_db_session,set_user_id
 from asgi_csrf import asgi_csrf
 import pandas as pd
 import time
-
+from typing import Optional
+from datetime import date
+from fastapi.responses import Response
 
 app = FastAPI()
 
@@ -92,10 +94,9 @@ class SignupRequest(BaseModel):
     phone_number: str
     bvn: str
     dob: date
-    gender: str  # or Literal["male", "female", "other"]
+    gender: str
     address: str
 
-#this class is for method of verification email
 class OTPVerification(BaseModel):
     user_email :EmailStr
 
@@ -104,34 +105,27 @@ class EmployeePayrollRequest(BaseModel):
     Validates a complete, flat JSON payload for Nigerian payroll creation.
     Pass this directly as the request body data type in your API route.
     """
-    # Core Identification
     employee_id: str 
     first_name: str 
     last_name: str 
     email: str 
     state_of_residence: str
     
-    # Financial Base Components
     monthly_basic: Decimal 
     monthly_housing: Decimal
     monthly_transport: Decimal
     bvn: str 
     nin: str 
     
-    
-    # Pension Configuration
     pension_pfa_name: str
     pension_pin: str 
     employee_pension_rate: Decimal 
     
-    #health
     monthly_life_assurance:Optional[Decimal]
     
-    #additionals
     allowance: Optional[Decimal]
     bonus: Optional[Decimal]
     
-    #expenses
     loans:Optional[Decimal]
     unpaid_loan : Optional[Decimal]
     surcharge: Optional[Decimal]
@@ -151,21 +145,24 @@ class EmployeePayrollRequest(BaseModel):
             raise ValueError("Value must contain numeric characters only.")
         return v
 
+class BuyAirtimeRequest(BaseModel):
+    network: str
+    phone_number: str
+    amount: float
+
+class BuyDataRequest(BaseModel):
+    network: str
+    phone_number: str
+    data_plan: str
+
+class BuyElectricityRequest(BaseModel):
+    disco: str
+    meter_type: str
+    meter_number: str
+    amount: float
+
 @app.on_event("startup")
 def startup():
-    """
-    with engine.connect() as conn:
-        conn.execute(text(""
-            ALTER TABLE users 
-            ADD COLUMN dob DATE,
-            ADD COLUMN gender VARCHAR,
-            ADD COLUMN address VARCHAR
-    "")
-        )
-        conn.commit()
-    """
-    
-        
     init_db()
     
 @app.get("/csrf-token")
@@ -177,10 +174,6 @@ def csrf_token(request: Request):
     except Exception as e:
         print(str(e))
         return {"message":str(e)}
-
-
-
-# ... sitemap route ...
 
 @app.get("/sitemap.xml")
 def get_sitemap():
@@ -205,28 +198,18 @@ def get_sitemap():
 </urlset>"""
     return Response(content=sitemap_xml, media_type="application/xml")
     
-
-
-
 @app.get("/")
 def index(request: Request):
     """Redirect to auth or dashboard based on session"""
     session = request.session
-    """
-    if "user_id" in session:
-        return RedirectResponse(url="/dashboard", status_code=302)
-    return RedirectResponse(url="/auth", status_code=302)
-    """
     with open("templates/index.html") as file:
         return HTMLResponse(content = file.read())
-
 
 @app.get("/auth")
 def auth_page():
     """Serve authentication page"""
     with open("templates/auth.html") as f:
         return HTMLResponse(content=f.read())
-
 
 @app.get("/heart-beat")
 def heart_beat(request: Request,db:Session=Depends(get_db)):
@@ -241,19 +224,14 @@ def heart_beat(request: Request,db:Session=Depends(get_db)):
     
     db.commit()
     return {"status":"Live"}
-    
-
 
 @app.get("/dashboard")
 def dashboard(request: Request,db: Session=Depends(get_db)):
     """Serve dashboard page - requires authentication"""
     my_users = db.query(Users).all()
-    #print("Total users" ,len(my_users))
     
-        
     for user in my_users:
         print("My user email: ",user.email)
-        
         print(f"user name: {user.first_name} {user.last_name}")
     if "user_id" not in request.session:
         return RedirectResponse(url="/auth", status_code=302)
@@ -261,9 +239,7 @@ def dashboard(request: Request,db: Session=Depends(get_db)):
     user_id = request.session.get("user_id")
     user = db.query(Users).filter(Users.id == user_id).first()
     
-    # ===== NEW: CHECK IF PIN IS SET =====
     if not user.transaction_pin:
-        # Redirect to PIN setup if not set
         return RedirectResponse(url="/set-pin", status_code=302)
     with open("templates/dashboard.html") as f:
         return HTMLResponse(content=f.read())
@@ -277,10 +253,8 @@ def serve_payroll_page(request: Request):
             detail = "Unauthorized Access"
         )
     
- 
     with open("templates/payroll-manager.html") as f:
         return HTMLResponse(content=f.read())
-
 
 secret = os.getenv("SECRET_HASH")
 
@@ -338,11 +312,7 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
     if not user:
         return {"status": "failed", "message": "User not found", "url": "/auth"}
     set_user_id({"user_id": user_id})
-    """
-    print("acct-balance: ",user.wallet_balance)
-    print("psa_ref" ,user.psa_ref)
-    print("user: ",user) 
-    """
+    
     return {
         "status": "success",
         "user": {
@@ -467,7 +437,6 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
             session_id = str(uuid.uuid4())
             request.session["thread_id"]= session_id
         
-        
         logging.status = "Success"
         
         db.commit()
@@ -487,6 +456,11 @@ def login(details:Login, request: Request,db: Session= Depends(get_db)):
 
 user_code = {}
 
+@app.post("/logout")
+def logout(request: Request):
+    """Clear session and logout user"""
+    request.session.clear()
+    return {"status": "success", "message": "Logged out successfully"}
 
 @app.post("/upload-file")
 async def upload_file(request: Request,db:Session = Depends(get_db), file:UploadFile = File(...)):
@@ -518,7 +492,6 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
     df.columns = df.columns.str.lower()
     data = [f"{idx + 1}. pay \"{row.name}\" \"{row.get('amount')} \" (NGN)  to  account number \"{row.get('account_number')}\"  \"{row.get('bank_name')}\" bank\n" for idx,row in df.iterrows()]
     data = "".join(data)
-    #print(data)
     session_id = request.session.get("thread_id")
     if not session_id or "user_id" not in request.session:
         return {
@@ -528,7 +501,6 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
         }
     
     set_db_session(db_session)
-    #print("session exists " if db_session else "session_does not exists")
     set_user_id({"user_id": request.session["user_id"]})
     res = agent.command(data, uuid = session_id)
     output = res.get("messages",[])
@@ -552,7 +524,6 @@ async def upload_file(request: Request,db:Session = Depends(get_db), file:Upload
         "failed_html_table": failed_html_table
     }
     return res
-
 
 @app.post("/send-money")
 @limiter.limit("5/minute")
@@ -618,13 +589,12 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
         db.rollback()
         return "Idempotency key exists"
         
-    
 tx_ref = f"DISPAY-VA-{str(uuid.uuid4().hex[:16])}"
 
 def retrieve_existing_account(eml):
     url = "https://api.flutterwave.com/v3/payout-subaccounts"
     headers = {
-        "Authorization":f"Bearer {os.getenv("FLUTTER_SECRET_API_KEY")}",
+        "Authorization":f"Bearer {os.getenv(\"FLUTTER_SECRET_API_KEY\")}",
         "Content-Type":"application/json"
     }
     try:
@@ -645,9 +615,6 @@ def retrieve_existing_account(eml):
         return None
     except Exception as e:
         return None
-                
-            
-    
 
 @app.get("/generate-account-number")
 def generate_account_number(req: Request, db: Session = Depends(get_db)):
@@ -709,18 +676,6 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
         )
         res_json = res.json()
         
-        """
-        Nigeria CBN 3-digit bank codes -> bank name.
-        These are the traditional 3-digit CBN clearing/sort codes used by
-        Nigerian commercial banks. This is the code format Squad's
-        virtual-account API returns in `bank_code` (e.g. "058" for GTBank,
-        "737" for Wema, as seen in Squad's own sample responses).
-        Note: Microfinance banks and fintech/digital banks (Kuda, Opay,
-        Moniepoint, PalmPay, etc.) generally use a *different*, longer
-        6-digit NIBSS/NIP code scheme, not included here. If Squad ever
-        returns a bank_code not in this dict, treat it as unmapped rather
-        than guessing, and fall back to displaying the raw code.
-        """
         NG_BANK_CODES = {
             "044": "Access Bank",
             "023": "Citibank Nigeria",
@@ -785,7 +740,6 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     except requests.exceptions.RequestException as e:
         return {"status": "failed", "message": f"An error occurred {str(e)}"}
 
-
 @app.get("/transaction-history")
 async def transaction_history(request: Request, db: Session = Depends(get_db)):
     """Get transaction history"""
@@ -794,12 +748,10 @@ async def transaction_history(request: Request, db: Session = Depends(get_db)):
         if "user_id" not in request.session:
             raise HTTPException(status_code=401)
         
-        # Get user with transfers
         user = db.query(Users).filter(Users.id == request.session["user_id"]).first()
         if not user:
             raise HTTPException(status_code=401)
         
-        # Get all transfers sorted by date (newest first)
         transfers = db.query(Transfers).filter(
             Transfers.user_id == user.id
         ).order_by(Transfers.time_of_transfer.desc()).all()
@@ -811,11 +763,9 @@ async def transaction_history(request: Request, db: Session = Depends(get_db)):
                 "html": "<p style='text-align: center; color: #999; padding: 30px;'>No transactions yet. Your transaction history will appear here.</p>"
             }
         
-        # Build HTML with pagination
         html = "<div class='history-container'>"
         
         for transfer in transfers:
-            # Format date
             date_str = transfer.time_of_transfer.strftime("%B %d, %Y at %I:%M %p")
             
             html += f"""
@@ -852,7 +802,6 @@ async def transaction_history(request: Request, db: Session = Depends(get_db)):
             "message": str(e)
         }
 
-# ===== PIN SETUP ROUTE =====
 @app.post("/set-transaction-pin")
 def set_transaction_pin(request: Request, payload: PinModel, db: Session = Depends(get_db)):
     """Set or update 4-digit transaction PIN"""
@@ -863,12 +812,10 @@ def set_transaction_pin(request: Request, payload: PinModel, db: Session = Depen
     
     user = db.query(Users).filter(Users.id == user_id).first()
     
-    # Validate PIN is 4 digits
     if not payload.pin.isdigit() or len(payload.pin) != 4:
         return {"status": "error", "message": "PIN must be exactly 4 digits"}
     
     try:
-        # Hash the PIN
         hashed_pin = ph.hash(payload.pin)
         user.transaction_pin = hashed_pin
         db.commit()
@@ -881,7 +828,6 @@ def set_transaction_pin(request: Request, payload: PinModel, db: Session = Depen
         db.rollback()
         return {"status": "error", "message": str(e)}
 
-# ===== PIN VERIFICATION ROUTE =====
 @app.post("/verify-transaction-pin")
 def verify_transaction_pin(request: Request, payload: PinModel, db: Session = Depends(get_db)):
     """Verify 4-digit PIN before payment"""
@@ -896,7 +842,6 @@ def verify_transaction_pin(request: Request, payload: PinModel, db: Session = De
         return {"status": "error", "message": "No PIN set"}
     
     try:
-        # Verify PIN
         ph.verify(user.transaction_pin, payload.pin)
         return {"status": "success", "message": "PIN verified"}
     except Exception:
@@ -910,8 +855,6 @@ def set_pin_page(request: Request):
     
     with open("templates/set-pin.html") as f:
         return HTMLResponse(content=f.read())
-
-#A function that generate otp
 
 def generate(secret):
     totp = pyotp.TOTP(secret,interval = 180)
@@ -945,22 +888,18 @@ def verify_otp(verify:VerifyOTP, request: Request):
     except Exception as e:
         print("exception has happened")
         return {"status":"failed","message":str(e)}
-        
-
 
 def send_email(user_email, otp_code):
     url = "https://api.brevo.com/v3/smtp/email"
     brevo_api_key = os.getenv("BREVO_API_KEY") 
     
     payload = {
-        # This references your newly activated Brevo Template ID
         "templateId": 2, 
         "to": [
             {
                 "email": user_email
             }
         ],
-        # This passes the otp_code into the {{ params.otp_code }} placeholder inside Brevo
         "params": {
             "otp_code": otp_code
         }
@@ -974,7 +913,6 @@ def send_email(user_email, otp_code):
     
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=10)
-        # Brevo returns 201 Created on successful execution
         succeeded = response.status_code == 201
         
         print("response from brevo template engine:", response.text)
@@ -991,7 +929,6 @@ def send_email(user_email, otp_code):
     except Exception as e:
         return {"status": "failed", "message": f"error: {str(e)}"}
 
-        
 @app.post("/send-otp")
 def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_db)):
     user_email = param.user_email
@@ -1016,7 +953,6 @@ def send_otp(param:OTPVerification,request: Request, db: Session = Depends(get_d
         return {"status":"success","message":f"OTP has been successfully sent to {masked_email} and expires in 3 minute","secret":secret,"created_at":time.time()}
     return {"message":"OTP not sent try again","status":"failed"}
 
-
 @app.post("/change-password")
 def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
     new_password= new_details.new_password
@@ -1038,85 +974,171 @@ def change_password(new_details:NewDetails,db:Session = Depends(get_db)):
         print("error saving new password:",str(e))
         return {"status":"failed","message":f"error commiting to db we have rollback new password is not added error:{str(e)}","url":"/auth"}
 
-@app.post("/employees-data")
-def insert_employee_data(data:EmployeePayrollRequest, request: Request,db: Session=Depends(get_db)):
+# ===== NEW: AIRTIME, DATA, ELECTRICITY ROUTES =====
+
+@app.post("/buy-airtime")
+@limiter.limit("10/minute")
+def buy_airtime(request: Request, payload: BuyAirtimeRequest, db: Session = Depends(get_db)):
+    """Buy airtime from Squad API"""
+    
     user_id = request.session.get("user_id")
     if not user_id:
-        raise HTTPException (
-            detail = "Unauthorized Access"
-        )
+        return {"status": "failed", "message": "Not logged in", "url": "/auth"}
+    
     user = db.query(Users).filter(Users.id == user_id).first()
-    is_an_employer = user.is_employer
-    if not is_an_employer:
-        raise HTTPException(
-            detail= "User is not an employer",
-            status_code = 401
-        )
-    employer_id = user.employer_id
+    if not user:
+        return {"status": "failed", "message": "User not found", "url": "/auth"}
     
-    employer = db.query(Organization).filter(Organization.id == employer_id).first()
+    if user.wallet_balance < payload.amount:
+        return {"status": "failed", "message": "Insufficient balance"}
     
-    employees = employer.employees
+    api_key = os.getenv("SQUAD_API_KEY")
+    url = "https://api-d.squadco.com/airtime/topup"
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    body = {
+        "phone_number": payload.phone_number,
+        "network": payload.network,
+        "amount": payload.amount
+    }
+    
     try:
-        employee_data = data.model_dump(exclude_unset=True)
-        employee = db.query(Employee).filter(Employee.email == data.email, Employee.employer_id == employer.id).first()
+        res = requests.post(url, headers=headers, json=body)
+        response_data = res.json()
         
-        if not employee:
-            employee_data = data.model_dump(exclude_unset=True)
-            new_employee = Employee(**employee_data,employer_id = employer.id)
-            
-            db.add(new_employee)
+        if response_data.get("success"):
+            user.wallet_balance -= payload.amount
             db.commit()
-            db.refresh(new_employee)
+            db.refresh(user)
+            
             return {
-                "status":"success",
-                "message":"data saved successfully 🎉🎊"
+                "status": "success",
+                "message": f"Airtime purchased successfully! {payload.network} - {payload.phone_number} - ₦{payload.amount}"
             }
         else:
-            
-            for key,val in employee_data.items():
-                setattr(employee,key,val)
-                
-            db.commit()
-            db.refresh(employee)
             return {
-                "status":"success",
-                "message":"data updated successfully 🎉🎊"
-        }
-            
+                "status": "failed",
+                "message": response_data.get("message", "Failed to purchase airtime")
+            }
     except Exception as e:
-        db.rollback()
-        return {"status":"failed","message":str(e)}
+        return {"status": "failed", "message": f"Error: {str(e)}"}
 
-
-@app.get("/get-employees-data")
-def get_employee_data(request: Requests,db: Session=Depends(get_db)):
+@app.post("/buy-data")
+@limiter.limit("10/minute")
+def buy_data(request: Request, payload: BuyDataRequest, db: Session = Depends(get_db)):
+    """Buy data from Squad API"""
+    
     user_id = request.session.get("user_id")
     if not user_id:
-        raise HTTPException (
-            detail = "Unauthorized Access",
-            status_code = 401
-        )
-        
+        return {"status": "failed", "message": "Not logged in", "url": "/auth"}
+    
     user = db.query(Users).filter(Users.id == user_id).first()
-    is_an_employer = user.is_employer
-    if not is_an_employer:
-        raise HTTPException(
-            detail= "User is not an employer",
-            status_code = 403
-        )
+    if not user:
+        return {"status": "failed", "message": "User not found", "url": "/auth"}
+    
+    data_plans = {
+        "500MB": {"price": 200, "sku": "500M"},
+        "1GB": {"price": 300, "sku": "1G"},
+        "2GB": {"price": 500, "sku": "2G"},
+        "3GB": {"price": 800, "sku": "3G"},
+        "5GB": {"price": 1200, "sku": "5G"},
+        "10GB": {"price": 2500, "sku": "10G"}
+    }
+    
+    plan_info = data_plans.get(payload.data_plan)
+    if not plan_info:
+        return {"status": "failed", "message": "Invalid data plan"}
+    
+    if user.wallet_balance < plan_info["price"]:
+        return {"status": "failed", "message": "Insufficient balance"}
+    
+    api_key = os.getenv("SQUAD_API_KEY")
+    url = "https://api-d.squadco.com/data/topup"
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    body = {
+        "phone_number": payload.phone_number,
+        "network": payload.network,
+        "sku": plan_info["sku"]
+    }
+    
     try:
-        employer_id = user.employer_id
-        employer = db.query(Organization).filter(Organization.id == employer_id).first()
-        employees = employer.employees
-        return {
-            "status":"success",
-            "employees":employees,
-            "message":"fetched employees successfully"
-        }
-    except Exception as error:
-        return {
-            "status":"failed",
-            "message":f"error:({str(error)})"
-        }
+        res = requests.post(url, headers=headers, json=body)
+        response_data = res.json()
+        
+        if response_data.get("success"):
+            user.wallet_balance -= plan_info["price"]
+            db.commit()
+            db.refresh(user)
+            
+            return {
+                "status": "success",
+                "message": f"Data purchased successfully! {payload.network} - {payload.phone_number} - {payload.data_plan}"
+            }
+        else:
+            return {
+                "status": "failed",
+                "message": response_data.get("message", "Failed to purchase data")
+            }
+    except Exception as e:
+        return {"status": "failed", "message": f"Error: {str(e)}"}
 
+@app.post("/buy-electricity")
+@limiter.limit("10/minute")
+def buy_electricity(request: Request, payload: BuyElectricityRequest, db: Session = Depends(get_db)):
+    """Pay electricity bill from Squad API"""
+    
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return {"status": "failed", "message": "Not logged in", "url": "/auth"}
+    
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        return {"status": "failed", "message": "User not found", "url": "/auth"}
+    
+    if user.wallet_balance < payload.amount:
+        return {"status": "failed", "message": "Insufficient balance"}
+    
+    api_key = os.getenv("SQUAD_API_KEY")
+    url = "https://api-d.squadco.com/electricity/pay"
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    body = {
+        "disco": payload.disco,
+        "meter_type": payload.meter_type,
+        "meter_number": payload.meter_number,
+        "amount": payload.amount
+    }
+    
+    try:
+        res = requests.post(url, headers=headers, json=body)
+        response_data = res.json()
+        
+        if response_data.get("success"):
+            user.wallet_balance -= payload.amount
+            db.commit()
+            db.refresh(user)
+            
+            return {
+                "status": "success",
+                "message": f"Electricity bill paid successfully! {payload.disco} - {payload.meter_number} - ₦{payload.amount}"
+            }
+        else:
+            return {
+                "status": "failed",
+                "message": response_data.get("message", "Failed to pay electricity bill")
+            }
+    except Exception as e:
+        return {"status": "failed", "message": f"Error: {str(e)}"}
