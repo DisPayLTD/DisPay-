@@ -651,6 +651,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     first_name = user.first_name
     last_name = user.last_name
     dob = user.dob
+    dib = dob.isoformat()
     gender = user.gender
     bvn = user.bvn
     address = user.address
