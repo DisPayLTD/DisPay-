@@ -30,7 +30,7 @@ class Users(Base):
     transactions:Mapped[list[dict[str,Any]]] = mapped_column(JSON,nullable = True, default=list)
     wallet_balance = Column(Float, default=0.0)
     creation_time = Column(DateTime(timezone=True), server_default=func.now())
-    transfers = relationship("Transfers", back_populates="user")
+    transfers = relationship("Transfers", back_populates="user", cascade="all, delete-orphan")
     is_employer = Column(Integer, default=0,nullable=True)
 
 
