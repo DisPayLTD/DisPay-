@@ -146,7 +146,7 @@ function setAccountType(type) {
 
 // Updated handleSignup function
 async function handleSignup() {
-    try{
+    try {
         const accountType = document.getElementById('accountType').value;
         const firstName = document.getElementById('firstName').value.trim();
         const lastName = document.getElementById('lastName').value.trim();
@@ -158,6 +158,7 @@ async function handleSignup() {
         const dob = document.getElementById('dob').value;
         const gender = document.getElementById('gender').value;
         const address = document.getElementById('address').value.trim();
+        
         // Standard Validation
         if (!firstName || !lastName || !email || !password || !phone || !nin ||!dob ||!gender || !address) {
             showError('Please fill all required personal fields');
@@ -212,77 +213,76 @@ async function handleSignup() {
                 }
             } catch (error) {
                 showError('Error: ' + error.message);
-                
             } finally {
-            loadingDiv.classList.add("hidden");
-        }
-    }catch (error){
-        showError('Error: ' + String(error))
-    }
-        return;
-    }
-
-    // --- BUSINESS SIGNUP ROUTE ---
-    if (accountType === 'business') {
-        const orgName = document.getElementById('orgName').value.trim();
-        const cac = document.getElementById('cac').value.trim();
-        const regType = document.getElementById('regType').value;
-        const tin = document.getElementById('tin').value.trim();
-
-        if (!orgName || !cac || !tin) {
-            showError('Please fill in Business Name, CAC, and TIN fields');
+                loadingDiv.classList.add("hidden");
+            }
             return;
         }
 
-        try {
-            loadingDiv.classList.remove("hidden");
+        // --- BUSINESS SIGNUP ROUTE ---
+        if (accountType === 'business') {
+            const orgName = document.getElementById('orgName').value.trim();
+            const cac = document.getElementById('cac').value.trim();
+            const regType = document.getElementById('regType').value;
+            const tin = document.getElementById('tin').value.trim();
 
-            // Step 1: Verify CAC & TIN first
-            const verifyRes = await fetch('/verify-cac-tin', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-                body: JSON.stringify({ cac, tin, reg_type: regType })
-            });
-            const verifyData = await verifyRes.json();
-
-            if (!verifyRes.ok || verifyData.status !== 'success') {
-                showError(verifyData.detail || verifyData.message || 'CAC or TIN verification failed');
-                loadingDiv.classList.add("hidden");
+            if (!orgName || !cac || !tin) {
+                showError('Please fill in Business Name, CAC, and TIN fields');
                 return;
             }
 
-            // Step 2: Proceed with Business Onboarding
-            const onboardRes = await fetch('/onboard-new-business', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-                body: JSON.stringify({
-                    first_name: firstName,
-                    last_name: lastName,
-                    email,
-                    password,
-                    phone_number: phone,
-                    nin,
-                    bvn,
-                    name: orgName,
-                    cac: `${regType}-${cac}`,
-                    tin: tin
-                })
-            });
-            const onboardData = await onboardRes.json();
+            try {
+                loadingDiv.classList.remove("hidden");
 
-            if (onboardData.status === 'success') {
-                showSuccess('Business registered successfully!');
-                setTimeout(() => {
-                    window.location.href = onboardData.url || '/dashboard';
-                }, 1200);
-            } else {
-                showError('' + (onboardData.detail || onboardData.message || 'Business onboarding failed'));
+                // Step 1: Verify CAC & TIN first
+                const verifyRes = await fetch('/verify-cac-tin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                    body: JSON.stringify({ cac, tin, reg_type: regType })
+                });
+                const verifyData = await verifyRes.json();
+
+                if (!verifyRes.ok || verifyData.status !== 'success') {
+                    showError(verifyData.detail || verifyData.message || 'CAC or TIN verification failed');
+                    loadingDiv.classList.add("hidden");
+                    return;
+                }
+
+                // Step 2: Proceed with Business Onboarding
+                const onboardRes = await fetch('/onboard-new-business', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        email,
+                        password,
+                        phone_number: phone,
+                        nin,
+                        bvn,
+                        name: orgName,
+                        cac: `${regType}-${cac}`,
+                        tin: tin
+                    })
+                });
+                const onboardData = await onboardRes.json();
+
+                if (onboardData.status === 'success') {
+                    showSuccess('Business registered successfully!');
+                    setTimeout(() => {
+                        window.location.href = onboardData.url || '/dashboard';
+                    }, 1200);
+                } else {
+                    showError('' + (onboardData.detail || onboardData.message || 'Business onboarding failed'));
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            } finally {
+                loadingDiv.classList.add("hidden");
             }
-        } catch (error) {
-            showError('Error: ' + error.message);
-        } finally {
-            loadingDiv.classList.add("hidden");
         }
+    } catch (error) {
+        showError('Error: ' + String(error));
     }
 }
 
