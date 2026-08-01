@@ -651,7 +651,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     first_name = user.first_name
     last_name = user.last_name
     dob = user.dob
-    dob = dob.isoformat()
+    dob = dob.strftime("%m/%d/%Y")
     gender = user.gender
     if gender== "male":
         gender = "1"
