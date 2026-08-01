@@ -1266,7 +1266,7 @@ def buy_electricity(request: Request, payload: BuyElectricityRequest, db: Sessio
         return {"status": "failed", "message": f"Error: {str(e)}"}
 
 def delete_user_by_email(email: str, db: Session) -> dict:
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(Users).filter(Users.email == email).first()
 
     if user is None:
         raise HTTPException(status_code=404, detail="User not found.")
