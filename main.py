@@ -678,7 +678,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     try:
         res = requests.post(url, headers=header, json=body)
         res_json = res.json()
-        
+        print("res_json: ",res_json)
         NG_BANK_CODES = {
             "044": "Access Bank",
             "023": "Citibank Nigeria",
