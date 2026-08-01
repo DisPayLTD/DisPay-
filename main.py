@@ -594,14 +594,11 @@ tx_ref = f"DISPAY-VA-{str(uuid.uuid4().hex[:16])}"
 def retrieve_existing_account(eml):
     url = "https://api.flutterwave.com/v3/payout-subaccounts"
     headers = {
-        "Authorization":f"Bearer {os.getenv(\"FLUTTER_SECRET_API_KEY\")}",
-        "Content-Type":"application/json"
+        "Authorization": f"Bearer {os.getenv('FLUTTER_SECRET_API_KEY')}",
+        "Content-Type": "application/json"
     }
     try:
-        response= requests.get(
-        url ,
-        headers = headers
-        )
+        response = requests.get(url, headers=headers)
         payload = response.json()
         if payload.get("status") == "success":
             data = payload.get("data")
@@ -656,24 +653,20 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     }
      
     body = {
-    "customer_identifier": tx_ref,
-    "first_name": first_name,
-    "last_name": last_name,
-    "mobile_num": phone,
-    "email": email,
-    "bvn": bvn,
-    "dob": dob,
-    "address": address,
-    "gender": gender,
-        }
+        "customer_identifier": tx_ref,
+        "first_name": first_name,
+        "last_name": last_name,
+        "mobile_num": phone,
+        "email": email,
+        "bvn": bvn,
+        "dob": dob,
+        "address": address,
+        "gender": gender,
+    }
     url = "https://api-d.squadco.com/"
 
     try:
-        res = requests.post(
-            url,
-            headers=header,
-            json=body
-        )
+        res = requests.post(url, headers=header, json=body)
         res_json = res.json()
         
         NG_BANK_CODES = {
@@ -706,13 +699,13 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
             "107": "Optimus Bank",
             "737": "Wema Bank (ALAT / alt code seen in Squad samples)",
         }
+        
         def get_bank_name(bank_code: str) -> str:
-            """Look up a bank name by its 3-digit CBN code."""
             return NG_BANK_CODES.get(bank_code, f"Unknown Bank ({bank_code})")
             
         if res_json.get("success"):
             data = res_json.get("data", {})
-            print("generate account number",data )
+            print("generate account number",data)
             account_number = data.get("virtual_account_number")           
             bank_code = data.get("bank_code")
             bank_name = get_bank_name(bank_code)
