@@ -95,6 +95,7 @@ class SignupRequest(BaseModel):
     bvn: str
     dob: date
     gender: str
+    is_employer : bool
     address: str
 
 class OTPVerification(BaseModel):
