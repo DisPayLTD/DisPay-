@@ -785,7 +785,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     
     url = "https://api.korapay.com/merchant/api/v1/virtual-bank-account"
     
-    payload = {
+    body = {
         "account_name": f"{first_name} {last_name}",
         "account_reference": tx_ref,
         "permanent": True,
