@@ -148,7 +148,7 @@ class Organization(Base):
     # --- Relationships ---
     employees = relationship(
         "Employee",
-        back_populates="employers",
+        back_populates="employer",
         foreign_keys="Employee.employer_id",
         cascade="all, delete-orphan",
     )
