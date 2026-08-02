@@ -788,7 +788,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     payload = {
         "account_name": f"{first_name} {last_name}",
         "account_reference": tx_ref,
-        "permanent": true,
+        "permanent": True,
         "bank_code": "090405",
         "customer": {
             "email": email,
