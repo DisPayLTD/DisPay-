@@ -739,7 +739,7 @@ def retrieve_existing_account(eml):
 
 @app.get("/generate-account-number")
 def generate_account_number(req: Request, db: Session = Depends(get_db)):
-     
+    tx_ref = f"DISPAY-VA-{str(uuid.uuid4().hex[:16])}"
     user_id = req.session.get("user_id")
     if not user_id:
         return {
@@ -768,6 +768,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     dob = user.dob
     dob = dob.strftime("%m/%d/%Y")
     gender = user.gender
+    
     if gender== "male":
         gender = "1"
     else:
@@ -775,75 +776,48 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     bvn = user.bvn
     address = user.address
     
-    api = os.getenv("SQUAD_API_KEY")
+    api = os.getenv("KORA_API_KEY")
     header = {
         "Authorization": f"Bearer {api}",
         "Content-Type": "application/json"
     }
      
-    body = {
-        "customer_identifier": tx_ref,
-        "first_name": first_name,
-        "last_name": last_name,
-        "mobile_num": phone,
-        "email": email,
-        "bvn": bvn,
-        "dob": dob,
-        "address": address,
-        "gender": gender,
-        "beneficiary_account":"6550842542"
+    
+    url = "https://api.korapay.com/merchant/api/v1/virtual-bank-account"
+    
+    payload = {
+        "account_name": f"{first_name} {last_name}",
+        "account_reference": tx_ref,
+        "permanent": true,
+        "bank_code": "090405",
+        "customer": {
+            "email": email,
+            "name": f"{first_name} {last_name}"
+        },
+        "kyc": {
+            "bvn": bvn
+        }
     }
-    url = "https://api-d.squadco.com/virtual-account"
-
     try:
         res = requests.post(url, headers=header, json=body)
         res_json = res.json()
         print("res_json: ",res_json)
-        NG_BANK_CODES = {
-            "044": "Access Bank",
-            "023": "Citibank Nigeria",
-            "050": "Ecobank Nigeria",
-            "070": "Fidelity Bank",
-            "011": "First Bank of Nigeria",
-            "214": "First City Monument Bank (FCMB)",
-            "058": "Guaranty Trust Bank (GTBank)",
-            "030": "Heritage Bank",
-            "301": "Jaiz Bank",
-            "082": "Keystone Bank",
-            "076": "Polaris Bank",
-            "101": "Providus Bank",
-            "221": "Stanbic IBTC Bank",
-            "068": "Standard Chartered Bank",
-            "232": "Sterling Bank",
-            "032": "Union Bank of Nigeria",
-            "033": "United Bank for Africa (UBA)",
-            "215": "Unity Bank",
-            "035": "Wema Bank",
-            "057": "Zenith Bank",
-            "100": "SunTrust Bank",
-            "102": "Titan Trust Bank",
-            "103": "Globus Bank",
-            "104": "Parallex Bank",
-            "105": "Premium Trust Bank",
-            "106": "Signature Bank",
-            "107": "Optimus Bank",
-            "737": "Wema Bank (ALAT / alt code seen in Squad samples)",
-        }
-        
-        def get_bank_name(bank_code: str) -> str:
-            return NG_BANK_CODES.get(bank_code, f"Unknown Bank ({bank_code})")
-            
-        if res_json.get("success"):
+              
+        if res_json.get("status"):
             data = res_json.get("data", {})
+            
             print("generate account number",data)
-            account_number = data.get("virtual_account_number")           
-            bank_code = data.get("bank_code")
-            bank_name = get_bank_name(bank_code)
-            psa_ref = data.get("customer_identifier")       
+            
+            param = res_json.get("data", {})
+            bank_name = param.get("bank_name")
+            account_number = param.get("account_number")
+            created_at = param.get("created_at")
+            unique_id = param.get("unique_id")       
             
             user.account_number = account_number
             user.bank_name = bank_name
-            user.psa_ref = psa_ref
+            user.psa_ref = unique_id
+            user.creation_time = created_at
             user.has_wallet = True
             
             db.commit()
