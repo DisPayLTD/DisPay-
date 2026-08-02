@@ -336,7 +336,7 @@ def verify(bank_names: List[str], acc_no: List[str], names: List[str]):
 def check_account_balance():
     """Use this tool to check user account balance"""
     db = get_db_session()
-    user_id = get_user_id()
+    user_id = get_user_id().get("user_id")
     user = db.query(Users).filter_by(id = user_id).first()
     if not user:
         return {"status":"failed","message":"Unauthorized Access"}
