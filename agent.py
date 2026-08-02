@@ -17,6 +17,7 @@ from datetime import datetime,timezone
 print("get_user_id: " ,get_user_id())
 api = os.getenv("FLUTTER_SECRET_API_KEY")
 llm_api = os.getenv("LLM_API_KEY")
+
 @tool
 def send_money(name:List[str],bank_name:List[str],account_number:List[str],amount:List[float],narration:List[str],user_input:str):
   """ Use this tool to send money """
@@ -166,7 +167,6 @@ def send_money(name:List[str],bank_name:List[str],account_number:List[str],amoun
     msg = "All transactions completed ✅ ")
   
   
-
 def data_creation(
   responses, 
   account_number, 
@@ -330,6 +330,18 @@ def verify(bank_names: List[str], acc_no: List[str], names: List[str]):
         "unverified": unverified,
         "errors": errors
     }
+
+
+@tool
+def check_account_balance():
+    """Use this tool to check user account balance"""
+    db = get_db_session()
+    user_id = get_user_id()
+    user = db.query(Users).filter_by(id = user_id).first()
+    if not user:
+        return {"status":"failed","message":"Unauthorized Access"}
+    balance = user.wallet_balance
+    return {"status":"success","message":f"User account balance is {balance}"}
     
     
     
@@ -389,4 +401,4 @@ Always look up and cross-reference the exact name of the bank using this referen
    return output 
 
 #tools for the agent
-tools = [send_money,transfer_history,verify]
+tools = [send_money,transfer_history,verify,check_account_balance]
