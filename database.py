@@ -154,7 +154,7 @@ class Organization(Base):
     )
 
     # The specific User who owns/administers this organization's account
-    owner = relationship("User", foreign_keys=[owner_user_id])
+    owner = relationship("Users", foreign_keys=[owner_user_id])
 
 
 class Transfers(Base):
