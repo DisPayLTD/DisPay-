@@ -171,7 +171,7 @@ class Transfers(Base):
 
 class FrequencyPayment(Base):
     __tablename__ = "frequency_payment"
-    id = Column(Integer, primary=True)
+    id = Column(Integer, primary_key=True)
     # --- schedule payments (electricity, data, airtime e.t.c) ---
 
     #--- Payment name ---
