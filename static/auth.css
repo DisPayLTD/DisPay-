@@ -470,7 +470,7 @@ body {
 }
 
 .toast.removing {
-    animation: tostOut 0.3s ease forwards;
+    animation: toastOut 0.3s ease forwards;
 }
 
 @keyframes toastIn {
