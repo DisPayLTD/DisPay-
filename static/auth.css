@@ -464,12 +464,12 @@ body {
     color: #2f855a;
 }
 
-.toast.eror {
+.toast.error {
     border-left-color: #f65656;
     color: #c53030;
 }
 
-.tost.removing {
+.toast.removing {
     animation: tostOut 0.3s ease forwards;
 }
 
