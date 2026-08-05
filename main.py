@@ -172,7 +172,14 @@ class BuyElectricityRequest(BaseModel):
 @app.on_event("startup")
 def startup():
     init_db()
-    
+
+@app.get("/.well-known/assetlinks.json", include_in_schema=False)
+async def get_assetlinks():
+    # Adjust path if your assetlinks.json is located inside a different directory
+    file_path = os.path.join("static", ".well-known", "assetlinks.json")
+    return FileResponse(file_path, media_type="application/json")
+
+
 @app.get("/csrf-token")
 def csrf_token(request: Request):
     try:
