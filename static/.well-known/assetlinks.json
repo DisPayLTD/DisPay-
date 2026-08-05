@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "ng.com.dispay.twa",
+        "sha256_cert_fingerprints": ["3A:2E:17:55:72:1A:34:B7:B3:24:D3:1F:EE:E2:C5:8F:EB:98:B2:39:BB:CE:5E:9A:A9:35:50:00:8E:92:6C:CA"]
+      }
+    }]
