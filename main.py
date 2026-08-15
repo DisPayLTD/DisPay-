@@ -814,6 +814,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     first_name = user.first_name
     last_name = user.last_name
     dob = user.dob
+    bvn = user.bvn
     dob = dob.strftime("%m/%d/%Y")
 
     
