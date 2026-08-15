@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, Depends, HTTPException,UploadFile,File,status,Form,Header
 import hmac
-import hashlib
+from contextlib import asynccontextmanager
 import logging
 from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone
@@ -744,10 +744,55 @@ def retrieve_existing_account(eml):
     except Exception as e:
         return None
 
+
+BASE_URL = "https://api.fincra.com"
+API_SECRET_KEY = os.getenv("FINCRA_API_KEY")
+
+headers = {
+    "api-key": API_SECRET_KEY,
+    "Content-Type": "application/json",
+    "accept": "application/json",
+}
+
+
+def create_virtual_account(first_name,last_name,email,dob,type = "individual"):
+    # Corrected Endpoint
+    endpoint = f"{BASE_URL}/profile/virtual-accounts/requests"
+
+    payload = {
+        "currency": "NGN",
+        "accountType": type,
+        "KYCInformation": {
+            "firstName": first_name,
+            "lastName": last_name,
+            "bvn": bvn, 
+            "email": email 
+        },
+        "channel": "moniepoint",
+        "dateOfBirth": dob,
+    }
+
+    try:
+        response = requests.post(endpoint, json=payload, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        details = data.get('data',{}).get('accountInformation',{})
+        return details
+        
+    except requests.exceptions.RequestException as e:
+        if e.response is not None:
+            print(f"Status Code: {e.response.status_code}")
+            return {
+                "status":"failed",
+                "message":f"{e.response.json().get("error")}"
+            }
+        else:
+            return ("Error:", str(e))
+            
 @app.get("/generate-account-number")
 def generate_account_number(req: Request, db: Session = Depends(get_db)):
-    tx_ref = f"DISPAY-VA-{str(uuid.uuid4().hex[:16])}"
     user_id = req.session.get("user_id")
+    
     if not user_id:
         return {
             "status": "failed",
@@ -755,12 +800,14 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
             "url": "/auth"
         }
     user = db.query(Users).filter(Users.id == user_id).first()
+    
     if not user:
         return {
             "status": "failed",
             "message": "User does not exist please signup or login first",
             "url": "/auth",
         }
+    
     if user.has_wallet:
         return {
             "status": "failed",
@@ -774,46 +821,14 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
     last_name = user.last_name
     dob = user.dob
     dob = dob.strftime("%m/%d/%Y")
-    gender = user.gender
+
     
-    if gender== "male":
-        gender = "1"
-    else:
-        gender = "2"
-    bvn = user.bvn
-    address = user.address
-    
-    api = os.getenv("KORA_API_KEY")
-    header = {
-        "Authorization": f"Bearer {api}",
-        "Content-Type": "application/json"
-    }
-     
-    
-    url = "https://api.korapay.com/merchant/api/v1/virtual-bank-account"
-    
-    body = {
-        "account_name": f"{first_name} {last_name}",
-        "account_reference": tx_ref,
-        "permanent": True,
-        "bank_code": "090405",
-        "customer": {
-            "email": email,
-            "name": f"{first_name} {last_name}"
-        },
-        "kyc": {
-            "bvn": bvn
-        }
-    }
     try:
-        res = requests.post(url, headers=header, json=body)
-        res_json = res.json()
-        print("res_json: ",res_json)
+        res = 
               
         if res_json.get("status"):
             data = res_json.get("data", {})
             
-            print("generate account number",data)
             
             param = res_json.get("data", {})
             bank_name = param.get("bank_name")
