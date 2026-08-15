@@ -721,32 +721,25 @@ def send_money(command:Command,request: Request,db: Session=Depends(get_db)):
         return "Idempotency key exists"
         
 tx_ref = f"DISPAY-VA-{str(uuid.uuid4().hex[:16])}"
-
-def retrieve_existing_account(eml):
-    url = "https://api.flutterwave.com/v3/payout-subaccounts"
-    headers = {
-        "Authorization": f"Bearer {os.getenv('FLUTTER_SECRET_API_KEY')}",
-        "Content-Type": "application/json"
-    }
-    try:
-        response = requests.get(url, headers=headers)
-        payload = response.json()
-        if payload.get("status") == "success":
-            data = payload.get("data")
-            df = pd.DataFrame(data)
-            user = df[df["email"] == eml]
-            if any(user):
-                account_num = user["nuban"].values[0]
-                psa_ref = user["account_reference"].values[0]
-                bank_name = user["bank_name"].values[0]
-                return account_num,bank_name,psa_ref
-        return None
-    except Exception as e:
-        return None
-
-
 BASE_URL = "https://api.fincra.com"
 API_SECRET_KEY = os.getenv("FINCRA_API_KEY")
+
+def fetch_existing_account(bvn: str):
+    # Fincra allows fetching by BVN query param
+    endpoint = f"{BASE_URL}/profile/virtual-accounts?bvn={bvn}"
+
+    headers = {
+        "api-key": API_SECRET_KEY,
+        "accept": "application/json",
+    }
+
+    response = requests.get(endpoint, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        details = data.get('data',{}).get('accountInformation',{})
+        return True,details
+    return False,None
+
 
 headers = {
     "api-key": API_SECRET_KEY,
@@ -773,21 +766,22 @@ def create_virtual_account(first_name,last_name,email,dob,type = "individual"):
     }
 
     try:
-        response = requests.post(endpoint, json=payload, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        details = data.get('data',{}).get('accountInformation',{})
-        return details
+        exists,data = fetch_existing_account(bvn)
+        if not exists:
+            response = requests.post(endpoint, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            details = data.get('data',{}).get('accountInformation',{})
+            return True,details
+        else:
+            return True,data
         
     except requests.exceptions.RequestException as e:
         if e.response is not None:
             print(f"Status Code: {e.response.status_code}")
-            return {
-                "status":"failed",
-                "message":f"{e.response.json().get("error")}"
-            }
+            return False,f"{e.response.json().get("error")}"
         else:
-            return ("Error:", str(e))
+            return False, ("Error:", str(e))
             
 @app.get("/generate-account-number")
 def generate_account_number(req: Request, db: Session = Depends(get_db)):
@@ -824,22 +818,17 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
 
     
     try:
-        res = 
-              
-        if res_json.get("status"):
-            data = res_json.get("data", {})
-            
-            
-            param = res_json.get("data", {})
-            bank_name = param.get("bank_name")
-            account_number = param.get("account_number")
-            created_at = param.get("created_at")
-            unique_id = param.get("unique_id")       
+        flag,res = create_virtual_account(first_name=first_name,last_name=last_name,email=email,dob=dob)
+        
+        if flag:
+            param = res
+            bank_name = param.get("bankName")
+            account_number = param.get("accountNumber")
+            unique_id = param.get("reference")       
             
             user.account_number = account_number
             user.bank_name = bank_name
             user.psa_ref = unique_id
-            user.creation_time = created_at
             user.has_wallet = True
             
             db.commit()
@@ -852,11 +841,12 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
             }
         else:
             return {
-                "status": "failed",
-                "message": res_json.get("message", "Failed to initialize subaccount wallet container.")
+                "status":"failed",
+                "message":res
             }
             
     except requests.exceptions.RequestException as e:
+        db.rollback()
         return {"status": "failed", "message": f"An error occurred {str(e)}"}
 
 @app.get("/transaction-history")
