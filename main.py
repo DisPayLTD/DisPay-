@@ -748,7 +748,7 @@ headers = {
 }
 
 
-def create_virtual_account(first_name,last_name,email,dob,type = "individual"):
+def create_virtual_account(first_name,last_name,email,dob,bvn,type = "individual"):
     # Corrected Endpoint
     endpoint = f"{BASE_URL}/profile/virtual-accounts/requests"
 
@@ -818,7 +818,7 @@ def generate_account_number(req: Request, db: Session = Depends(get_db)):
 
     
     try:
-        flag,res = create_virtual_account(first_name=first_name,last_name=last_name,email=email,dob=dob)
+        flag,res = create_virtual_account(first_name=first_name,last_name=last_name,email=email,dob=dob,bvn = bvn)
         
         if flag:
             param = res
