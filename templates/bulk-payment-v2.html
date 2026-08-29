@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Payment - DisPay</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style5.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1>💰 Bulk Payment</h1>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Send Payments</h2>
+            <p>Add recipients and send bulk payments to multiple bank accounts</p>
+        </div>
+
+        <!-- FORM -->
+        <div class="form-container">
+            <form id="recipientForm">
+                <!-- ACCOUNT NUMBER -->
+                <div class="form-group">
+                    <label class="form-label">Account Number</label>
+                    <input 
+                        type="text" 
+                        id="accountNumber" 
+                        class="form-input" 
+                        placeholder="Enter account number"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <!-- BANK SELECTION -->
+                <div class="form-group">
+                    <label class="form-label">Bank</label>
+                    <select id="bankSelect" class="form-select">
+                        <option value="">Select your bank</option>
+                        <option value="Access Bank">Access Bank (025)</option>
+                        <option value="Zenith Bank">Zenith Bank (057)</option>
+                        <option value="GTBank">GTBank (058)</option>
+                        <option value="First Bank">First Bank (011)</option>
+                        <option value="UBA">UBA (033)</option>
+                        <option value="FCMB">FCMB (214)</option>
+                        <option value="Stanbic IBTC">Stanbic IBTC (221)</option>
+                        <option value="Wema Bank">Wema Bank (035)</option>
+                        <option value="Fidelity Bank">Fidelity Bank (070)</option>
+                        <option value="Standard Chartered">Standard Chartered (068)</option>
+                        <option value="Ecobank">Ecobank (050)</option>
+                        <option value="Polaris Bank">Polaris Bank (076)</option>
+                        <option value="Unite Bank">Unite Bank (079)</option>
+                        <option value="Interswitch NUBAN">Interswitch NUBAN (100)</option>
+                        <option value="Providus Bank">Providus Bank (101)</option>
+                    </select>
+                </div>
+
+                <!-- ACCOUNT NAME (READ-ONLY) -->
+                <div class="form-group">
+                    <label class="form-label">Account Name</label>
+                    <div class="account-name-display" id="accountNameDisplay"></div>
+                </div>
+
+                <!-- AMOUNT -->
+                <div class="form-group">
+                    <label class="form-label">Amount (₦)</label>
+                    <input 
+                        type="number" 
+                        id="amount" 
+                        class="form-input" 
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                    >
+                </div>
+
+                <!-- ADD BUTTON -->
+                <div class="button-group">
+                    <button type="button" class="btn btn-add" id="addBtn">
+                        <i class="fas fa-plus"></i> Add Recipients
+                    </button>
+                    <!-- SEND BUTTON -->
+                     <button id="sendBtn" class="btn btn-send">
+                        <i class="fas fa-paper-plane"></i> Send Payments
+                    </button>
+
+                </div>
+                
+            </form>
+        </div>
+
+        <!-- RECIPIENTS LIST -->
+        <div id="recipientsList" class="recipients-list" style="display: none;">
+            <div class="recipients-header">
+                <span>Recipients</span>
+                <span class="recipient-count" id="recipientCount">0</span>
+            </div>
+            <div id="recipientsContainer"></div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div id="emptyState" class="recipients-list">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No recipients added yet</p>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+    <script src="/static/script5.js"></script>
+</body>
+</html>
