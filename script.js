@@ -1,4 +1,4 @@
-  // Bank codes mapping
+// Bank codes mapping
         const BANK_CODES = {
             'UBA': '033',
             'Access Bank': '044',
@@ -17,17 +17,16 @@
             'Polaris Bank': '076'
         };
 
-        const recipients = [];
-
         let recipientCount = 0;
-
+        let recipients = []
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded',function() {
             updateEmptyState();
         });
 
         function addRecipient() {
             recipientCount++;
+            
             const container = document.getElementById('recipientsContainer');
             
             // Row 1: Account Name and Number
@@ -43,7 +42,11 @@
                     <div class="table-label">Account Number</div>
                     <input type="text" placeholder="e.g., 1234567890" class="table-input account-number" id="number-${recipientCount}" onchange="checkVerifyButton(${recipientCount})">
                 </td>
-                <td class="table-col-actions" rowspan="2">
+                <td>
+                    <div class="table-label">Amount</div>
+                    <input type="text" placeholder="e.g., 1000" class="table-input amount" id="amount-${recipientCount}">
+                </td>
+                <td class="table-col-actions" rowspan="1">
                     <div class="table-actions">
                         <button class="btn-remove" onclick="removeRecipient(${recipientCount})">
                             <i class="fas fa-trash-alt"></i>
@@ -92,21 +95,16 @@
             document.getElementById('tableWrapper').style.display = 'block';
             updateEmptyState();
         }
-
+        
+        
+        //remove recipient function 
         function removeRecipient(id) {
             document.getElementById(`recipient-${id}-row1`).remove();
             document.getElementById(`recipient-${id}-row2`).remove();
             document.getElementById(`recipient-${id}-row3`).remove();
-            
-            let index = 0;
-            if (recipients){
-                recipients.forEach((rec, ind) =>{
-                    if (rec.id === id) {
-                        index = ind;
-                    }
-                });
-                recipients.pop(index);
-            }
+            const ind = recipients.findIndex(rec => rec.id === id);
+            recipients.splice(ind,1);
+            recipientCount--;
             updateEmptyState();
         }
 
@@ -129,7 +127,8 @@
             resetVerification(id);
             checkVerifyButton(id);
         }
-
+        
+        //check verify btn
         function checkVerifyButton(id) {
             const name = document.getElementById(`name-${id}`).value.trim();
             const number = document.getElementById(`number-${id}`).value.trim();
@@ -143,7 +142,9 @@
                 resetVerification(id);
             }
         }
-
+        
+        
+        // reset verification function 
         function resetVerification(id) {
             const verifyCell = document.getElementById(`verify-cell-${id}`);
             const verifyBtn = document.getElementById(`verify-btn-${id}`);
@@ -170,7 +171,9 @@
             // Call Fincra verification API
             verifyAccountWithFincra(number, bankCode, name, id);
         }
-
+        
+        
+        //verify accurount number api
         function verifyAccountWithFincra(accountNumber, bankCode, accountName, recipientId) {
             // Fincra verification endpoint
             const fincraUrl = 'https://sandboxapi.fincra.com/v1/accounts/resolve';
@@ -247,6 +250,8 @@
                 tableWrapper.style.display = 'block';
             }
         }
+        
+        //save bulk payment function 
 
         function saveBulkPayment() {
             const recipients = [];
@@ -256,34 +261,32 @@
                 showToast('Please add at least one recipient');
                 return;
             }
-            
+
             let isValid = true;
 
-            for (let id = 1; id <= recipientCount; id++) {
-                const nameEl = document.getElementById(`name-${id}`);
+            rows.forEach((row, index) => {
+                const id = index + 1;
+                const name = document.getElementById(`name-${id}`)?.value.trim();
+                const number = document.getElementById(`number-${id}`)?.value.trim();
+                const bank = document.getElementById(`bank-${id}`)?.value.trim();
 
-                if (!nameEl) continue; // recipient was deleted
-
-                const name = nameEl.value.trim();
-                const number = document
-                    .getElementById(`number-${id}`)
-                    .value.trim();
-                const bank = document.getElementById(`bank-${id}`).value.trim();
-
-                console.log(name, number, bank);
+                if (!name || !number || !bank) {
+                    isValid = false;
+                    showToast(`Recipient ${id}: Please fill all fields`);
+                    return;
+                }
 
                 recipients.push({
                     accountName: name,
                     accountNumber: number,
                     bankName: bank,
-                    bankCode: BANK_CODES[bank],
+                    bankCode: BANK_CODES[bank]
                 });
-            }
-            ``;
+            });
 
             if (!isValid) return;
 
-            /*// Create payload
+            // Create payload
             const payload = {
                 batchId: generateBatchId(),
                 timestamp: new Date().toISOString(),
@@ -297,9 +300,10 @@
 
             // Show modal with payload
             showPayloadModal(payload);
-            */
         }
-
+        
+        
+        //generate batchId function 
         function generateBatchId() {
             return `BATCH-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         }
@@ -333,8 +337,11 @@
             showToast('Payload ready for processing!');
             console.log('Payload:', window.currentPayload);
         }
-
+        
+        
+        //send payment function 
         function sendPayment() {
+            recipients = []
             
             const rows = document.querySelectorAll('#recipientsContainer tr');
 
@@ -344,34 +351,33 @@
             }
 
             let isValid = true;
-
-            for  (let i = 1; i <= recipientCount; i++) {
-                let nameEl = document.getElementById(`name-${i}`)
-                if(!nameEl) {
-                    continue; // Skip if recipient was deleted
-                }
+            
+            for(let i =1; i <= recipientCount;i++){
+                const id = i;
                 
-                const name = nameEl.value.trim();
-                const number = document.getElementById(`number-${i}`)?.value.trim();
-                const bank = document.getElementById(`bank-${i}`)?.value.trim();
-
-                if (!name || !number || !bank) {
+                let nameEl = document.getElementById(`name-${id}`);  
+                
+                const number = document.getElementById(`number-${id}`)?.value.trim();
+                const bank = document.getElementById(`bank-${id}`)?.value.trim();
+                alert()
+                if (!number || !bank) {
                     isValid = false;
                     showToast(`Please fill all fields`);
                     return;
                 }
-
+                if(!nameEl) continue;
+                const name = nameEl.value.trim();
                 
-
                 recipients.push({
+                    id: id,
                     accountName: name,
                     accountNumber: number,
                     bankName: bank,
                     bankCode: BANK_CODES[bank]
                 });
             };
-
-            if (!isValid) return;
+            
+            if (!recipients) return;
 
             // Simulate sending and generate results
             const results = recipients.map(recipient => {
@@ -390,7 +396,8 @@
             displayResults(results);
             showToast('Payment request submitted!');
         }
-
+        
+        //display results function 
         function displayResults(results) {
             const resultsSection = document.getElementById('resultsSection');
             const resultsGrid = document.getElementById('resultsGrid');
@@ -453,7 +460,8 @@
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }
-
+        
+        //show message function 
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;

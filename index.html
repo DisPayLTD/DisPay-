@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DisPay</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1><i class="fa-solid fa-dollar"></i> Bulk Payment</h1>
+        </div>
+        <div class="header-right">
+            <button class="btn-save" onclick="saveBulkPayment()">
+                <i class="fas fa-check"></i>
+                Save & Review
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Bulk Payment</h2>
+            <p>Add multiple recipients and process payments in one batch</p>
+        </div>
+
+        <!-- RECIPIENTS TABLE -->
+        <div class="recipients-table-wrapper" id="tableWrapper" style="display: none;">
+            <table class="recipients-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Account Name</th>
+                        <th style="width: 30%;">Account Number</th>
+                        <th style="width: 30%;">Amount</th>
+                        <th class="table-col-actions">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="recipientsContainer">
+                    <!-- Table rows will be added here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- EMPTY STATE (shown initially) -->
+        <div id="emptyState" class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No recipients added yet</p>
+            <p class="hint">Click the button below to add your first recipient</p>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="actions-section">
+            <button class="btn-add-recipient" onclick="addRecipient()">
+                <i class="fas fa-plus"></i>
+                Add Recipient
+            </button>
+            <button class="btn-send" onclick="sendPayment()" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+                Send Payment
+            </button>
+        </div>
+
+        <!-- TRANSACTION RESULTS SECTION -->
+        <div class="results-section hidden" id="resultsSection">
+            <div class="results-header">
+                <h3>Transaction Results</h3>
+            </div>
+
+            <div class="results-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCount">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #28a745;" id="successCount">0</div>
+                    <div class="stat-label">Successful</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #e74c3c;" id="failedCount">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYLOAD MODAL -->
+    <div class="modal" id="payloadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Payment Payload</h3>
+                <button class="btn-close-modal" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="payload-content">
+                <pre id="payloadText"></pre>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-copy" onclick="copyPayload()">
+                    <i class="fas fa-copy"></i> Copy JSON
+                </button>
+                <button class="btn-continue" onclick="continueProcess()">
+                    Continue <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast" id="toast" style="display: none;"></div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
