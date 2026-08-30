@@ -765,7 +765,7 @@ function triggerFileUpload() {
         });
 
         // Initialize
-        updateRecipientsList();
+        //updateRecipientsList();
 
 
 // ============================================
