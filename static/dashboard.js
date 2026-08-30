@@ -595,7 +595,7 @@ function triggerFileUpload() {
         let resolutionTimeout;
 
         // Account number input - trigger resolution as user types
-        document.getElementById('accountNumber').addEventListener('input', (e) => {
+        document.getElementById('accountNumberBulk').addEventListener('input', (e) => {
             clearTimeout(resolutionTimeout);
             const accountNumber = e.target.value.trim();
             const bankSelect = document.getElementById('bankSelect').value;
