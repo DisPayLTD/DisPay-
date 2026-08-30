@@ -628,7 +628,10 @@ function triggerFileUpload() {
             // Use NUBAN API (free)
             fetch(`/verify-bank-account`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'X-CSRFToken':getCsrfToken(),
+                    'Content-Type': 'application/json' 
+                },
                 body: JSON.stringify({
                     account_number: accountNumber,
                     bank_code: bankCode
