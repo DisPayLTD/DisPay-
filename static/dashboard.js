@@ -576,7 +576,7 @@ function triggerFileUpload() {
         const BANK_CODES = {
             'Opay':'305',
             'Palmpay':'100033',
-            'Moniepoint':'50515',
+            'Moniepoint':'050515',
             'Access Bank': '025',
             'Zenith Bank': '057',
             'GTBank': '058',
