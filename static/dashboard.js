@@ -610,6 +610,7 @@ function triggerFileUpload() {
         // Bank selection change
         document.getElementById('bankSelect').addEventListener('change', (e) => {
             const accountNumber = document.getElementById('accountNumber').value.trim();
+            console.log(accountNumber || "no account number");
             if (accountNumber.length >= 10 && e.target.value) {
                 resolveAccountName(accountNumber, e.target.value);
             }
