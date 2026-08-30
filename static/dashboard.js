@@ -573,8 +573,6 @@ function triggerFileUpload() {
 // BULK PAYMENT (NEW)
 // ============================================
 
-function bulkPayment(){
-    
         const BANK_CODES = {
             'Access Bank': '025',
             'Zenith Bank': '057',
@@ -644,14 +642,14 @@ function bulkPayment(){
                     display.textContent = name;
                     display.style.opacity = '1';
                 } else {
-                    showToast('Account not found. Check details.', 'error');
+                    showError('Account not found. Check details.');
                     hideAccountNameDisplay();
                 }
             })
             .catch(error => {
                 console.error('Resolution error:', error);
                 display.classList.remove('loading');
-                showToast('Verification failed. Try again.', 'error');
+                showError('Verification failed. Try again.');
                 hideAccountNameDisplay();
             });
         }
@@ -671,7 +669,7 @@ function bulkPayment(){
 
             
             if (!accountNumber || !bankName || !amount) {
-                showToast('Please fill all fields', 'error');
+                showError('Please fill all fields');
                 return;
             }
 
@@ -691,7 +689,7 @@ function bulkPayment(){
 
             // Update UI
             updateRecipientsList();
-            showToast('Recipient added!', 'success');
+            showSuccess('Recipient added!', 'success'); 
         });
 
         // Update recipients list display
@@ -733,13 +731,13 @@ function bulkPayment(){
         window.removeRecipient = (id) => {
             recipients = recipients.filter(r => r.id !== id);
             updateRecipientsList();
-            showToast('Recipient removed', 'success');
+            showSuccess('Recipient removed');
         };
 
         // Send payments
         document.getElementById('sendBtn').addEventListener('click', () => {
             if (recipients.length === 0) {
-                showToast('No recipients added', 'error');
+                showError('No recipients added', 'error');
                 return;
             }
 
@@ -759,27 +757,15 @@ function bulkPayment(){
             };
 
             console.log('Payment payload:', payload);
-            showToast(`${recipients.length} payment(s) ready to send!`, 'success');
+            showSuccess(`${recipients.length} payment(s) ready to send!`);
 
             // Here you would send to your backend
             // await fetch('/api/bulk-payments', { method: 'POST', body: JSON.stringify(payload) })
         });
 
-        // Toast
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = type;
-            toast.style.display = 'block';
-
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-
         // Initialize
         updateRecipientsList();
-}
+
 
 // ============================================
 // BUY AIRTIME (NEW)
