@@ -574,7 +574,7 @@ function triggerFileUpload() {
 // ============================================
 
         const BANK_CODES = {
-            'Opay':305 ,
+            'Opay':'305' ,
             'Access Bank': '025',
             'Zenith Bank': '057',
             'GTBank': '058',
