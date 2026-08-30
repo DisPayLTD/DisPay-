@@ -1292,6 +1292,9 @@ def verify_bank_account(request: Request, details: VerifyAccountDetails):
     flw_secret_key = os.getenv("FLUTTER_SECRET_API_KEY")
     
     url = "https://api.flutterwave.com/v3/accounts/resolve"
+
+    account_number = details.account_number
+    bank_code = details.bank_code
     
     headers = {
         "Authorization": f"Bearer {flw_secret_key}",
