@@ -169,6 +169,11 @@ class BuyElectricityRequest(BaseModel):
     meter_number: str
     amount: float
 
+class VerifyAccountDetails(BaseModel):
+    account_number: str
+    bank_code: str
+
+
 @app.on_event("startup")
 def startup():
     init_db()
@@ -1273,23 +1278,17 @@ def delete_user_by_email(email: str, db: Session) -> dict:
 
     return {"status": "success", "message": f"User with email {email} deleted."}
 
-class VerifyAccountDetails(BaseModel):
-    account_number: str
-    bank_code: str
-
 
 @app.post("/verify-bank-account")
 def verify_bank_account(request: Request, details: VerifyAccountDetails):
     """Verify bank account details using Flutterwave API"""
-
-    """
+    
     if "user_id" not in request.session:
         return {
             "status": "failed",
             "message": "user is not logged in",
             "url": "/auth"
         }
-    """
     flw_secret_key = os.getenv("FLUTTER_SECRET_API_KEY")
     
     url = "https://api.flutterwave.com/v3/accounts/resolve"
