@@ -1282,7 +1282,7 @@ def delete_user_by_email(email: str, db: Session) -> dict:
 @app.post("/verify-bank-account")
 def verify_bank_account(request: Request, details: VerifyAccountDetails):
     """Verify bank account details using Flutterwave API"""
-    
+    print(f" we are in the route")
     if "user_id" not in request.session:
         return {
             "status": "failed",
@@ -1307,7 +1307,7 @@ def verify_bank_account(request: Request, details: VerifyAccountDetails):
     try:
         response = requests.post(url, json=payload, headers=headers)
         response_data = response.json()
-        
+        print(f"our response:{response_data}")
         if response_data.get("status") == "success":
     
             account_name = response_data["data"]["account_name"]
