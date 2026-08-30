@@ -667,7 +667,7 @@ function triggerFileUpload() {
 
         // Add recipient
         document.getElementById('addBtn').addEventListener('click', () => {
-            const accountNumber = document.getElementById('accountNumber').value.trim();
+            const accountNumber = document.getElementById('accountNumberBulk').value.trim();
             const bankName = document.getElementById('bankSelect').value;
             const accountName = document.getElementById('accountNameDisplay').textContent;
             const amount = document.getElementById('amount').value;
